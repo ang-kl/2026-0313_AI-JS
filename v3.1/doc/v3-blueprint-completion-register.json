@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T14:24:17+00:00"
+      "updatedAt": "2026-09-08T22:40:10+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -2705,7 +2705,7 @@
       "title": "Build the structured candidate-proof ledger",
       "requirement": "Build the structured candidate-proof ledger.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-007"
       ],
@@ -2825,6 +2825,11 @@
           "kind": "FILE",
           "reference": "v3.1/tests/candidate-proof-ledger.mjs",
           "label": "DEFECT found by the Supervisor, not by the builder: the race fix in 22d2413 waited for the very words it then asserted, the vacuous-verification class; a notice reading 'Refused: ...' where 'Claim recorded at' belonged would have failed as a 5-second timeout without the assertion's message. Corrected in 86e4320: the notice is captured before the action, the wait is for it to change and be non-empty, the assertion keeps its message. Named by the Supervisor as a pattern to refuse: a wait predicate must be a precondition about a different subject, never the assertion itself."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ff4c7c03f6b9de89b8b4cb3247275c8b6b199f1d",
+          "label": "NOTE (post-completion, appended not edited): the known omission 'ProofRecord.targets stays [] (BLP-009)' recorded at BLP-008 is discharged by BLP-009 at ff4c7c0: targets[] now holds the VALID links a human drew to stable duty and requirement identifiers, and is re-judged by the system against the posting evidence. BLP-008's own artefacts are unchanged; its suite re-ran unchanged at 103 node and 184 Chromium on the BLP-009 tree."
         }
       ],
       "blockers": [
@@ -2832,7 +2837,7 @@
           "id": "BLP-008-BLOCKER-01",
           "description": "The structured proof ledger is not recorded as implemented.",
           "ownerRole": "product-ui-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -2843,6 +2848,31 @@
               "kind": "TEST",
               "reference": "v3.1/tests/candidate-proof-ledger.mjs",
               "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
             }
           ]
         }
@@ -2881,15 +2911,31 @@
               "label": "SUPERSEDED as the implementation commit by 22d2413 (one waited read in the Chromium suite; every source, panel and workflow blob unchanged). BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
             }
           ],
-          "note": "Implementation commit 86e4320 (second test-only revision; chain 159e429 -> 22d2413 -> 86e4320, each earlier commit kept as superseded evidence) on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 86e4320 (second test-only revision; chain 159e429 -> 22d2413 -> 86e4320, each earlier commit kept as superseded evidence) on the working branch. Merged to main as c3923af by PR #500; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields; the eighth affected file, the feature-map manifest, is carried by 098deb3, cited on the merge commit's evidence links."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "c3923af48f687d91b42ea5a46139d7273a01c424",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/500",
+          "mergedAt": "2026-09-08T22:31:13+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/500",
+              "label": "PR #500 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Exact merge commit c3923af"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            }
+          ],
+          "note": "Merge commit c3923af (PR #500, squash of implementation 159e429, record 5a2ee43, reconciliation merge f983fab, feature-map locator shift 098deb3, label correction ec21fc2, test-only revisions 22d2413 and 86e4320 with record commits fce4102 and 6710ecb), merged 2026-09-08T22:31:13+08:00. Merge identity proven by blob SHA equality on all eight affected files and an empty diff over v3.1/src, v3.1/tests, .github and v3.1/doc between 6710ecb and c3923af. Superseded implementation commits 159e429 and 22d2413 are retained on the record as evidence so the chain of revisions stays legible."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -2898,17 +2944,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-008 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/candidate-proof-ledger.mjs",
+          "checkedAt": "2026-09-08T22:34:14+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+            }
+          ],
+          "note": "Run on the merged tree at c3923af by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit (the pull_request run 34238047809 on 6710ecb is kept as the PR's green check, not as this evidence; its two predecessors, 34236077643 and 34236469225, failed on the feature-map locator drift and on the notice read respectively and are cited on the evidence links). Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised by this run; that assurance belongs to the pull_request run 34238047809 (run 79) on 6710ecb, which supplied the real base f051bcd and passed the locator check that run 76 had failed, and the record cites which run carries which assurance rather than letting the dispatch appear to cover both, and the blueprint-register construction-scope step is gated on a codex branch-name prefix and skipped on every run of this branch; this run executes tests/candidate-proof-ledger.mjs with the BLP-003 to BLP-007 suites at both viewports after browser-gate and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "c3923af48f687d91b42ea5a46139d7273a01c424"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -2918,7 +2980,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-008 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -2972,14 +3034,123 @@
               "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T22:34:56+08:00",
+          "reason": "Blueprint Supervisor established merge identity directly by blob SHA between implementation commit 86e4320 and merge commit c3923af across ALL EIGHT declared affected files: candidateProofLedgerData.js 84afecd643b0, CandidateProofLedger.jsx 8ba53b711a0b, personEvidenceData.js 5c8d170ce441, ReviewStudio.jsx ff00fdc9f5fa, WorkUniverseLanding.jsx e7bdf2b7a117, tests/candidate-proof-ledger.mjs 378e639dde0b, .github/workflows/v31-browser-gate.yml e070fc4d1e1b, doc/v3-step3-feature-map.manifest.json 5de4b65c2055; and git diff 6710ecb c3923af -- v3.1/src v3.1/tests .github v3.1/doc is empty. Six of the eight are the same bytes the Supervisor attested at 3b2d600, unchanged through a cherry-pick onto a moved base, a manifest locator correction, a label correction, two test-only revisions and a squash merge. Read the workflow_dispatch run 34238806154 (job 102103372642) on main at c3923af, conclusion success, from the job object and the log: candidate-proof-ledger 103 node and 184 Chromium at 1440x1000 and 430x932, browser-gate with no browser errors, evidence-round-trip 171+216, evidence-window 39+107+146, reviewer-contract 61+120, evidence-failure-paths 113+160, person-evidence-contract 65 and person-evidence-excerpts 104 unchanged, evidence-contract 396 at contract 1.1.0, register and feature-map contracts passing. Step 9 skipped by its branch-name gate, correct on main.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+              "label": "Implementation commit 86e4320 (candidateProofLedgerData.js, CandidateProofLedger.jsx, personEvidenceData.js, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/candidate-proof-ledger.mjs with the wait-then-assert notice read, gate workflow line)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T22:34:58+08:00",
+          "reason": "All three acceptance criteria are discharged. Criterion 1: each confirmed excerpt is one contract ProofRecord carried with its source id, span id, source hash and exact excerpt, distinct by a proof id that is a pure function of source and span, validated through validateProofRecord on every transition and through one commit guard that runs validateLedger before any result becomes state. Criterion 2: the record carries the human's own claim (USER_AUTHORED, null until typed, never pre-filled from the excerpt), a governed proof type with validator coverage and its words provisional pending the Human Lead, the confirmation record, missing evidence computed deterministically from the record, and downstream uses said in \"not yet\" words rather than withheld. Criterion 3: any edit to the pasted text stales every active record together by system detection, the panel says so and does not imply per-proof examination, the same ids resume the same record with its history intact rather than appending a duplicate, and removal and clearing withhold by a human act. The Supervisor probed the guard adversarially in memory: a forged proof type, a forged claim, a claim rewritten after its event, a forged state and a payload whose excerpt text was altered by one character are each refused with a named reason, the refusal attributed to the system and no record changed; output is byte-identical across identical folds and previousLedger is not mutated.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+              "label": "Implementation commit 86e4320 (candidateProofLedgerData.js, CandidateProofLedger.jsx, personEvidenceData.js, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/candidate-proof-ledger.mjs with the wait-then-assert notice read, gate workflow line)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T22:34:58+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+            "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+            "label": "Implementation commit 86e4320 (candidateProofLedgerData.js, CandidateProofLedger.jsx, personEvidenceData.js, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/candidate-proof-ledger.mjs with the wait-then-assert notice read, gate workflow line)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+            "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+            "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+            "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-round-trip.mjs",
+            "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+          }
+        ],
+        "note": "Approved on the Supervisor's own reading of run 34238806154, not on any summary. Dispatch caveat carried and verified at the step's own command line: the feature-map step ran with FEATURE_MAP_BASE_REF empty, so this run passes it without exercising the base-ref comparison; the base-ref assurance belongs to the pull_request run 34238047809 on 6710ecb, which ran with base f051bcd and passed, and the record says which run carries which. The register-scope step is skipped by a branch-name gate that cannot match main. TWO DEFECTS THE SUPERVISOR FOUND AND REQUIRED CORRECTED BEFORE MERGE are on the record with their fixes: an evidence label asserting a diff was empty over v3.1 and .github when it was not, corrected to the true pathspec; and a Playwright wait whose predicate was its own assertion, which made \"the panel notice says the claim was recorded\" unable to fail. On the second, the builder's replacement is better than the Supervisor's suggested predicate: a wait for \"non-empty\" would have reintroduced the race because the notice already carried the proof-type text, and the builder caught that and said so. CI, not the builder, found the phone-width race; the record says so. Known omissions stand with their owners; the proof-type vocabulary remains with the Human Lead, and the whole-text proof class remains conditional on BLP-007's open no-proof-until-marked option.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
@@ -2990,7 +3161,7 @@
       "title": "Link proof records to role evidence",
       "requirement": "Link proof records to duties, requirements, skills, competencies, and accepted review observations.",
       "priority": "P1",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-008"
       ],
@@ -3010,6 +3181,116 @@
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudioLegacy.jsx",
           "label": "Review implementation"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ff4c7c03f6b9de89b8b4cb3247275c8b6b199f1d",
+          "label": "BLP-009 implementation commit ff4c7c0: the link layer on the BLP-008 ledger (candidateProofLedgerData.js: bundleTargets offers only stable identifiers from the posting's BLP-003 bundle, distilled duty ids whose parentage is VERIFIED or USER_CONFIRMED and verbatim requirement span ids; linkProof snapshots the target's source id, source hash, exact text and derivation state at link time, keeps the contract record's targets[] equal to the VALID links only, and asserts target integrity itself (present in the bundle, trusted, same source, same text) rather than relying on the contract's checkCitedSpans, which skips an absent target and checks a verbatim one for nothing; reconcileLinks re-judges every link by system detection, a posting change invalidating every link to the earlier posting together, a stale or withheld record invalidating its own links, and a link resuming when the same target stands again; unlinkProof is a human act; four new event kinds with reasons pinned; validateLedger governs every link field and refuses a link without its LINKED event, a targets[] out of step with the VALID links, or a kind without an identifier class), CandidateProofLedger.jsx (per record: the pick list of current targets, each link with its state in words, its target text labelled as the snapshot at link time and never as the current text, Open target in evidence workspace through BLP-003's own jump, Unlink; the panel says which kinds cannot be linked yet and why, with the owner; the posting-change note says every link to the earlier posting is invalid together and that no link was examined on its own), ReviewStudio.jsx (the posting bundle built once beside the ledger, folded with it and re-judged when the bundle changes, clock at the boundary), WorkUniverseLanding.jsx (bundle and jump passed through), tests/proof-links.mjs (node 148 checks over a real adapter bundle, Chromium 213 at 1440x1000 and 430x932 on the company flow, every assertion naming what would make it fail), gate workflow line AFTER THE RE-AUDIT RULINGS (Supervisor: C-a, C-b, W-a, W-b in scope): judgeLink gives one verdict per condition with no default arm (TARGET_EVIDENCE_UNAVAILABLE for a target that could not be read, unknown and never valid; TARGET_REEXTRACTED with a re-link OFFERED only when exactly one current row carries the snapshot text, two or more offering nothing); relinkProof as one human act with two events naming each other; a system stamp clamped to the ledger's last instant, compared as instants and said in the event; a reconcile that cannot validate throws and is caught at the ReviewStudio boundary into a warm withheld panel state; every refusal exit of the fold re-judges its links; linkStanding, missingEvidenceOf and downstreamUsesOf re-judge live when given a bundle and say 'not re-checked', 'could not be judged' or 'not checked: this record is STALE, not active' when they cannot; an exhaustive resume-reason table (TARGET_RESTORED, TARGET_EVIDENCE_READ, CANDIDATE_SOURCE_RESTORED); LEDGER_VERSION 1.1.0; the Step 3 feature-map router range moved to ReviewStudio's new lines (26-99 to 27-122)."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/proof-links.mjs",
+          "label": "Proof-links suite: Part A node 148 checks (the catalogue offers only content-addressed duty ids and offset-span requirement ids with VERIFIED parentage, the AI-only duty unlinkable with its parentage named; a trusted duty and a verbatim requirement link with the exact target text snapshotted, the contract targets equal to the VALID links and validateProofRecord passing against the bundle's known spans; skills, competencies and accepted observations refused with NO_IDENTIFIER_CLASS or NO_DECISION_RECORD naming the owner, each refusal on the record and no record changed; an unverified duty, an id not in the bundle, a duplicate, no bundle, an unknown record and an unknown kind refused; a posting change invalidates every link together with TARGET_SOURCE_CHANGED by the system, the contract targets emptied, the snapshots and both texts untouched; the same bundle resumes the links with the snapshot still equal to the current text; TARGET_ABSENT, TARGET_TEXT_CHANGED and TARGET_UNTRUSTED each named; a stale candidate record takes its links with it and restoring the text brings them back; unlinking by a human keeps its history; forged links, targets out of step, a link without its event, a link to a kind without an identifier class, an empty snapshot and a human-attributed invalidation refused; deterministic), Part B Chromium 213 checks total at 1440x1000 and 430x932 (the panel names the unlinkable kinds and their owner; a confirmed excerpt links to a duty and a requirement chosen from a list that offers no skill, competency or observation; both target texts sit beside the excerpt labelled as snapshots at link time, never as the current text; the jump opens the linked duty in the evidence workspace by its canonical id and the links survive the return; the candidate record going stale invalidates both links with the reason in words and the snapshots kept; restoring the text resumes them; unlinking is said in words; nothing reaches browser storage; 44px controls; no overflow) Sections A10-A13 assert the four rulings, each in the direction that would fail if the fix collapsed: the two unreadable-bundle branches with the assertion that their reason differs from TARGET_SOURCE_CHANGED; one matching row offers and two or more offer nothing and say so; a backdated and an offset-form earlier clock are clamped and said, a forged ledger makes reconcile throw, a refused fold re-judges its links; a view without a bundle says it was not re-checked, with an unreadable bundle says the links could not be judged, and with a changed posting says the stored VALID links no longer stand. Every notice read in Part B captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion (the shape the Supervisor required on BLP-008)."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "EXIT AUDITS (conformance-auditor, 2026-09-08, read-only, twice). FIRST AUDIT on the link layer: hard gates PASS; two criticals fixed and asserted before commit (the reconcile trigger keyed on the linkable catalogue rather than the posting identity, so a re-distillation of unchanged text is seen; a record that gained no link event returned untouched so the commit guard accepts a batch) plus seven warnings and seven suggestions acted on. RE-AUDIT after the Supervisor's rulings: C-a, C-b, W-a, W-b, W-c, S-b and S-d confirmed holding with file:line evidence; NO critical; D3, D4, D5, D6 PASS, D7 partial, D8 raised; G1 PASS in substance (provenance in words, not chips), G2-G8 PASS with two warnings against G8; hard gates PASS. Seven warnings raised in one family, a default branch asserting a cause nobody established, all fixed and asserted before this commit: the candidate-side resume reason (an exhaustive table with no default arm and a governed CANDIDATE_SOURCE_RESTORED reason), the unjudged caveat visible even when every stored link is INVALID, an inactive record's links reported as not checked because the RECORD is inactive rather than as lapsed against the posting, instant comparison by Date.parse so an offset-form earlier clock is clamped, a refused fold (payload, transition or commit) still re-judging its links against the bundle it was given, the W-a throw caught at the ReviewStudio boundary into a warm withheld panel state instead of an unmounted tree, and LEDGER_VERSION 1.0.0 to 1.1.0 for the vocabulary change. Suggestions acted on: standing empty when unjudged with recorded carried separately; one statement for an absent bundle across panel and views; the clamp said beside the batch notice's instant; the candidate-side path's dead clamp removed with the reason stated."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "EXIT AUDIT (a11y-honesty-reviewer, 2026-09-08, read-only): PASS on every check for the link controls. No red or green; VALID and INVALID links differ by border style and words; 44px on the select, Link, Unlink and Open controls at both widths with the flex basis wrapping rather than shrinking; the select labelled through htmlFor and id, Unlink and Open carrying aria-labels naming the target, the link list named through aria-labelledby, the posting-change note an announced status region; no aria-label on generic spans; focus-visible preserved; the snapshot labelled 'as it was at link time ... not the current text'; 'still stands' only on a VALID link; 'not yet linked' pending, not a judgement; every invalidation reason worded as a cause, none blaming the user; the posting-change note saying every link went invalid together and that no per-link examination happened; no fabricated precision. One completeness gap fixed before commit and asserted in Chromium: the availability note reused the skill text for competencies and dropped both owners; each unlinkable kind now carries its own reason and owner. The reviewer noted that both files vanished from disk mid-review because the working tree was reset for the BLP-007 approval; the review is of the full read completed before that. The 'AI-assisted; human decides' footer rule does not apply: the panel authors no AI figure and the page footer is on screen whenever it is open. SECOND REVIEW (a11y-honesty-reviewer, after the Supervisor's C-a, C-b, W-a, W-b rulings were implemented): PASS on no red or green, state in words, 44px on the new Re-link button at both widths, the aria-describedby explanation unique per link and present exactly when the Open control is disabled, three distinct sentences for three distinct conditions (not re-checked in this view; could not be judged; no longer stands), an unreadable target 'unknown, not confirmed', a re-extracted target 'the same text under a new id', a re-link offered and never made and only on exactly one match. ONE FAIL, fixed before commit: four polite live regions (the three link notes and the notice) could announce one reconcile instant four times, so the three link notes are now plain visible text in reading order and the batch-counting notice is the one live carrier. Wording tightened as suggested: a VALID link on an inactive record reads 'recorded VALID; not checked: this proof record is <state>, not active', so it cannot be skimmed as the unreadable-evidence case."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "DEFECT found by the conformance re-audit (C-a) and ruled in scope by the Supervisor: judgeLink collapsed 'no bundle' and 'bundle not OK' into TARGET_SOURCE_CHANGED, so the panel said the posting evidence changed when nothing was known to have changed and the app merely could not read it. Fixed: TARGET_EVIDENCE_UNAVAILABLE (not judged; unknown, never valid) with its own words, a separate unjudged note, the changed-posting banner narrowed to TARGET_SOURCE_CHANGED, resumption after readability as TARGET_EVIDENCE_READ rather than TARGET_RESTORED; asserted for null and BUNDLE_NOT_OK bundles with the assertion that dies if the two reasons collapse."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "DEFECT found by the conformance re-audit (C-b) and ruled in scope: a duty id folds the extraction version, so a re-distillation of unchanged text orphaned every duty link while the panel said the duty was 'no longer in the posting evidence'. Fixed: TARGET_REEXTRACTED when a current row of the same kind carries the snapshot text; a re-link is OFFERED to the human (relinkProof: UNLINKED and LINKED in one commit, each naming the other) only when exactly one row matches; two or more matches say so and offer none (AMBIGUOUS_RELINK); zero matches stay TARGET_ABSENT; the BLP-003 id scheme untouched; both directions asserted."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "DEFECT found by the conformance re-audit (W-a) and ruled in scope as structural: a refused reconcile returned the base ledger with links still reading VALID to every consumer. Fixed structurally: the system stamp is clamped to the ledger's last instant (monotonicStamp) and the clamp is said in each event's detail with the wall-clock reading beside it, so the one refusal a clock could cause cannot occur; and a reconcile whose commit is still refused THROWS (commitReconcile) instead of handing back stored link state. Asserted: a backdated clock yields no refusal, no VALID link and a said clamp; a forged ledger makes reconcile throw."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "DEFECT found by the conformance re-audit (W-b) and ruled in scope: missingEvidenceOf, downstreamUsesOf and record.targets read stored link state only, so a consumer read the over-claim while only the panel's render-time re-check dissented. Fixed: linkStanding re-judges live when a bundle is given and the OMISSION IS VISIBLE in the output when it is not ('link state not re-checked against the posting evidence in this view'), with a third sentence for an unreadable bundle ('could not be judged'); ledgerRows threads the bundle and the panel passes it. Asserted in node for omitted, unreadable, unchanged, changed and partially lapsed bundles, and in Chromium at both widths."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-009's predecessor BLP-008 was IMPLEMENTED_UNVERIFIED and unpushed when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-009 cannot reach COMPLETE before BLP-008 does (itself barred until BLP-007); if either reopens at approval, BLP-009 is re-checked EMPIRICALLY; and the Supervisor ruled that BLP-008 and BLP-009 are pushed as SEPARATE pull requests in dependency order, so that a finding on one cannot hold the other's merge hostage, unless the Human Lead prefers one PR for CI cost, in which case both records must name the shared merge and dispatch honestly. OUTCOME: BLP-008 was approved COMPLETE at a64363f (PR #500, merge c3923af) before this record was written, so the barrier named here is discharged; this record is written on the branch head that carries that approval."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "SUPERVISOR RULING Q2 (verified premise): no skill identifier class and no competency identifier class exists anywhere in v3.1/src, so linking to skills and competencies is WITHHELD with a reason in the ledger's own vocabulary (NO_IDENTIFIER_CLASS), never a contract WITHHOLD code whose posting-specific words would be false here, and never a minted skill:<hash of label>, which would mean only 'this string' (two skills sharing a label collide, one renamed becomes another entity), the invented identity BLP-003 refused. ESCALATED TO THE HUMAN LEAD: where skill and competency identity is meant to arrive (ESCO URIs exist on the Step 2 side for some skills but are not carried into the bundle as canonical ids)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "SUPERVISOR RULING Q3: accepted review observations are WITHHELD to BLP-013, and the cx-<spanId> family is NOT admitted. The instability is not the identifier but the ACCEPTANCE: commentStatus is session state (useState) minted into no record, so a link to an accepted observation would outlive the human decision that justified it, failing criterion (i) on the link asserting a decision that no longer exists; and the cx- family is not uniformly content-addressed (cx-seniority is a fixed string). ReviewStudioLegacy.jsx is canonically declared, genuinely unchanged, and noted here rather than listed in affectedFiles."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "SUPERVISOR RULING Q4: criterion (ii) is satisfied by both texts visible in one view at one time; the workspace jump is an extra. CONDITIONS met: the target text shown is a SNAPSHOT at link time, labelled as such with its time and parentage and never presented as the current text; when the live bundle disagrees with the snapshot the row says so (the invalidation path) rather than displaying text that no longer exists as though it did."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "SUPERVISOR RULING Q5 with a warning acted on: the contract record's targets[] holds VALID links only (an invalid target left there whose distilled span lost trust would fail validateProofRecord and the commit guard would refuse the whole fold); invalid links live on the wrapper with their snapshot and reason; no contract marker, no 1.2.0. The warning: validateProofRecord(record, {knownSpans}) is NOT the target-integrity check, because checkCitedSpans skips a target absent from knownSpans (`if (!span) continue`) and checks a verbatim target for nothing beyond presence, so it cannot fail for TARGET_ABSENT and is nearly a no-op for requirement rows. Target integrity is asserted by the ledger itself (present in the bundle's catalogue, trusted, same source id and hash, same text) and each check names what would make it fail; the contract call is kept as an additional gate, not the gate."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "SUPERVISOR CONDITIONS on invalidation: a posting change invalidates every link on the old bundle TOGETHER (the bundle's source id is a content hash), said wholesale in the panel with no implication that each link was examined on its own; and resumption asserts the snapshot text still equals the current target text when id and source hash match, a check that holds by construction today and would fail only if id derivation ever changed (asserted). Nothing in the link layer mutates any text: the posting's canonical text and the candidate excerpt are asserted byte-identical before and after invalidation."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "KNOWN OMISSION (out of scope by the Supervisor's ruling): proof states beyond CLAIMED_ONLY, STALE and WITHHELD (BLP-010); a link does not yet move a proof toward DEMONSTRATED; destinations (BLP-011); the keyboard and focus round trip beyond the panel's own controls (BLP-012); decision records for accepted observations (BLP-013); skill and competency identity (escalated). The ledger's cross-posting scope question recorded under BLP-008 is partly answered here: links are judged against the current posting's bundle and every link to another posting is INVALID with TARGET_SOURCE_CHANGED, so a record carried across postings keeps its excerpt and loses its links; whether records themselves should be posting-scoped remains the Human Lead's call."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor S-3, verified unreachable): the posting side of criterion (iii) has no browser step. Returning to Step 2 unmounts the Work Universe and its session ledger, so a second posting cannot carry links through the UI; and Job Anatomy, the late re-distillation that changes every duty id under an unchanged posting, needs three or more corpus ads, which no fixture path in the suite supplies. The case is asserted in node (same posting, extraction basis rd-1 to ja-1, the catalogue key changing, the duty link TARGET_ABSENT while the requirement link stays VALID) and the panel re-judges every VALID link at render as defence in depth. Owner: BLP-012 (the round-trip and state-loss evidence) for a corpus fixture that reaches the anatomy path."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor S-8, outside the declared files): the evidence workspace keys its intent on the serialised intent object, so clicking 'Open target in evidence workspace' twice for the same target is a silent no-op the second time; the first jump resolves both duty and requirement span ids. Owner: BLP-012."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor S-9, for the Supervisor and the Human Lead): the requirement text names five target classes; three (skills, competencies, accepted review observations) are refused by design with owners, so a later COMPLETE must not be read as five linkable classes; the requirement text or the record's own wording should say so when the arc closes."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (Supervisor observation under BLP-010, section 8 class): script/v3.1-blueprint-component-cross-reference.md still says accepted work-history claims lack a unified source-linked proof ledger; once BLP-008 to BLP-010 are on main that sentence misdescribes the artefact. Owner: whichever requirement closes the ledger arc updates it."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor G1, carried-forward convention): the panel carries provenance in words (actor, event kind, instants, 'recorded VALID', the snapshot label) rather than the '✓ computed' chip vocabulary of the result pages; the four counts BLP-009 adds follow BLP-008's convention. Recorded as an explicit exemption for the Human Lead rather than a chip added without a design decision. Also: no test reaches the inactive-record link sentence or the disabled Open-target explanation, because Part B always supplies a workspace and never renders a stored VALID link on an inactive record; both are reachable only through states the suite does not enter, and are covered by the node-level view assertions instead."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "VERSION BUMP for the Human Lead under Rule V-1: LEDGER_VERSION 1.0.0 -> 1.1.0, because the link shape, four event kinds, the link and resume reasons and two refusal codes joined the vocabulary that validateLedger checks per record and per link (conformance-auditor D8). Minor, not patch: new_feature_added under bump_decision. Nothing persisted carries the stamp today (the ledger is session-only), so no stored record can be refused by it; the draft PR is the confirmation gate and the diff is not merged until reviewed."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "GUIDANCE carried forward from the Supervisor (issued at BLP-008 and applied here): three defects of one family reached the record in the BLP-008 arc, a count nobody re-measured, a diff claim nobody re-ran with the pathspec that makes it true, and a wait whose predicate guaranteed its assertion, each a statement that cannot be falsified by the thing it describes; and the conformance re-audit named the cousin, a default branch asserting a cause nobody established. Rule for BLP-009 and BLP-010: before writing a check, name the observation that would make it fail and confirm that observation is reachable; every diff statement carries its pathspec; every count is the suite's own final output at the implementation commit; every verdict-producing function switches over the full governed set with no default arm."
         }
       ],
       "blockers": [
@@ -3018,7 +3299,18 @@
           "description": "Proof-to-target link implementation and evidence are not recorded.",
           "ownerRole": "contract-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ff4c7c03f6b9de89b8b4cb3247275c8b6b199f1d",
+              "label": "BLP-009 implementation commit ff4c7c0: the link layer on the BLP-008 ledger (candidateProofLedgerData.js: bundleTargets offers only stable identifiers from the posting's BLP-003 bundle, distilled duty ids whose parentage is VERIFIED or USER_CONFIRMED and verbatim requirement span ids; linkProof snapshots the target's source id, source hash, exact text and derivation state at link time, keeps the contract record's targets[] equal to the VALID links only, and asserts target integrity itself (present in the bundle, trusted, same source, same text) rather than relying on the contract's checkCitedSpans, which skips an absent target and checks a verbatim one for nothing; reconcileLinks re-judges every link by system detection, a posting change invalidating every link to the earlier posting together, a stale or withheld record invalidating its own links, and a link resuming when the same target stands again; unlinkProof is a human act; four new event kinds with reasons pinned; validateLedger governs every link field and refuses a link without its LINKED event, a targets[] out of step with the VALID links, or a kind without an identifier class), CandidateProofLedger.jsx (per record: the pick list of current targets, each link with its state in words, its target text labelled as the snapshot at link time and never as the current text, Open target in evidence workspace through BLP-003's own jump, Unlink; the panel says which kinds cannot be linked yet and why, with the owner; the posting-change note says every link to the earlier posting is invalid together and that no link was examined on its own), ReviewStudio.jsx (the posting bundle built once beside the ledger, folded with it and re-judged when the bundle changes, clock at the boundary), WorkUniverseLanding.jsx (bundle and jump passed through), tests/proof-links.mjs (node 148 checks over a real adapter bundle, Chromium 213 at 1440x1000 and 430x932 on the company flow, every assertion naming what would make it fail), gate workflow line AFTER THE RE-AUDIT RULINGS (Supervisor: C-a, C-b, W-a, W-b in scope): judgeLink gives one verdict per condition with no default arm (TARGET_EVIDENCE_UNAVAILABLE for a target that could not be read, unknown and never valid; TARGET_REEXTRACTED with a re-link OFFERED only when exactly one current row carries the snapshot text, two or more offering nothing); relinkProof as one human act with two events naming each other; a system stamp clamped to the ledger's last instant, compared as instants and said in the event; a reconcile that cannot validate throws and is caught at the ReviewStudio boundary into a warm withheld panel state; every refusal exit of the fold re-judges its links; linkStanding, missingEvidenceOf and downstreamUsesOf re-judge live when given a bundle and say 'not re-checked', 'could not be judged' or 'not checked: this record is STALE, not active' when they cannot; an exhaustive resume-reason table (TARGET_RESTORED, TARGET_EVIDENCE_READ, CANDIDATE_SOURCE_RESTORED); LEDGER_VERSION 1.1.0; the Step 3 feature-map router range moved to ReviewStudio's new lines (26-99 to 27-122)."
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Proof-links suite: Part A node 148 checks (the catalogue offers only content-addressed duty ids and offset-span requirement ids with VERIFIED parentage, the AI-only duty unlinkable with its parentage named; a trusted duty and a verbatim requirement link with the exact target text snapshotted, the contract targets equal to the VALID links and validateProofRecord passing against the bundle's known spans; skills, competencies and accepted observations refused with NO_IDENTIFIER_CLASS or NO_DECISION_RECORD naming the owner, each refusal on the record and no record changed; an unverified duty, an id not in the bundle, a duplicate, no bundle, an unknown record and an unknown kind refused; a posting change invalidates every link together with TARGET_SOURCE_CHANGED by the system, the contract targets emptied, the snapshots and both texts untouched; the same bundle resumes the links with the snapshot still equal to the current text; TARGET_ABSENT, TARGET_TEXT_CHANGED and TARGET_UNTRUSTED each named; a stale candidate record takes its links with it and restoring the text brings them back; unlinking by a human keeps its history; forged links, targets out of step, a link without its event, a link to a kind without an identifier class, an empty snapshot and a human-attributed invalidation refused; deterministic), Part B Chromium 213 checks total at 1440x1000 and 430x932 (the panel names the unlinkable kinds and their owner; a confirmed excerpt links to a duty and a requirement chosen from a list that offers no skill, competency or observation; both target texts sit beside the excerpt labelled as snapshots at link time, never as the current text; the jump opens the linked duty in the evidence workspace by its canonical id and the links survive the return; the candidate record going stale invalidates both links with the reason in words and the snapshots kept; restoring the text resumes them; unlinking is said in words; nothing reaches browser storage; 44px controls; no overflow) Sections A10-A13 assert the four rulings, each in the direction that would fail if the fix collapsed: the two unreadable-bundle branches with the assertion that their reason differs from TARGET_SOURCE_CHANGED; one matching row offers and two or more offer nothing and say so; a backdated and an offset-form earlier clock are clamped and said, a forged ledger makes reconcile throw, a refused fold re-judges its links; a view without a bundle says it was not re-checked, with an unreadable bundle says the links could not be judged, and with a changed posting says the stored VALID links no longer stand. Every notice read in Part B captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion (the shape the Supervisor required on BLP-008)."
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -3035,11 +3327,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "ff4c7c03f6b9de89b8b4cb3247275c8b6b199f1d",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ff4c7c03f6b9de89b8b4cb3247275c8b6b199f1d",
+              "label": "BLP-009 implementation commit ff4c7c0: the link layer on the BLP-008 ledger (candidateProofLedgerData.js: bundleTargets offers only stable identifiers from the posting's BLP-003 bundle, distilled duty ids whose parentage is VERIFIED or USER_CONFIRMED and verbatim requirement span ids; linkProof snapshots the target's source id, source hash, exact text and derivation state at link time, keeps the contract record's targets[] equal to the VALID links only, and asserts target integrity itself (present in the bundle, trusted, same source, same text) rather than relying on the contract's checkCitedSpans, which skips an absent target and checks a verbatim one for nothing; reconcileLinks re-judges every link by system detection, a posting change invalidating every link to the earlier posting together, a stale or withheld record invalidating its own links, and a link resuming when the same target stands again; unlinkProof is a human act; four new event kinds with reasons pinned; validateLedger governs every link field and refuses a link without its LINKED event, a targets[] out of step with the VALID links, or a kind without an identifier class), CandidateProofLedger.jsx (per record: the pick list of current targets, each link with its state in words, its target text labelled as the snapshot at link time and never as the current text, Open target in evidence workspace through BLP-003's own jump, Unlink; the panel says which kinds cannot be linked yet and why, with the owner; the posting-change note says every link to the earlier posting is invalid together and that no link was examined on its own), ReviewStudio.jsx (the posting bundle built once beside the ledger, folded with it and re-judged when the bundle changes, clock at the boundary), WorkUniverseLanding.jsx (bundle and jump passed through), tests/proof-links.mjs (node 148 checks over a real adapter bundle, Chromium 213 at 1440x1000 and 430x932 on the company flow, every assertion naming what would make it fail), gate workflow line AFTER THE RE-AUDIT RULINGS (Supervisor: C-a, C-b, W-a, W-b in scope): judgeLink gives one verdict per condition with no default arm (TARGET_EVIDENCE_UNAVAILABLE for a target that could not be read, unknown and never valid; TARGET_REEXTRACTED with a re-link OFFERED only when exactly one current row carries the snapshot text, two or more offering nothing); relinkProof as one human act with two events naming each other; a system stamp clamped to the ledger's last instant, compared as instants and said in the event; a reconcile that cannot validate throws and is caught at the ReviewStudio boundary into a warm withheld panel state; every refusal exit of the fold re-judges its links; linkStanding, missingEvidenceOf and downstreamUsesOf re-judge live when given a bundle and say 'not re-checked', 'could not be judged' or 'not checked: this record is STALE, not active' when they cannot; an exhaustive resume-reason table (TARGET_RESTORED, TARGET_EVIDENCE_READ, CANDIDATE_SOURCE_RESTORED); LEDGER_VERSION 1.1.0; the Step 3 feature-map router range moved to ReviewStudio's new lines (26-99 to 27-122)."
+            }
+          ],
+          "note": "Implementation commit ff4c7c0 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -3081,8 +3379,13 @@
         }
       },
       "affectedFiles": [
+        "v3.1/src/work-universe/candidateProofLedgerData.js",
         "v3.1/src/work-universe/CandidateProofLedger.jsx",
-        "v3.1/src/ReviewStudioLegacy.jsx"
+        "v3.1/src/ReviewStudio.jsx",
+        "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+        "v3.1/tests/proof-links.mjs",
+        ".github/workflows/v31-browser-gate.yml",
+        "v3.1/doc/v3-step3-feature-map.manifest.json"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -3097,6 +3400,33 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T21:13:22+08:00",
+          "reason": "Started on the Human Lead's order while PR #498 (BLP-007) was open and BLP-008 was built locally awaiting its implementation commit; work held locally. The Blueprint Supervisor's six rulings recorded first: start with COMPLETE barred behind BLP-008 and separate pull requests in dependency order; skills and competencies withheld with a ledger-own reason, never minted from a label; accepted review observations withheld to BLP-013 because the acceptance itself is unrecorded; both texts in one view with the target labelled as a snapshot at link time; the contract record's targets[] holding VALID links only with target integrity asserted by the ledger, not by the contract's near no-op; affectedFiles as actually changed; a posting change invalidating every link together.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T22:40:10+08:00",
+          "reason": "Every proof link targets a stable role-evidence identifier (a content-addressed duty id with trusted parentage or an offset-span requirement id from the posting's canonical bundle; kinds without an identifier class or a decision record are refused in words); target and candidate excerpts are inspectable together (the target's exact text is snapshotted at link time, labelled as such, shown beside the excerpt, and opened in the evidence workspace by the same id); invalidated source evidence invalidates dependent links without mutating source text (a posting change invalidates every link to the earlier posting together, a stale candidate record invalidates its own links, both by system detection, snapshots kept, texts untouched, links resuming when the same evidence returns). Verified locally in node and Chromium at 1440x1000 and 430x932; the full existing gate passes on the same build; Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ff4c7c03f6b9de89b8b4cb3247275c8b6b199f1d",
+              "label": "BLP-009 implementation commit ff4c7c0: the link layer on the BLP-008 ledger (candidateProofLedgerData.js: bundleTargets offers only stable identifiers from the posting's BLP-003 bundle, distilled duty ids whose parentage is VERIFIED or USER_CONFIRMED and verbatim requirement span ids; linkProof snapshots the target's source id, source hash, exact text and derivation state at link time, keeps the contract record's targets[] equal to the VALID links only, and asserts target integrity itself (present in the bundle, trusted, same source, same text) rather than relying on the contract's checkCitedSpans, which skips an absent target and checks a verbatim one for nothing; reconcileLinks re-judges every link by system detection, a posting change invalidating every link to the earlier posting together, a stale or withheld record invalidating its own links, and a link resuming when the same target stands again; unlinkProof is a human act; four new event kinds with reasons pinned; validateLedger governs every link field and refuses a link without its LINKED event, a targets[] out of step with the VALID links, or a kind without an identifier class), CandidateProofLedger.jsx (per record: the pick list of current targets, each link with its state in words, its target text labelled as the snapshot at link time and never as the current text, Open target in evidence workspace through BLP-003's own jump, Unlink; the panel says which kinds cannot be linked yet and why, with the owner; the posting-change note says every link to the earlier posting is invalid together and that no link was examined on its own), ReviewStudio.jsx (the posting bundle built once beside the ledger, folded with it and re-judged when the bundle changes, clock at the boundary), WorkUniverseLanding.jsx (bundle and jump passed through), tests/proof-links.mjs (node 148 checks over a real adapter bundle, Chromium 213 at 1440x1000 and 430x932 on the company flow, every assertion naming what would make it fail), gate workflow line AFTER THE RE-AUDIT RULINGS (Supervisor: C-a, C-b, W-a, W-b in scope): judgeLink gives one verdict per condition with no default arm (TARGET_EVIDENCE_UNAVAILABLE for a target that could not be read, unknown and never valid; TARGET_REEXTRACTED with a re-link OFFERED only when exactly one current row carries the snapshot text, two or more offering nothing); relinkProof as one human act with two events naming each other; a system stamp clamped to the ledger's last instant, compared as instants and said in the event; a reconcile that cannot validate throws and is caught at the ReviewStudio boundary into a warm withheld panel state; every refusal exit of the fold re-judges its links; linkStanding, missingEvidenceOf and downstreamUsesOf re-judge live when given a bundle and say 'not re-checked', 'could not be judged' or 'not checked: this record is STALE, not active' when they cannot; an exhaustive resume-reason table (TARGET_RESTORED, TARGET_EVIDENCE_READ, CANDIDATE_SOURCE_RESTORED); LEDGER_VERSION 1.1.0; the Step 3 feature-map router range moved to ReviewStudio's new lines (26-99 to 27-122)."
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Proof-links suite: Part A node 148 checks (the catalogue offers only content-addressed duty ids and offset-span requirement ids with VERIFIED parentage, the AI-only duty unlinkable with its parentage named; a trusted duty and a verbatim requirement link with the exact target text snapshotted, the contract targets equal to the VALID links and validateProofRecord passing against the bundle's known spans; skills, competencies and accepted observations refused with NO_IDENTIFIER_CLASS or NO_DECISION_RECORD naming the owner, each refusal on the record and no record changed; an unverified duty, an id not in the bundle, a duplicate, no bundle, an unknown record and an unknown kind refused; a posting change invalidates every link together with TARGET_SOURCE_CHANGED by the system, the contract targets emptied, the snapshots and both texts untouched; the same bundle resumes the links with the snapshot still equal to the current text; TARGET_ABSENT, TARGET_TEXT_CHANGED and TARGET_UNTRUSTED each named; a stale candidate record takes its links with it and restoring the text brings them back; unlinking by a human keeps its history; forged links, targets out of step, a link without its event, a link to a kind without an identifier class, an empty snapshot and a human-attributed invalidation refused; deterministic), Part B Chromium 213 checks total at 1440x1000 and 430x932 (the panel names the unlinkable kinds and their owner; a confirmed excerpt links to a duty and a requirement chosen from a list that offers no skill, competency or observation; both target texts sit beside the excerpt labelled as snapshots at link time, never as the current text; the jump opens the linked duty in the evidence workspace by its canonical id and the links survive the return; the candidate record going stale invalidates both links with the reason in words and the snapshots kept; restoring the text resumes them; unlinking is said in words; nothing reaches browser storage; 44px controls; no overflow) Sections A10-A13 assert the four rulings, each in the direction that would fail if the fix collapsed: the two unreadable-bundle branches with the assertion that their reason differs from TARGET_SOURCE_CHANGED; one matching row offers and two or more offer nothing and say so; a backdated and an offset-form earlier clock are clamped and said, a forged ledger makes reconcile throw, a refused fold re-judges its links; a view without a bundle says it was not re-checked, with an unreadable bundle says the links could not be judged, and with a changed posting says the stored VALID links no longer stand. Every notice read in Part B captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion (the shape the Supervisor required on BLP-008)."
+            }
+          ]
         }
       ],
       "supervisorApproval": {
