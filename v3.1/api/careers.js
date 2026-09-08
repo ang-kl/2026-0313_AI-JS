@@ -133,10 +133,12 @@ function normaliseCsgJob(r) {
   const rawDesc = [r.jobDescription, r.jobResponsibilities, r.jobRequirements]
     .filter(Boolean)
     .join("\n\n");
-  const description = htmlToText(rawDesc).slice(0, DESC_CAP);
+  const descriptionFull = htmlToText(rawDesc);
+  const description = descriptionFull.slice(0, DESC_CAP);
 
   // responsibilitiesText: CSG gives duties verbatim - higher fidelity than regex extraction
-  const responsibilitiesText = htmlToText(r.jobResponsibilities || r.jobDescription || "").slice(0, RESP_CAP);
+  const responsibilitiesFull = htmlToText(r.jobResponsibilities || r.jobDescription || "");
+  const responsibilitiesText = responsibilitiesFull.slice(0, RESP_CAP);
 
   return {
     uuid:                makeCsgUuid(platform, jobId, postingNo),
@@ -149,6 +151,14 @@ function normaliseCsgJob(r) {
     employmentType:      r.employmentType || "",
     postedDate:          r.startDate ? new Date(r.startDate).toISOString() : "",
     expiryDate:          r.closingDate ? new Date(r.closingDate).toISOString() : "",
+    // BLP-004 evidence window: the source's own values, untouched, under the same names the
+    // MCF route uses. careers.gov.sg encodes a calendar date as an epoch-millisecond value at
+    // midnight UTC (every value in the dump is a multiple of 86,400,000); the evidence layer
+    // reads ONLY these and records the calendar date at day precision. The derived ISO
+    // postedDate/expiryDate above stay as Step 2 displays and sorts them; they are display
+    // values and must never be read as evidence.
+    postedDateRaw:       r.startDate ?? null,
+    expiryDateRaw:       r.closingDate ?? null,
     minimumYearsExperience: (typeof r.experienceYearsMin === "number") ? r.experienceYearsMin : null,
     positionLevels:      [],
     schemes:             [],
@@ -158,6 +168,15 @@ function normaliseCsgJob(r) {
     skills:              [],
     mcfUrl:              csgUrl(platform, jobId, postingNo),
     source:              "careers.gov.sg",
+    // BLP-004 evidence window (additive). retrievedAt is when this process last fetched the
+    // careers.gov.sg dump - the moment the source was observed - not when this response was
+    // built; the dump is cached for CACHE_TTL_MS. textProvenance records cap and pre-cap
+    // length per capped field; truncated is arithmetic on those, never inferred from the cap.
+    retrievedAt:         _cache && _cache.fetchedAt ? new Date(_cache.fetchedAt).toISOString() : "",
+    textProvenance: {
+      description:          { cap: DESC_CAP, originalLength: descriptionFull.length,      truncated: descriptionFull.length > DESC_CAP },
+      responsibilitiesText: { cap: RESP_CAP, originalLength: responsibilitiesFull.length, truncated: responsibilitiesFull.length > RESP_CAP },
+    },
   };
 }
 
