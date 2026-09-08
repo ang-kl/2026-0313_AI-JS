@@ -42,12 +42,16 @@ import {
 } from "../contracts/evidenceContracts.js";
 import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
 import { isManualPersonEvidence } from "./personEvidenceData.js";
+import { proofStateText } from "../contracts/evidenceAdapter.js";
 
 // 1.1.0 under BLP-009: the link shape, four event kinds, the link reasons and two refusals joined the
 // vocabulary that validateLedger checks per record and per link, so the stamp moved with it
 // (conformance-auditor D8). Minor, not patch: new_feature_added under the repo's bump_decision;
 // Rule V-1 confirmation is the Human Lead's at the PR gate. Nothing persisted carries the stamp today.
-export const LEDGER_VERSION = "1.1.0";
+// 1.2.0 under BLP-010: the six proof states become reachable through human declarations and system
+// detection (STATE_SET, CONFLICT_DECLARED, CONFLICT_RESOLVED, the lost-link and dissolution
+// reasons), so the vocabulary the validator checks moved again. Minor, surfaced for Rule V-1.
+export const LEDGER_VERSION = "1.2.0";
 
 /**
  * Proof-type vocabulary. MECHANISM settled by the Blueprint Supervisor (a governed enum,
@@ -66,7 +70,7 @@ export const PROOF_TYPE_LABEL = Object.freeze({
 });
 export const PROOF_TYPE_VOCABULARY_STATUS = "PROVISIONAL_PENDING_HUMAN_LEAD";
 
-export const LEDGER_EVENT_KIND = Object.freeze(["RECORDED", "RECONFIRMED", "STALE", "WITHHELD", "RESUMED", "PROOF_TYPE_SET", "CLAIM_SET", "LINKED", "UNLINKED", "LINK_INVALID", "LINK_RESUMED"]);
+export const LEDGER_EVENT_KIND = Object.freeze(["RECORDED", "RECONFIRMED", "STALE", "WITHHELD", "RESUMED", "PROOF_TYPE_SET", "CLAIM_SET", "LINKED", "UNLINKED", "LINK_INVALID", "LINK_RESUMED", "STATE_SET", "CONFLICT_DECLARED", "CONFLICT_RESOLVED", "STALE_CAUSE"]);
 export const LEDGER_EVENT_REASON = Object.freeze([
   "EXCERPT_CONFIRMED",
   "EXCERPT_RECONFIRMED",
@@ -85,14 +89,26 @@ export const LEDGER_EVENT_REASON = Object.freeze([
   "TARGET_REEXTRACTED",
   "TARGET_EVIDENCE_READ",
   "CANDIDATE_SOURCE_RESTORED",
+  "HUMAN_DECLARATION",
+  "STATE_WITHDRAWN",
+  "TARGET_LINK_LOST",
+  "TARGET_RELINKED",
+  "CONFLICT_TARGET_LOST",
+  "CONFLICT_COUNTERPART_LOST",
+  "CONFLICT_DISSOLVED",
+  "OFFERED_AGAIN",
 ]);
 /** Each event kind admits only the reasons that can be true of it (conformance-auditor W-3). */
 export const REASONS_BY_KIND = Object.freeze({
   RECORDED: ["EXCERPT_CONFIRMED"],
   RECONFIRMED: ["EXCERPT_RECONFIRMED"],
-  STALE: ["SOURCE_TEXT_CHANGED"],
-  WITHHELD: ["EXCERPT_REMOVED", "EVIDENCE_CLEARED"],
-  RESUMED: ["SOURCE_TEXT_RESTORED", "EXCERPT_CONFIRMED"],
+  STALE: ["SOURCE_TEXT_CHANGED", "TARGET_LINK_LOST", "CONFLICT_TARGET_LOST", "CONFLICT_COUNTERPART_LOST"],
+  WITHHELD: ["EXCERPT_REMOVED", "EVIDENCE_CLEARED", "STATE_WITHDRAWN"],
+  RESUMED: ["SOURCE_TEXT_RESTORED", "EXCERPT_CONFIRMED", "STATE_WITHDRAWN", "TARGET_RESTORED", "TARGET_RELINKED", "CONFLICT_DISSOLVED", "OFFERED_AGAIN"],
+  STALE_CAUSE: ["SOURCE_TEXT_CHANGED"],
+  STATE_SET: ["HUMAN_DECLARATION"],
+  CONFLICT_DECLARED: ["HUMAN_DECLARATION"],
+  CONFLICT_RESOLVED: ["HUMAN_DECLARATION"],
   PROOF_TYPE_SET: ["HUMAN_CHOICE"],
   CLAIM_SET: ["HUMAN_CHOICE"],
   LINKED: ["HUMAN_CHOICE"],
@@ -101,7 +117,77 @@ export const REASONS_BY_KIND = Object.freeze({
   LINK_RESUMED: ["TARGET_RESTORED", "TARGET_EVIDENCE_READ", "CANDIDATE_SOURCE_RESTORED"],
 });
 /** A payload the ledger will not fold is refused on the record, attributed to the system, never to the human. */
-export const LEDGER_REFUSAL_REASON = Object.freeze(["PAYLOAD_REFUSED", "TRANSITION_REFUSED", "CHOICE_REFUSED", "LINK_REFUSED", "LEDGER_INVALID"]);
+export const LEDGER_REFUSAL_REASON = Object.freeze(["PAYLOAD_REFUSED", "TRANSITION_REFUSED", "CHOICE_REFUSED", "LINK_REFUSED", "STATE_REFUSED", "LEDGER_INVALID"]);
+
+// ---------------------------------------------------------------------------------------------
+// Proof states (BLP-010). The six contract states become REACHABLE: the human declares
+// DEMONSTRATED or CERTIFIED (STATE_SET), withdraws a declaration (WITHHELD then RESUMED, the only
+// path the contract admits), declares a conflict between two accepted records over one shared
+// target (CONFLICT_DECLARED, symmetric, enforced by the validator) and resolves it
+// (CONFLICT_RESOLVED, both sides move); the system detects the loss of the link a demonstration
+// stands on (STALE, TARGET_LINK_LOST) and the loss of a conflict's object or counterpart
+// (dissolution: STALE then RESUMED to CLAIMED_ONLY in one act). The state semantics are SOURCED,
+// not invented: script/v3-result-engine-spec.md line 185 defines them for this house
+// ("demonstrated = CV achievements / certified = qualifications / claimed = self-listed skills");
+// the scoring that served is out of scope. Contract-given: DEMONSTRATED and CERTIFIED require a
+// USER-CONFIRMED confirmation. Structurally justified (Supervisor ruling Q2): DEMONSTRATED requires
+// at least one link STANDING UNDER A LIVE JUDGEMENT, never one merely recorded VALID, because a
+// demonstration must have an object and targets[] is the only place one can live; neither accepted
+// state may be entered on an unstructured whole-text record. Interpretive and escalated: the mapping
+// of proof types to states (WORK_SAMPLE -> DEMONSTRATED, CREDENTIAL -> CERTIFIED) is the Human
+// Lead's, so the human declares the state directly and any mismatch is shown in words, never
+// refused. Resumption from STALE returns to CLAIMED_ONLY, never to the pre-stale accepted state,
+// although the contract's table would permit it: the excerpt was re-confirmed, the demonstration
+// was not re-asserted (ruling Q5); a later reader must not "fix" this back.
+// ---------------------------------------------------------------------------------------------
+export const ACCEPTED_STATES = Object.freeze(["DEMONSTRATED", "CERTIFIED"]);
+export const STALE_CAUSE = Object.freeze({ CANDIDATE_TEXT: "CANDIDATE_TEXT", TARGET_LINK: "TARGET_LINK" });
+export const WITHHELD_CAUSE = Object.freeze({ EXCERPT_REMOVED: "EXCERPT_REMOVED", EVIDENCE_CLEARED: "EVIDENCE_CLEARED", CONFLICT_RESOLVED: "CONFLICT_RESOLVED" });
+/** A stale record carries a SET of causes; it resumes only when every cause is cleared, each by the act that clears it. */
+const onlyTargetLink = (record) => Array.isArray(record.staleCauses) && record.staleCauses.length === 1 && record.staleCauses[0] === STALE_CAUSE.TARGET_LINK;
+/**
+ * One definition of the words for each stale cause (conformance-auditor W-3, W-4): keyed on the
+ * governed set with no default arm, so a cause the table does not know throws rather than being
+ * narrated as the likeliest one. `onCurrentSource` tells the CANDIDATE_TEXT arm whether the text in
+ * the box is the record's own (excerpt no longer marked) or another (text changed).
+ */
+const STALE_CAUSE_WORDS = Object.freeze({
+  CANDIDATE_TEXT: (onCurrentSource) => (onCurrentSource ? "the excerpt is no longer marked on this text; mark it again to resume" : "the pasted text changed since this proof was recorded; mark the excerpt again on the current text, or restore the earlier text to resume"),
+  TARGET_LINK: () => "the link this demonstration stood on no longer stands against the posting evidence; link again, or wait for the target to return, and the record resumes as claimed only",
+});
+const WITHHELD_CAUSE_WORDS = Object.freeze({
+  EXCERPT_REMOVED: "you removed this excerpt from the marked evidence; mark and apply it again to resume",
+  EVIDENCE_CLEARED: "you cleared the evidence; mark and apply the excerpt again to resume",
+  CONFLICT_RESOLVED: "you withheld this excerpt at a conflict's resolution while it stays marked; applying the same evidence does not resume it, offer it again to resume",
+});
+export function withheldCauseText(cause) {
+  const words = WITHHELD_CAUSE_WORDS[cause];
+  if (!words) throw new Error(`no words are defined for withheld cause ${String(cause)}; the table must name every governed cause`);
+  return words;
+}
+export function staleCauseText(cause, { onCurrentSource = false } = {}) {
+  const words = STALE_CAUSE_WORDS[cause];
+  if (!words) throw new Error(`no words are defined for stale cause ${String(cause)}; the table must name every governed cause`);
+  return words(Boolean(onCurrentSource));
+}
+/** A declared link is LOST when judged and found not standing; a link the evidence could not judge is neither lost nor standing. */
+const linkLost = (l) => l.state === "INVALID" && l.reason !== "TARGET_EVIDENCE_UNAVAILABLE";
+const linkStandsOrUnjudged = (l) => l.state === "VALID" || (l.state === "INVALID" && l.reason === "TARGET_EVIDENCE_UNAVAILABLE");
+export const CONFLICT_RESOLUTION = Object.freeze(["DEMONSTRATED", "CERTIFIED", "WITHHELD"]);
+/** The ruled reading of a proof type onto a state, shown as words and never enforced (Supervisor ruling Q2, escalated to the Human Lead). */
+export const PROOF_TYPE_STATE_READING = Object.freeze({ WORK_SAMPLE: "DEMONSTRATED", CREDENTIAL: "CERTIFIED" });
+export function proofTypeStateNote(record) {
+  if (!ACCEPTED_STATES.includes(record.record.state)) return null;
+  const reading = PROOF_TYPE_STATE_READING[record.proofType];
+  if (record.proofType === "UNSPECIFIED") return `declared ${record.record.state} with no proof type chosen; the reading of proof types onto states awaits the Human Lead`;
+  if (!reading) return `declared ${record.record.state} with proof type ${PROOF_TYPE_LABEL[record.proofType]}, which has no ruled reading onto a state; the reading awaits the Human Lead`;
+  if (reading !== record.record.state) return `declared ${record.record.state} while its proof type is ${PROOF_TYPE_LABEL[record.proofType]}, whose ruled reading is ${reading}; shown, not refused, because the reading awaits the Human Lead`;
+  return null;
+}
+/** Links can be judged on an active record and on a record stale for TARGET reasons (its excerpt stands; its link does not). */
+export function linksJudgeable(record) {
+  return ACTIVE_STATES.includes(record.record.state) || (record.record.state === "STALE" && onlyTargetLink(record));
+}
 
 // ---------------------------------------------------------------------------------------------
 // Proof-to-target links (BLP-009). A link targets a STABLE role-evidence identifier from the
@@ -233,7 +319,7 @@ export function linkProof(ledger, proofId, { targetKind, targetId }, bundle, at)
   if (!PROOF_TARGET_KIND.includes(targetKind)) return refuseLink(ledger, at, `${String(targetKind)} is not a proof target kind`);
   const availability = availabilityOf(targetKind);
   if (!availability.available) return refuseLink(ledger, at, `${availability.refusal}: ${availability.text} (owner: ${availability.owner})`);
-  if (!ACTIVE_STATES.includes(record.record.state)) return refuseLink(ledger, at, `${LINK_REFUSAL.RECORD_NOT_ACTIVE}: proof ${proofId} is ${record.record.state}; mark the excerpt again before linking`);
+  if (!linksJudgeable(record)) return refuseLink(ledger, at, `${LINK_REFUSAL.RECORD_NOT_ACTIVE}: proof ${proofId} is ${record.record.state}; mark the excerpt again before linking`);
   const catalogue = bundleTargets(bundle);
   if (!catalogue.sourceId) return refuseLink(ledger, at, `${LINK_REFUSAL.NO_BUNDLE}: ${catalogue.unlinkable[0].text}`);
   const target = catalogue.targets.find((t) => t.targetKind === targetKind && t.targetId === targetId);
@@ -250,7 +336,14 @@ export function linkProof(ledger, proofId, { targetKind, targetId }, bundle, at)
   const contractVerdict = validateProofRecord(nextRecord.record, { knownSpans: Array.isArray(bundle.knownSpans) ? bundle.knownSpans : undefined });
   if (!contractVerdict.ok) return refuseLink(ledger, at, `contract refused the target: ${contractVerdict.errors[0]}`);
   const event = createLedgerEvent({ at, proofId, linkId, kind: "LINKED", from: null, to: "VALID", reason: "HUMAN_CHOICE", actor: LEDGER_ACTOR.HUMAN, detail: `${targetKind} ${targetId}` });
-  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? nextRecord : r)), events: [...ledger.events, event] }, at, "linkProof");
+  const { record: landed, events: more } = resumeAfterRelink(nextRecord, at);
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? landed : r)), events: [...ledger.events, event, ...more] }, at, "linkProof");
+}
+/** A record stale because its demonstration's link was lost returns to CLAIMED_ONLY when the human links again (ruling Q5: never straight back to DEMONSTRATED). */
+function resumeAfterRelink(record, at) {
+  if (!(record.record.state === "STALE" && onlyTargetLink(record))) return { record, events: [] };
+  const event = createLedgerEvent({ at, proofId: record.id, kind: "RESUMED", from: "STALE", to: "CLAIMED_ONLY", reason: "TARGET_RELINKED", actor: LEDGER_ACTOR.HUMAN, detail: "the human linked again; the earlier DEMONSTRATED declaration is not re-asserted" });
+  return { record: { ...withState(leaveState(record), "CLAIMED_ONLY"), lastEventAt: at }, events: [event] };
 }
 
 /** A human removes a link; its history stays in the events. */
@@ -259,6 +352,10 @@ export function unlinkProof(ledger, proofId, linkId, at) {
   const record = ledger.records.find((r) => r.id === proofId);
   const link = record && (record.links || []).find((l) => l.id === linkId);
   if (!record || !link) return refuseLink(ledger, at, `no link ${String(linkId)} on proof ${String(proofId)}`);
+  // A human may not pull the object out from under a declaration or a conflict (ruling Q4): the
+  // record's state is theirs to change first, in words, so nothing is misdescribed back to them.
+  const held = declarationHolds(record, link);
+  if (held) return refuseLink(ledger, at, held);
   const nextLinks = record.links.filter((l) => l.id !== linkId);
   const nextRecord = { ...record, links: nextLinks, record: { ...record.record, targets: validLinkTargets(nextLinks) }, lastEventAt: at };
   const event = createLedgerEvent({ at, proofId, linkId, kind: "UNLINKED", from: link.state, to: null, reason: "HUMAN_CHOICE", actor: LEDGER_ACTOR.HUMAN, detail: `${link.targetKind} ${link.targetId}` });
@@ -276,7 +373,9 @@ export function relinkProof(ledger, proofId, linkId, bundle, at) {
   const record = ledger.records.find((r) => r.id === proofId);
   const link = record && (record.links || []).find((l) => l.id === linkId);
   if (!record || !link) return refuseLink(ledger, at, `no link ${String(linkId)} on proof ${String(proofId)}`);
-  if (!ACTIVE_STATES.includes(record.record.state)) return refuseLink(ledger, at, `${LINK_REFUSAL.RECORD_NOT_ACTIVE}: proof ${proofId} is ${record.record.state}; mark the excerpt again before re-linking`);
+  if (!linksJudgeable(record)) return refuseLink(ledger, at, `${LINK_REFUSAL.RECORD_NOT_ACTIVE}: proof ${proofId} is ${record.record.state}; mark the excerpt again before re-linking`);
+  const held = declarationHolds(record, link);
+  if (held) return refuseLink(ledger, at, held);
   const verdict = judgeLink(link, bundle);
   if (verdict.reason !== "TARGET_REEXTRACTED") return refuseLink(ledger, at, `${LINK_REFUSAL.NO_RELINK_CANDIDATE}: link ${linkId} ${verdict.valid ? "stands as it is" : `is ${verdict.reason}`}; there is no re-extracted row to re-link to`);
   if (!verdict.relink) return refuseLink(ledger, at, `${LINK_REFUSAL.AMBIGUOUS_RELINK}: ${verdict.matches} current ${link.targetKind} rows carry this exact text; the app will not choose between them, so unlink and link the one you mean`);
@@ -291,7 +390,15 @@ export function relinkProof(ledger, proofId, linkId, bundle, at) {
   if (!contractVerdict.ok) return refuseLink(ledger, at, `contract refused the target: ${contractVerdict.errors[0]}`);
   const gone = createLedgerEvent({ at, proofId, linkId, kind: "UNLINKED", from: link.state, to: null, reason: "HUMAN_CHOICE", actor: LEDGER_ACTOR.HUMAN, detail: `${link.targetKind} ${link.targetId} re-linked to ${target.targetId}: the same text under a new id after re-extraction` });
   const born = createLedgerEvent({ at, proofId, linkId: newId, kind: "LINKED", from: null, to: "VALID", reason: "HUMAN_CHOICE", actor: LEDGER_ACTOR.HUMAN, detail: `${target.targetKind} ${target.targetId} re-linked from ${link.targetId}` });
-  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? nextRecord : r)), events: [...ledger.events, gone, born] }, at, "relinkProof");
+  const { record: landed, events: more } = resumeAfterRelink(nextRecord, at);
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? landed : r)), events: [...ledger.events, gone, born, ...more] }, at, "relinkProof");
+}
+/** The words that refuse an unlink or re-link of a link a declaration or a conflict stands on; null when nothing holds it. */
+function declarationHolds(record, link) {
+  const state = record.record.state;
+  if (state === "DEMONSTRATED" && record.declaration && record.declaration.linkIds.includes(link.id)) return `this proof is marked demonstrated on this link; change its state first (withdraw the declaration), then unlink`;
+  if (state === "CONFLICTING" && record.conflict && record.conflict.targetKind === link.targetKind && record.conflict.targetId === link.targetId) return `this proof is in a declared conflict over this link; resolve the conflict first, then unlink`;
+  return null;
 }
 
 /**
@@ -356,10 +463,10 @@ export function reconcileLinks(ledger, wanted, clock) {
   const said = (text) => (stamp.clamped ? `${text}; ${stamp.clamped}` : text);
   const events = [...base.events];
   let changed = false;
-  const records = base.records.map((record) => {
+  const judged = base.records.map((record) => {
     const links = Array.isArray(record.links) ? record.links : [];
     if (!links.length) return record;
-    const active = ACTIVE_STATES.includes(record.record.state);
+    const active = linksJudgeable(record);
     const nextLinks = links.map((link) => {
       const verdict = active ? judgeLink(link, wanted) : { valid: false, reason: "CANDIDATE_SOURCE_CHANGED" };
       if (verdict.valid && link.state === "VALID") return link;
@@ -378,10 +485,69 @@ export function reconcileLinks(ledger, wanted, clock) {
       return { ...link, state: "INVALID", reason: verdict.reason, lastEventAt: at };
     });
     if (nextLinks === links || nextLinks.every((l, i) => l === links[i])) return record;
-    return { ...record, links: nextLinks, record: { ...record.record, targets: validLinkTargets(nextLinks) }, lastEventAt: at };
+    const relinked = { ...record, links: nextLinks, record: { ...record.record, targets: validLinkTargets(nextLinks) }, lastEventAt: at };
+    // A demonstration whose declared link no longer stands lapses to STALE by system detection (ruling
+    // Q4: the target side changed, and staleText("proof") is true of it); a record stale for that reason
+    // returns to CLAIMED_ONLY, never to DEMONSTRATED, when a declared link stands again (ruling Q5).
+    // What is ESTABLISHED about the declared links (conformance-auditor C-1): a link judged and found
+    // not standing is LOST; a link the evidence could not judge is neither lost nor standing, and the
+    // record keeps its declaration with judgement withheld, exactly as a fresh declaration would be
+    // refused rather than allowed on unreadable evidence.
+    const declared = (r) => (r.declaration ? r.declaration.linkIds.map((id) => r.links.find((l) => l.id === id)).filter(Boolean) : []);
+    const standing = declared(relinked).filter((l) => l.state === "VALID");
+    const lost = declared(relinked).filter(linkLost);
+    if (relinked.record.state === "DEMONSTRATED" && relinked.declaration && !standing.length && lost.length) {
+      events.push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: "DEMONSTRATED", to: "STALE", reason: "TARGET_LINK_LOST", actor: LEDGER_ACTOR.SYSTEM, detail: said(`the link this demonstration stood on (${lost.map((l) => `${l.id} ${l.reason}`).join(", ")}) was judged and no longer stands against the posting evidence; the declaration lapses and is not re-asserted on resumption`) }));
+      return { ...withState(relinked, "STALE"), staleCauses: [STALE_CAUSE.TARGET_LINK] };
+    }
+    // Only a record stale for its LINK alone is judgeable here (linksJudgeable), so `standing` can be
+    // non-empty only on that record: one stale for its text as well has every link waiting on the text
+    // (CANDIDATE_SOURCE_CHANGED), and the text's restoration is the act that resumes it, clearing every
+    // cause together. No arm is written for a case this function cannot meet.
+    if (relinked.record.state === "STALE" && onlyTargetLink(relinked) && standing.length) {
+      events.push(createLedgerEvent({ at, proofId: record.id, kind: "RESUMED", from: "STALE", to: "CLAIMED_ONLY", reason: "TARGET_RESTORED", actor: LEDGER_ACTOR.SYSTEM, detail: said(`the link ${standing.map((l) => l.id).join(", ")} stands again; the record resumes as CLAIMED_ONLY and the earlier DEMONSTRATED declaration is not re-asserted`) }));
+      return withState(leaveState(relinked), "CLAIMED_ONLY");
+    }
+    return relinked;
   });
+  // A conflict whose shared target no longer stands on either side has lost its object (ruling Q3):
+  // both sides are dissolved by the system, never left one-sided.
+  const before = events.length;
+  const records = settleConflicts(judged, events, at, said);
+  if (events.length > before) changed = true;
   if (!changed) return base;
   return commitReconcile(base, { ...base, records, events }, at, "reconcileLinks");
+}
+/**
+ * Every CONFLICTING record must face a counterpart that is CONFLICTING back over the same target
+ * with a VALID link to it on both sides. Where that no longer holds, the conflict is DISSOLVED by
+ * the system: CONFLICTING -> STALE (the conflict was recorded against evidence that has since
+ * changed: its counterpart or its object) -> CLAIMED_ONLY (RESUMED, CONFLICT_DISSOLVED), two events
+ * in one act, because the contract admits no direct edge from CONFLICTING to CLAIMED_ONLY and the
+ * excerpt itself still stands. Pure over the records it is given; appends to `events`.
+ */
+function settleConflicts(records, events, at, said = (t) => t) {
+  const byId = new Map(records.map((r) => [r.id, r]));
+  const dissolved = new Set();
+  const out = new Map(records.map((r) => [r.id, r]));
+  for (const r of records) {
+    if (r.record.state !== "CONFLICTING" || !r.conflict || dissolved.has(r.id)) continue;
+    const other = byId.get(r.conflict.counterpartId);
+    // A side whose link to the target could not be judged has not LOST it; only a judged loss dissolves.
+    const linkStands = (x) => (x.links || []).some((l) => linkStandsOrUnjudged(l) && l.targetKind === r.conflict.targetKind && l.targetId === r.conflict.targetId);
+    const mutual = other && other.record.state === "CONFLICTING" && other.conflict && other.conflict.counterpartId === r.id && other.conflict.targetKind === r.conflict.targetKind && other.conflict.targetId === r.conflict.targetId;
+    const reason = !mutual ? "CONFLICT_COUNTERPART_LOST" : (!linkStands(r) || !linkStands(other)) ? "CONFLICT_TARGET_LOST" : null;
+    if (!reason) continue;
+    for (const side of [r, mutual ? other : null].filter(Boolean)) {
+      if (dissolved.has(side.id)) continue;
+      dissolved.add(side.id);
+      const why = reason === "CONFLICT_TARGET_LOST" ? `the shared target ${r.conflict.targetKind} ${r.conflict.targetId} no longer stands on ${!linkStands(r) && (!other || !linkStands(other)) ? "either side" : !linkStands(r) ? `proof ${r.id}` : `proof ${other.id}`}` : `the counterpart ${r.conflict.counterpartId} is no longer in the conflict (${other ? other.record.state : "absent"})`;
+      events.push(createLedgerEvent({ at, proofId: side.id, kind: "STALE", from: "CONFLICTING", to: "STALE", reason, actor: LEDGER_ACTOR.SYSTEM, detail: said(`the conflict has lost its object: ${why}`) }));
+      events.push(createLedgerEvent({ at, proofId: side.id, kind: "RESUMED", from: "STALE", to: "CLAIMED_ONLY", reason: "CONFLICT_DISSOLVED", actor: LEDGER_ACTOR.SYSTEM, detail: said("the conflict is dissolved by the system; the record resumes as CLAIMED_ONLY and neither side's earlier declaration is re-asserted") }));
+      out.set(side.id, { ...withState(leaveState(side), "CLAIMED_ONLY"), lastEventAt: at });
+    }
+  }
+  return records.map((r) => out.get(r.id));
 }
 export const LEDGER_ACTOR = Object.freeze({ SYSTEM: "system", HUMAN: LOCAL_HUMAN_ACTOR.id });
 
@@ -392,9 +558,10 @@ function nonempty(value) { return typeof value === "string" && value.trim().leng
 // ---------------------------------------------------------------------------------------------
 // Events: the one audit shape, defined here and validated here.
 // ---------------------------------------------------------------------------------------------
-export function createLedgerEvent({ at, proofId, linkId, kind, from, to, reason, actor, detail } = {}) {
+export function createLedgerEvent({ at, proofId, linkId, kind, from, to, reason, actor, detail, seq } = {}) {
   return {
     ledgerVersion: LEDGER_VERSION,
+    seq: Number.isInteger(seq) ? seq : null,
     at: isIso(at) ? at : null,
     proofId: nonempty(proofId) ? proofId : null,
     linkId: nonempty(linkId) ? linkId : null,
@@ -418,6 +585,7 @@ export function validateLedgerEvent(event) {
   if (event.actor !== LEDGER_ACTOR.SYSTEM && event.actor !== LEDGER_ACTOR.HUMAN) errors.push("LedgerEvent.actor must be the system or the local human actor");
   if (LEDGER_EVENT_KIND.includes(event.kind) && LEDGER_EVENT_REASON.includes(event.reason) && !REASONS_BY_KIND[event.kind].includes(event.reason)) errors.push(`reason ${event.reason} cannot be true of a ${event.kind} event`);
   if (!["LINKED", "UNLINKED", "LINK_INVALID", "LINK_RESUMED"].includes(event.kind) && event.linkId !== null) errors.push(`${event.kind} is not a link event and must carry no linkId`);
+  if (event.seq !== null && !(Number.isInteger(event.seq) && event.seq >= 0)) errors.push("LedgerEvent.seq must be null before commit or a non-negative integer after it");
   switch (event.kind) {
     case "RECORDED":
       if (event.from !== null) errors.push("RECORDED leaves no state");
@@ -432,9 +600,38 @@ export function validateLedgerEvent(event) {
       if (event.to !== expectedTo) errors.push(`a ${event.kind} event must enter ${expectedTo}`);
       if (PROOF_STATE.includes(event.from) && !isProofTransitionPermitted(event.from, expectedTo)) errors.push(`transition ${event.from} -> ${expectedTo} is not permitted by the contract`);
       if (event.kind === "STALE" && event.actor !== LEDGER_ACTOR.SYSTEM) errors.push("staleness is detected by the system, not decided by a human");
-      if (event.kind !== "STALE" && event.actor !== LEDGER_ACTOR.HUMAN) errors.push(`${event.kind} follows a human act (apply, remove, clear) and must name the human actor`);
+      if (event.kind === "WITHHELD" && event.actor !== LEDGER_ACTOR.HUMAN) errors.push("WITHHELD follows a human act (apply, remove, clear, withdraw) and must name the human actor");
+      if (event.kind === "RESUMED") {
+        // A resume follows the human's act (re-confirm, withdraw, re-link) except where the SYSTEM
+        // detected the return of a target or the dissolution of a conflict; each reason names its actor.
+        const systemResume = ["TARGET_RESTORED", "CONFLICT_DISSOLVED"].includes(event.reason);
+        if (systemResume ? event.actor !== LEDGER_ACTOR.SYSTEM : event.actor !== LEDGER_ACTOR.HUMAN) errors.push(`a RESUMED event with reason ${event.reason} must name the ${systemResume ? "system" : "human actor"}`);
+      }
       break;
     }
+    case "STATE_SET":
+      if (event.from !== "CLAIMED_ONLY") errors.push("STATE_SET declares from CLAIMED_ONLY only (a stale record resumes to CLAIMED_ONLY first)");
+      if (!ACCEPTED_STATES.includes(event.to)) errors.push("STATE_SET must enter DEMONSTRATED or CERTIFIED");
+      if (PROOF_STATE.includes(event.from) && PROOF_STATE.includes(event.to) && !isProofTransitionPermitted(event.from, event.to)) errors.push(`transition ${event.from} -> ${event.to} is not permitted by the contract`);
+      if (event.actor !== LEDGER_ACTOR.HUMAN) errors.push("STATE_SET is the human's declaration");
+      break;
+    case "CONFLICT_DECLARED":
+      if (!ACCEPTED_STATES.includes(event.from)) errors.push("CONFLICT_DECLARED leaves DEMONSTRATED or CERTIFIED (the contract admits no other edge into CONFLICTING)");
+      if (event.to !== "CONFLICTING") errors.push("CONFLICT_DECLARED must enter CONFLICTING");
+      if (PROOF_STATE.includes(event.from) && !isProofTransitionPermitted(event.from, "CONFLICTING")) errors.push(`transition ${event.from} -> CONFLICTING is not permitted by the contract`);
+      if (event.actor !== LEDGER_ACTOR.HUMAN) errors.push("a conflict is declared by the human; the system infers no contradiction");
+      break;
+    case "CONFLICT_RESOLVED":
+      if (event.from !== "CONFLICTING") errors.push("CONFLICT_RESOLVED leaves CONFLICTING");
+      if (!CONFLICT_RESOLUTION.includes(event.to)) errors.push("CONFLICT_RESOLVED must enter DEMONSTRATED, CERTIFIED or WITHHELD");
+      if (CONFLICT_RESOLUTION.includes(event.to) && !isProofTransitionPermitted("CONFLICTING", event.to)) errors.push(`transition CONFLICTING -> ${event.to} is not permitted by the contract`);
+      if (event.actor !== LEDGER_ACTOR.HUMAN) errors.push("a conflict is resolved by the human");
+      break;
+    case "STALE_CAUSE":
+      // A cause joins or leaves a STALE record without a state change; the state stays STALE.
+      if (event.from !== null || event.to !== null) errors.push("STALE_CAUSE changes no state and must carry none");
+      if (event.actor !== LEDGER_ACTOR.SYSTEM) errors.push("a stale cause is detected by the system");
+      break;
     case "RECONFIRMED":
       if (event.from !== null || event.to !== null) errors.push("RECONFIRMED changes no state and must carry none");
       if (event.actor !== LEDGER_ACTOR.HUMAN) errors.push("RECONFIRMED follows the human's confirmation");
@@ -470,6 +667,7 @@ export function validateLedgerEvent(event) {
       if (event.actor !== LEDGER_ACTOR.SYSTEM) errors.push("link resumption is detected by the system");
       break;
     default:
+      errors.push(`no validation case for event kind ${String(event.kind)}; every governed kind must be validated`);
       break;
   }
   return { ok: errors.length === 0, errors };
@@ -517,12 +715,17 @@ export function ledgerFaultText(ledger) {
  * at `at`, or, if the step throws, the PREVIOUS ledger with the fault recorded on it. No side effect,
  * so a React updater may call it and a discarded pass produces nothing that outlives it.
  */
-export function guardLedgerStep(ledger, step, at) {
+export function guardLedgerStep(ledger, step, at, { rejudged = false } = {}) {
   if (!isIso(at)) throw new Error("guardLedgerStep needs an ISO instant");
   const base = isObject(ledger) && Array.isArray(ledger.records) ? { faults: [], ...ledger } : createEmptyLedger();
   try {
     const next = step(base);
-    const faults = (Array.isArray(next.faults) ? next.faults : []).map((f) => (f.resolvedAt === null ? { ...f, resolvedAt: at } : f));
+    // An open fault says nothing here is current until a later fold or reconcile validates; only a step
+    // that RE-JUDGED the links (a fold, a reconcile) may resolve it. A claim edit or a proof-type choice
+    // that succeeds leaves it open (conformance-auditor W-NEW-1: clearing on any success made the
+    // withheld sentence false).
+    const kept = Array.isArray(next.faults) ? next.faults : [];
+    const faults = rejudged ? kept.map((f) => (f.resolvedAt === null ? { ...f, resolvedAt: at } : f)) : kept;
     return { ...next, faults };
   } catch (error) {
     const fault = createLedgerFault({ at, detail: error && error.message ? error.message : String(error) });
@@ -564,8 +767,12 @@ export function validatePayloadProof(payload, proof) {
 
 /** Every ledger mutation passes through here: an invalid result never becomes state. */
 function commit(previous, candidate, at, detail) {
-  const verdict = validateLedger(candidate);
-  if (verdict.ok) return { ok: true, ledger: candidate };
+  // Every committed event carries its position as a sequence number, so two events stamped at one
+  // instant (a withdrawal, a dissolution) keep their order through any sort or export
+  // (conformance-auditor W-2); the validator requires seq to equal the position.
+  const sequenced = { ...candidate, events: candidate.events.map((e, i) => (e.seq === i ? e : { ...e, seq: i })) };
+  const verdict = validateLedger(sequenced);
+  if (verdict.ok) return { ok: true, ledger: sequenced };
   const refusal = createLedgerRefusal({ at, reason: "LEDGER_INVALID", detail: `${detail}: ${verdict.errors[0]}` });
   return { ok: false, ledger: { ...previous, refusals: [...(previous.refusals || []), refusal] }, error: verdict.errors[0] };
 }
@@ -596,10 +803,16 @@ function recordFromPayloadProof(payload, proof, at) {
     claimText: null,
     claimOrigin: null,
     links: [],
+    staleCauses: [],
+    withheldCause: null,
+    declaration: null,
+    conflict: null,
     recordedAt: at,
     lastEventAt: at,
   };
 }
+/** Leaving any state clears what that state carried; each act sets what it needs afterwards. */
+function leaveState(record) { return { ...record, staleCauses: [], withheldCause: null, declaration: null, conflict: null }; }
 
 /**
  * Fold a newly applied (or cleared) person-evidence payload into the ledger. Pure: returns a new
@@ -634,22 +847,30 @@ export function applyEvidenceToLedger(previousLedger, payload, at, { bundle } = 
   for (const record of byId.values()) {
     const current = record.record.state;
     if (incoming.has(record.id)) { next.set(record.id, record); continue; }
-    if (!["CLAIMED_ONLY", "DEMONSTRATED", "CERTIFIED", "CONFLICTING"].includes(current)) { next.set(record.id, record); continue; }
+    // A record stale for its LINK alone still has its excerpt in play, so it follows the candidate
+    // text like an active record (conformance-auditor C-3): cleared or removed it is WITHHELD, and a
+    // changed text adds CANDIDATE_TEXT to its causes without a state change (the contract admits no
+    // STALE -> STALE edge), so it can no longer resume on the target's return alone.
+    const linkStaleOnly = current === "STALE" && onlyTargetLink(record);
+    if (!["CLAIMED_ONLY", "DEMONSTRATED", "CERTIFIED", "CONFLICTING"].includes(current) && !linkStaleOnly) { next.set(record.id, record); continue; }
     if (!evidence) {
       if (!isProofTransitionPermitted(current, "WITHHELD")) return refuse(`${record.id}: ${current} -> WITHHELD is not permitted by the contract`);
       push(createLedgerEvent({ at, proofId: record.id, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "EVIDENCE_CLEARED", actor: LEDGER_ACTOR.HUMAN }));
-      next.set(record.id, { ...withState(record, "WITHHELD"), lastEventAt: at });
+      next.set(record.id, { ...withState(leaveState(record), "WITHHELD"), withheldCause: WITHHELD_CAUSE.EVIDENCE_CLEARED, lastEventAt: at });
     } else if (evidence.sourceId === record.sourceId) {
       // Same text, this excerpt no longer offered: a human removed it.
       if (!isProofTransitionPermitted(current, "WITHHELD")) return refuse(`${record.id}: ${current} -> WITHHELD is not permitted by the contract`);
       push(createLedgerEvent({ at, proofId: record.id, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "EXCERPT_REMOVED", actor: LEDGER_ACTOR.HUMAN }));
-      next.set(record.id, { ...withState(record, "WITHHELD"), lastEventAt: at });
+      next.set(record.id, { ...withState(leaveState(record), "WITHHELD"), withheldCause: WITHHELD_CAUSE.EXCERPT_REMOVED, lastEventAt: at });
+    } else if (linkStaleOnly) {
+      push(createLedgerEvent({ at, proofId: record.id, kind: "STALE_CAUSE", from: null, to: null, reason: "SOURCE_TEXT_CHANGED", actor: LEDGER_ACTOR.SYSTEM, detail: `source ${record.sourceId} replaced by ${evidence.sourceId}; CANDIDATE_TEXT joins TARGET_LINK as a cause, so the target's return alone no longer resumes this record` }));
+      next.set(record.id, { ...record, staleCauses: [...record.staleCauses, STALE_CAUSE.CANDIDATE_TEXT], lastEventAt: at });
     } else {
       // Different text: the source this record was cut from is gone. Every active record on the
       // old source goes stale together; the system detects it, nobody decides it.
       if (!isProofTransitionPermitted(current, "STALE")) return refuse(`${record.id}: ${current} -> STALE is not permitted by the contract`);
-      push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: current, to: "STALE", reason: "SOURCE_TEXT_CHANGED", actor: LEDGER_ACTOR.SYSTEM, detail: `source ${record.sourceId} replaced by ${evidence.sourceId}` }));
-      next.set(record.id, { ...withState(record, "STALE"), lastEventAt: at });
+      push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: current, to: "STALE", reason: "SOURCE_TEXT_CHANGED", actor: LEDGER_ACTOR.SYSTEM, detail: `source ${record.sourceId} replaced by ${evidence.sourceId}${ACCEPTED_STATES.includes(current) ? `; the ${current} declaration lapses and is not re-asserted on resumption` : ""}` }));
+      next.set(record.id, { ...withState(leaveState(record), "STALE"), staleCauses: [STALE_CAUSE.CANDIDATE_TEXT], lastEventAt: at });
     }
   }
 
@@ -671,19 +892,33 @@ export function applyEvidenceToLedger(previousLedger, payload, at, { bundle } = 
     if (existing.unstructured !== unstructured) changed.push(unstructured ? "now the whole pasted text with no exact excerpt marked" : "now an exact excerpt marked by hand");
     if (existing.sourceCompleteness !== sourceCompleteness) changed.push(`source completeness ${existing.sourceCompleteness} -> ${sourceCompleteness}`);
     const refreshed = { ...existing, unstructured, sourceCompleteness, confirmation: { confirmedBy: evidence.confirmationRecord.confirmedBy, confirmedAt: evidence.confirmationRecord.confirmedAt, confirmedByDisplayName: evidence.confirmationRecord.confirmedByDisplayName }, lastEventAt: at };
-    if (current === "STALE" || current === "WITHHELD") {
+    if (current === "WITHHELD" && existing.withheldCause === WITHHELD_CAUSE.CONFLICT_RESOLVED) {
+      // Withheld by the human at a conflict's resolution: the excerpt is still marked, so an apply of
+      // the same evidence is NOT the act that offers it again (conformance-auditor W-1); only the
+      // human's explicit offer (offerAgain) resumes it.
+      push(createLedgerEvent({ at, proofId: proof.id, kind: "RECONFIRMED", from: null, to: null, reason: "EXCERPT_RECONFIRMED", actor: LEDGER_ACTOR.HUMAN, detail: `${changed.join("; ") || "confirmed again"}; stays WITHHELD (withheld at a conflict's resolution) until offered again by the human` }));
+      next.set(proof.id, refreshed);
+    } else if (current === "STALE" && onlyTargetLink(existing)) {
+      // Stale for TARGET reasons, not text: the excerpt is re-confirmed, the record stays where the
+      // link loss put it; only the target's return or a re-link resumes it (ruling Q4).
+      push(createLedgerEvent({ at, proofId: proof.id, kind: "RECONFIRMED", from: null, to: null, reason: "EXCERPT_RECONFIRMED", actor: LEDGER_ACTOR.HUMAN, detail: changed.join("; ") || undefined }));
+      next.set(proof.id, refreshed);
+    } else if (current === "STALE" || current === "WITHHELD") {
       // Same source, span and proof ids: the same record resumes. Never a duplicate. The reason is
       // the one that is true: the text was displaced and restored (STALE), or the human offered the
       // excerpt again after removing or clearing it (WITHHELD) (conformance-auditor W-4).
       if (!isProofTransitionPermitted(current, "CLAIMED_ONLY")) return refuse(`${proof.id}: ${current} -> CLAIMED_ONLY is not permitted by the contract`);
       push(createLedgerEvent({ at, proofId: proof.id, kind: "RESUMED", from: current, to: "CLAIMED_ONLY", reason: current === "STALE" ? "SOURCE_TEXT_RESTORED" : "EXCERPT_CONFIRMED", actor: LEDGER_ACTOR.HUMAN, detail: changed.join("; ") || undefined }));
-      next.set(proof.id, withState(refreshed, "CLAIMED_ONLY"));
+      next.set(proof.id, withState(leaveState(refreshed), "CLAIMED_ONLY"));
     } else {
       push(createLedgerEvent({ at, proofId: proof.id, kind: "RECONFIRMED", from: null, to: null, reason: "EXCERPT_RECONFIRMED", actor: LEDGER_ACTOR.HUMAN, detail: changed.join("; ") || undefined }));
       next.set(proof.id, refreshed);
     }
   }
-  const candidate = { ...base, ledgerVersion: LEDGER_VERSION, contractVersion: CONTRACT_VERSION, records: sortRecords([...next.values()]), events };
+  // A conflict whose counterpart just went stale or withheld has lost its object on that side; both
+  // sides are settled by the system before the fold is committed (ruling Q3: never a one-sided conflict).
+  const settled = settleConflicts([...next.values()], events, at);
+  const candidate = { ...base, ledgerVersion: LEDGER_VERSION, contractVersion: CONTRACT_VERSION, records: sortRecords(settled), events };
   const folded = commit(base, candidate, at, "applyEvidenceToLedger");
   if (!folded.ok) return refused(folded.ledger);
   // Links are re-judged after every fold: a record that went stale takes its links with it, and a
@@ -700,7 +935,7 @@ function reconcileLinksAgainstRecords(ledger, at) {
   let changed = false;
   const records = ledger.records.map((record) => {
     const links = Array.isArray(record.links) ? record.links : [];
-    if (!links.length || ACTIVE_STATES.includes(record.record.state)) return record;
+    if (!links.length || linksJudgeable(record)) return record;
     const nextLinks = links.map((link) => {
       if (link.state === "INVALID" && link.reason === "CANDIDATE_SOURCE_CHANGED") return link;
       changed = true;
@@ -745,6 +980,139 @@ export function setClaimText(ledger, proofId, text, at) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Human acts on proof state (BLP-010). Each is refused in words when its gate does not hold; a
+// refusal is recorded (STATE_REFUSED) and changes no record.
+// ---------------------------------------------------------------------------------------------
+function refuseState(ledger, at, detail) {
+  const refusal = createLedgerRefusal({ at: isIso(at) ? at : null, reason: "STATE_REFUSED", detail });
+  if (!validateLedgerRefusal(refusal).ok) throw new Error("a refusal needs an ISO instant");
+  return { ok: false, ledger: { ...ledger, refusals: [...(ledger.refusals || []), refusal] }, error: detail };
+}
+/**
+ * The gate an accepted state must pass, stated once (ruling Q2). Returns { ok, error, linkIds }:
+ * contract-given (USER-CONFIRMED confirmation), structural (no unstructured whole-text record;
+ * DEMONSTRATED needs a link STANDING UNDER A LIVE JUDGEMENT, so with no bundle it is refused in
+ * words rather than allowed on stored state).
+ */
+function acceptedStateGate(record, state, bundle) {
+  if (!ACCEPTED_STATES.includes(state)) return { ok: false, error: `${String(state)} is not a state the human declares; the human declares DEMONSTRATED or CERTIFIED` };
+  if (record.record.confirmation !== "USER-CONFIRMED") return { ok: false, error: `${state} requires a USER-CONFIRMED confirmation (contract); this record has none` };
+  if (record.unstructured) return { ok: false, error: `${state} cannot be declared on the whole pasted text with no exact excerpt marked; mark an excerpt first` };
+  if (state === "CERTIFIED") return { ok: true, linkIds: [] };
+  if (bundle === undefined) return { ok: false, error: "DEMONSTRATED needs a link that stands under a live judgement, and no posting evidence was given to judge against; declaration refused rather than allowed on stored link state" };
+  const standing = linkStanding(record, bundle);
+  if (standing.unreadable) return { ok: false, error: `DEMONSTRATED needs a link that stands, and the posting evidence could not be read (${standing.unreadable}); declaration refused` };
+  if (!standing.standing.length) return { ok: false, error: `DEMONSTRATED needs at least one link that stands against the current posting evidence; this record has ${standing.recordedValid ? `${standing.recordedValid} recorded VALID but none standing` : "no link"}` };
+  const linkIds = (record.links || []).filter((l) => l.state === "VALID" && standing.standing.some((t) => t.targetKind === l.targetKind && t.targetId === l.targetId)).map((l) => l.id);
+  return { ok: true, linkIds };
+}
+/** The human declares a CLAIMED_ONLY record DEMONSTRATED or CERTIFIED. A proof-type mismatch is said, never refused. */
+export function declareProofState(ledger, proofId, state, at, { bundle } = {}) {
+  if (!isIso(at)) throw new Error("declareProofState needs an ISO instant");
+  const record = ledger.records.find((r) => r.id === proofId);
+  if (!record) return refuseState(ledger, at, `no proof record ${String(proofId)}`);
+  const current = record.record.state;
+  if (current !== "CLAIMED_ONLY") return refuseState(ledger, at, current === "STALE" ? `proof ${proofId} is STALE; it resumes to CLAIMED_ONLY first (${onlyTargetLink(record) ? "link again or wait for the target to return" : "restore or re-mark the text"}), then declare again; the product declines the contract's STALE -> ${String(state)} edge because the excerpt was re-confirmed, the ${String(state)} was not re-asserted` : `proof ${proofId} is ${current}; only a CLAIMED_ONLY record is declared${ACCEPTED_STATES.includes(current) ? " (withdraw the current declaration first)" : current === "CONFLICTING" ? " (resolve the conflict first)" : ""}`);
+  const gate = acceptedStateGate(record, state, bundle);
+  if (!gate.ok) return refuseState(ledger, at, gate.error);
+  if (!isProofTransitionPermitted(current, state)) return refuseState(ledger, at, `${current} -> ${state} is not permitted by the contract`);
+  const next = { ...withState(leaveState(record), state), declaration: { state, linkIds: gate.linkIds, at }, lastEventAt: at };
+  const verdict = validateProofRecord(next.record);
+  if (!verdict.ok) return refuseState(ledger, at, `contract refused the state: ${verdict.errors[0]}`);
+  const note = proofTypeStateNote(next);
+  const event = createLedgerEvent({ at, proofId, kind: "STATE_SET", from: current, to: state, reason: "HUMAN_DECLARATION", actor: LEDGER_ACTOR.HUMAN, detail: `${state === "DEMONSTRATED" ? `on ${gate.linkIds.length === 1 ? "link" : "links"} ${gate.linkIds.join(", ")}, standing against the posting evidence at declaration` : "a qualification or credential, no link required"}${note ? `; ${note}` : ""}` });
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? next : r)), events: [...ledger.events, event] }, at, "declareProofState");
+}
+/**
+ * The human withdraws a declaration: DEMONSTRATED or CERTIFIED -> WITHHELD -> CLAIMED_ONLY in one
+ * act, two events, because the contract admits no direct edge back and the excerpt still stands.
+ * Links are untouched.
+ */
+export function withdrawProofState(ledger, proofId, at) {
+  if (!isIso(at)) throw new Error("withdrawProofState needs an ISO instant");
+  const record = ledger.records.find((r) => r.id === proofId);
+  if (!record) return refuseState(ledger, at, `no proof record ${String(proofId)}`);
+  const current = record.record.state;
+  if (!ACCEPTED_STATES.includes(current)) return refuseState(ledger, at, `proof ${proofId} is ${current}; there is no declaration to withdraw${current === "CONFLICTING" ? " (resolve the conflict instead)" : ""}`);
+  const gone = createLedgerEvent({ at, proofId, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "STATE_WITHDRAWN", actor: LEDGER_ACTOR.HUMAN, detail: `the ${current} declaration is withdrawn by the human; via WITHHELD because the contract admits no direct edge back to CLAIMED_ONLY` });
+  const back = createLedgerEvent({ at, proofId, kind: "RESUMED", from: "WITHHELD", to: "CLAIMED_ONLY", reason: "STATE_WITHDRAWN", actor: LEDGER_ACTOR.HUMAN, detail: "the excerpt still stands as confirmed evidence; links untouched" });
+  const next = { ...withState(leaveState(record), "CLAIMED_ONLY"), lastEventAt: at };
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? next : r)), events: [...ledger.events, gone, back] }, at, "withdrawProofState");
+}
+/** The human offers again an excerpt withheld at a conflict's resolution (the only withheld cause an apply does not clear). */
+export function offerAgain(ledger, proofId, at, { bundle } = {}) {
+  if (!isIso(at)) throw new Error("offerAgain needs an ISO instant");
+  const record = ledger.records.find((r) => r.id === proofId);
+  if (!record) return refuseState(ledger, at, `no proof record ${String(proofId)}`);
+  if (record.record.state !== "WITHHELD") return refuseState(ledger, at, `proof ${proofId} is ${record.record.state}; only a withheld record is offered again`);
+  if (record.withheldCause !== WITHHELD_CAUSE.CONFLICT_RESOLVED) return refuseState(ledger, at, `proof ${proofId} was withheld by ${record.withheldCause === WITHHELD_CAUSE.EVIDENCE_CLEARED ? "clearing the evidence" : "removing the excerpt"}; mark and apply the excerpt again to resume it`);
+  const event = createLedgerEvent({ at, proofId, kind: "RESUMED", from: "WITHHELD", to: "CLAIMED_ONLY", reason: "OFFERED_AGAIN", actor: LEDGER_ACTOR.HUMAN, detail: "offered again by the human after being withheld at a conflict's resolution; CLAIMED_ONLY, no declaration re-asserted" });
+  const next = { ...withState(leaveState(record), "CLAIMED_ONLY"), lastEventAt: at };
+  const result = commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? next : r)), events: [...ledger.events, event] }, at, "offerAgain");
+  // A resumed record's links are re-judged as after a fold: they resume only if their targets still stand.
+  return result.ok && bundle !== undefined ? { ...result, ledger: reconcileLinks(result.ledger, bundle, at) } : result;
+}
+/** The pairs the human could declare in conflict: another accepted record sharing a target that stands on both sides under a live judgement. */
+export function conflictCandidates(ledger, proofId, bundle) {
+  const record = ledger.records.find((r) => r.id === proofId);
+  if (!record || !ACCEPTED_STATES.includes(record.record.state) || bundle === undefined) return [];
+  const mine = linkStanding(record, bundle).standing;
+  const out = [];
+  for (const other of ledger.records) {
+    if (other.id === proofId || !ACCEPTED_STATES.includes(other.record.state)) continue;
+    const theirs = linkStanding(other, bundle).standing;
+    for (const t of mine) if (theirs.some((u) => u.targetKind === t.targetKind && u.targetId === t.targetId)) out.push({ counterpartId: other.id, targetKind: t.targetKind, targetId: t.targetId });
+  }
+  return out;
+}
+/**
+ * The human declares two ACCEPTED records in conflict over one shared target. Symmetric by
+ * construction and by validation: both records enter CONFLICTING naming each other and the target.
+ * The system infers no contradiction; no model reads meaning (ruling Q3).
+ */
+export function declareConflict(ledger, proofId, counterpartId, { targetKind, targetId }, at, { bundle } = {}) {
+  if (!isIso(at)) throw new Error("declareConflict needs an ISO instant");
+  const a = ledger.records.find((r) => r.id === proofId), b = ledger.records.find((r) => r.id === counterpartId);
+  if (!a || !b) return refuseState(ledger, at, `no proof record ${!a ? String(proofId) : String(counterpartId)}`);
+  if (proofId === counterpartId) return refuseState(ledger, at, "a record cannot conflict with itself");
+  for (const r of [a, b]) if (!ACCEPTED_STATES.includes(r.record.state)) return refuseState(ledger, at, `proof ${r.id} is ${r.record.state}; a conflict is declared between two DEMONSTRATED or CERTIFIED records (the contract admits no other edge into CONFLICTING)`);
+  if (bundle === undefined) return refuseState(ledger, at, "a conflict is declared over a target that stands on both sides under a live judgement, and no posting evidence was given to judge against; refused");
+  const shared = conflictCandidates(ledger, proofId, bundle).some((c) => c.counterpartId === counterpartId && c.targetKind === targetKind && c.targetId === targetId);
+  if (!shared) return refuseState(ledger, at, `${String(targetKind)} ${String(targetId)} does not stand against the current posting evidence on both proof ${proofId} and proof ${counterpartId}; a conflict needs one shared standing target`);
+  const conflictWith = (other) => ({ counterpartId: other.id, targetKind, targetId, declaredAt: at });
+  const nextA = { ...withState(leaveState(a), "CONFLICTING"), conflict: conflictWith(b), lastEventAt: at };
+  const nextB = { ...withState(leaveState(b), "CONFLICTING"), conflict: conflictWith(a), lastEventAt: at };
+  const ev = (self, other) => createLedgerEvent({ at, proofId: self.id, kind: "CONFLICT_DECLARED", from: self.record.state, to: "CONFLICTING", reason: "HUMAN_DECLARATION", actor: LEDGER_ACTOR.HUMAN, detail: `declared by the human in conflict with proof ${other.id} over ${targetKind} ${targetId}; the earlier ${self.record.state} declaration lapses until resolved` });
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === a.id ? nextA : r.id === b.id ? nextB : r)), events: [...ledger.events, ev(a, b), ev(b, a)] }, at, "declareConflict");
+}
+/**
+ * The human resolves a conflict for BOTH sides in one act: each side goes to DEMONSTRATED,
+ * CERTIFIED or WITHHELD, an accepted state passing the same gate a declaration passes. A one-sided
+ * resolution is not offered (ruling Q3).
+ */
+export function resolveConflict(ledger, proofId, { thisTo, counterpartTo }, at, { bundle } = {}) {
+  if (!isIso(at)) throw new Error("resolveConflict needs an ISO instant");
+  const a = ledger.records.find((r) => r.id === proofId);
+  if (!a) return refuseState(ledger, at, `no proof record ${String(proofId)}`);
+  if (a.record.state !== "CONFLICTING" || !a.conflict) return refuseState(ledger, at, `proof ${proofId} is ${a.record.state}; there is no conflict to resolve`);
+  const b = ledger.records.find((r) => r.id === a.conflict.counterpartId);
+  if (!b || b.record.state !== "CONFLICTING" || !b.conflict || b.conflict.counterpartId !== a.id) return refuseState(ledger, at, `the conflict on proof ${proofId} has no counterpart in the conflict; the system dissolves it on the next fold`);
+  for (const to of [thisTo, counterpartTo]) if (!CONFLICT_RESOLUTION.includes(to)) return refuseState(ledger, at, `${String(to)} is not a resolution; each side goes to DEMONSTRATED, CERTIFIED or WITHHELD`);
+  const settle = (r, to) => {
+    if (to === "WITHHELD") return { ok: true, record: { ...withState(leaveState(r), "WITHHELD"), withheldCause: WITHHELD_CAUSE.CONFLICT_RESOLVED, lastEventAt: at }, detail: "withheld by the human at resolution; an apply of the same evidence does not resume it, only the human's explicit offer" };
+    const gate = acceptedStateGate(r, to, bundle);
+    if (!gate.ok) return { ok: false, error: `proof ${r.id} -> ${to}: ${gate.error}` };
+    const next = { ...withState(leaveState(r), to), declaration: { state: to, linkIds: gate.linkIds, at }, lastEventAt: at };
+    const note = proofTypeStateNote(next);
+    return { ok: true, record: next, detail: `${to === "DEMONSTRATED" ? `on ${gate.linkIds.join(", ")}, standing at resolution` : "a qualification or credential"}${note ? `; ${note}` : ""}` };
+  };
+  const ra = settle(a, thisTo); if (!ra.ok) return refuseState(ledger, at, ra.error);
+  const rb = settle(b, counterpartTo); if (!rb.ok) return refuseState(ledger, at, rb.error);
+  const ev = (r, to, detail, other) => createLedgerEvent({ at, proofId: r.id, kind: "CONFLICT_RESOLVED", from: "CONFLICTING", to, reason: "HUMAN_DECLARATION", actor: LEDGER_ACTOR.HUMAN, detail: `resolved by the human with proof ${other.id}: ${detail}` });
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === a.id ? ra.record : r.id === b.id ? rb.record : r)), events: [...ledger.events, ev(a, thisTo, ra.detail, b), ev(b, counterpartTo, rb.detail, a)] }, at, "resolveConflict");
+}
+
+// ---------------------------------------------------------------------------------------------
 // Views: missing evidence and downstream uses are COMPUTED from the record, never typed.
 // ---------------------------------------------------------------------------------------------
 /**
@@ -759,8 +1127,9 @@ export function linkStanding(record, bundle) {
   const catalogue = judged ? bundleTargets(bundle) : null;
   const unreadable = judged && !catalogue.sourceId ? catalogue.unlinkable[0].text : null;
   const recordedValid = links.filter((l) => l.state === "VALID");
+  const notJudged = links.filter((l) => l.state === "INVALID" && l.reason === "TARGET_EVIDENCE_UNAVAILABLE");
   const recorded = recordedValid.map((l) => ({ targetKind: l.targetKind, targetId: l.targetId }));
-  const active = ACTIVE_STATES.includes(record.record.state);
+  const active = linksJudgeable(record);
   // `standing` holds only links judged live and found standing; without a bundle it is EMPTY and
   // `recorded` carries what the ledger last stored, so a consumer reading the list cannot take stored
   // state for a current finding (conformance-auditor S-new-1).
@@ -770,7 +1139,7 @@ export function linkStanding(record, bundle) {
   // to a cause nobody established (conformance-auditor W-new-2, W-new-3).
   const caveat = !links.length ? null
     : !judged ? (recordedValid.length ? `${plural(recordedValid.length, "link")} recorded VALID` : `every link INVALID`) + " as last recorded by the ledger; link state not re-checked against the posting evidence in this view"
-    : unreadable ? (recordedValid.length ? `${plural(recordedValid.length, "link")} recorded VALID could not be judged: ${unreadable}` : null)
+    : unreadable ? (recordedValid.length ? `${plural(recordedValid.length, "link")} recorded VALID could not be judged: ${unreadable}` : notJudged.length ? `${plural(notJudged.length, "link")} not judged: ${unreadable}; unknown, not lost` : null)
     : !active ? (recordedValid.length ? `${plural(recordedValid.length, "link")} recorded VALID; not checked: this proof record is ${record.record.state}, not active` : null)
     : lapsed ? `${plural(lapsed, "link")} recorded VALID no longer ${lapsed === 1 ? "stands" : "stand"} against the current posting evidence, pending the ledger's re-check`
     : null;
@@ -781,8 +1150,11 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 export function missingEvidenceOf(record, { currentSourceId, bundle } = {}) {
   const missing = [];
   const state = record.record.state;
-  if (state === "STALE") missing.push(currentSourceId && currentSourceId === record.sourceId ? "the excerpt is no longer marked on this text; mark it again to resume" : "the pasted text changed since this proof was recorded; mark the excerpt again on the current text, or restore the earlier text to resume");
-  if (state === "WITHHELD") missing.push("this excerpt is no longer offered as evidence; mark it again to resume");
+  if (state === "STALE") for (const cause of record.staleCauses) missing.push(staleCauseText(cause, { onCurrentSource: Boolean(currentSourceId && currentSourceId === record.sourceId) }));
+  if (state === "WITHHELD") missing.push(`withheld: ${withheldCauseText(record.withheldCause)}`);
+  if (state === "CONFLICTING" && record.conflict) missing.push(`in a conflict you declared with proof ${record.conflict.counterpartId} over ${record.conflict.targetKind} ${record.conflict.targetId}; resolve it, for both sides, before either licenses a destination`);
+  const typeNote = proofTypeStateNote(record);
+  if (typeNote) missing.push(typeNote);
   if (record.unstructured) missing.push("no exact excerpt marked; the proof covers the whole pasted text");
   if (!record.claimText) missing.push("no claim stated in your own words");
   if (record.proofType === "UNSPECIFIED") missing.push("no proof type chosen");
@@ -790,7 +1162,7 @@ export function missingEvidenceOf(record, { currentSourceId, bundle } = {}) {
   if (!links.standing.length) missing.push(!links.total ? "not yet linked to a target (see target links)" : links.caveat ? `no link currently stands: ${links.caveat} (see target links)` : "no valid link to a target: every link is invalid against the current posting evidence (see target links)");
   else if (links.caveat) missing.push(`${links.caveat} (see target links)`);
   if (!PROOF_DESTINATION.some((key) => record.record.destinations[key] === "ALLOWED")) missing.push("no destination approved yet (see destination approvals)");
-  if (!["DEMONSTRATED", "CERTIFIED"].includes(state)) missing.push(`proof state is ${state}, not DEMONSTRATED or CERTIFIED`);
+  if (!ACCEPTED_STATES.includes(state)) missing.push(state === "CLAIMED_ONLY" ? "proof state is CLAIMED_ONLY, not DEMONSTRATED or CERTIFIED: declare it, on a standing link for demonstrated" : `proof state is ${state}, not DEMONSTRATED or CERTIFIED`);
   if (record.sourceCompleteness !== "COMPLETE") missing.push("the source is not attested complete");
   return missing;
 }
@@ -805,7 +1177,10 @@ export function downstreamUsesOf(record, { bundle } = {}) {
     destinations: { ...record.record.destinations },
     targets: [...record.record.targets],
     linkStanding: links,
+    declaration: record.declaration ? { ...record.declaration, linkIds: [...record.declaration.linkIds] } : null,
+    conflict: record.conflict ? { ...record.conflict } : null,
     text: [
+      record.record.state === "DEMONSTRATED" && record.declaration ? `declared demonstrated by you at ${record.declaration.at} on ${plural(record.declaration.linkIds.length, "link")}` : record.record.state === "CERTIFIED" && record.declaration ? `declared certified by you at ${record.declaration.at}` : record.record.state === "CONFLICTING" && record.conflict ? `in conflict with proof ${record.conflict.counterpartId} over ${record.conflict.targetKind} ${record.conflict.targetId}, declared at ${record.conflict.declaredAt}` : null,
       !links.total ? "not yet linked to a target (see target links)"
         : !links.judged ? `${links.caveat}${kept}`
         : !links.standing.length ? `no link currently stands${links.caveat ? `: ${links.caveat}` : ""}${kept}`
@@ -828,6 +1203,15 @@ export function ledgerRows(ledger, { currentSourceId, bundle } = {}) {
     end: record.end,
     unstructured: record.unstructured,
     state: record.record.state,
+    stateText: proofStateText(record.record.state),
+    staleCauses: [...(record.staleCauses || [])],
+    staleCauseTexts: record.record.state === "STALE" ? record.staleCauses.map((c) => staleCauseText(c, { onCurrentSource: Boolean(currentSourceId && currentSourceId === record.sourceId) })) : [],
+    withheldCause: record.withheldCause,
+    withheldCauseText: record.record.state === "WITHHELD" ? withheldCauseText(record.withheldCause) : null,
+    linksJudgeable: linksJudgeable(record),
+    declaration: record.declaration ? { ...record.declaration, linkIds: [...record.declaration.linkIds] } : null,
+    conflict: record.conflict ? { ...record.conflict } : null,
+    proofTypeStateNote: proofTypeStateNote(record),
     proofType: record.proofType,
     proofTypeLabel: PROOF_TYPE_LABEL[record.proofType],
     claimText: record.claimText,
@@ -881,7 +1265,7 @@ export function validateLedger(ledger) {
     if (!isIso(record.lastEventAt) || record.lastEventAt < record.recordedAt) errors.push(`${record.id}: lastEventAt must be an instant no earlier than recordedAt`);
     const own = ledger.events.filter((e) => e.proofId === record.id);
     if (!own.length || own[0].kind !== "RECORDED") errors.push(`${record.id}: history must begin with a RECORDED event`);
-    const lastState = [...own].reverse().find((e) => ["RECORDED", "STALE", "WITHHELD", "RESUMED"].includes(e.kind));
+    const lastState = [...own].reverse().find((e) => ["RECORDED", "STALE", "WITHHELD", "RESUMED", "STATE_SET", "CONFLICT_DECLARED", "CONFLICT_RESOLVED"].includes(e.kind));
     if (lastState && lastState.to !== record.record.state) errors.push(`${record.id}: state ${record.record.state} does not follow from its last state event (${lastState.to})`);
     // Human choices are derived from history the same way state is: a choice without its event is refused.
     const lastType = [...own].reverse().find((e) => e.kind === "PROOF_TYPE_SET");
@@ -889,6 +1273,36 @@ export function validateLedger(ledger) {
     const lastClaim = [...own].reverse().find((e) => e.kind === "CLAIM_SET");
     if ((lastClaim ? lastClaim.to : null) !== record.claimText) errors.push(`${record.id}: claim does not follow from its history (${lastClaim ? "last CLAIM_SET differs" : "no CLAIM_SET event"})`);
     if (own.length && own[own.length - 1].at !== record.lastEventAt) errors.push(`${record.id}: lastEventAt does not match its last event`);
+    // Proof states (BLP-010): what each state carries, and only that state.
+    const st = record.record?.state;
+    const causes = Array.isArray(record.staleCauses) ? record.staleCauses : null;
+    if (!causes || new Set(causes).size !== causes.length || !causes.every((c) => Object.values(STALE_CAUSE).includes(c))) errors.push(`${record.id}: staleCauses must be a set drawn from the governed causes`);
+    else if (st === "STALE" ? !causes.length : causes.length) errors.push(`${record.id}: staleCauses must be non-empty on a STALE record and empty otherwise`);
+    if (st === "WITHHELD" ? !Object.values(WITHHELD_CAUSE).includes(record.withheldCause) : record.withheldCause !== null) errors.push(`${record.id}: withheldCause must name a cause on a WITHHELD record and be null otherwise`);
+    const decl = record.declaration;
+    const declAllowed = ACCEPTED_STATES.includes(st) || (st === "STALE" && causes && causes.includes(STALE_CAUSE.TARGET_LINK));
+    if (!declAllowed && decl !== null) errors.push(`${record.id}: a ${st} record carries no declaration`);
+    if (ACCEPTED_STATES.includes(st)) {
+      if (!isObject(decl) || decl.state !== st || !Array.isArray(decl.linkIds) || !isIso(decl.at)) errors.push(`${record.id}: a ${st} record must carry the human's declaration of ${st} with its instant`);
+      // The quantifier is EXISTENTIAL, the same one reconcileLinks applies when it lapses a demonstration
+      // (no declared link standing and at least one lost): a declaration on two links keeps standing while
+      // one of them does (conformance-auditor C-NEW-1: a universal rule here contradicted the reconcile
+      // rule at partial loss and made commitReconcile throw on a state the ledger can legitimately hold).
+      else if (st === "DEMONSTRATED" && (!decl.linkIds.length || !decl.linkIds.some((id) => (record.links || []).some((l) => l.id === id && linkStandsOrUnjudged(l))))) errors.push(`${record.id}: DEMONSTRATED must stand on at least one declared link that is VALID or not yet judged; a declaration whose links were ALL judged and found lost makes the record STALE, not DEMONSTRATED`);
+      if (record.unstructured) errors.push(`${record.id}: the whole pasted text with no exact excerpt marked cannot be ${st}`);
+      const born = lastState && ["STATE_SET", "CONFLICT_RESOLVED"].includes(lastState.kind) && lastState.to === st;
+      if (!born) errors.push(`${record.id}: ${st} must follow from a STATE_SET or CONFLICT_RESOLVED event, the human's declaration`);
+    }
+    if (st === "STALE" && causes && causes.includes(STALE_CAUSE.TARGET_LINK) && (!isObject(decl) || decl.state !== "DEMONSTRATED")) errors.push(`${record.id}: stale for a lost link must carry the DEMONSTRATED declaration that lapsed`);
+    if (st === "CONFLICTING") {
+      const c = record.conflict;
+      if (!isObject(c) || !nonempty(c.counterpartId) || !PROOF_TARGET_KIND.includes(c.targetKind) || !nonempty(c.targetId) || !isIso(c.declaredAt)) errors.push(`${record.id}: a CONFLICTING record must name its counterpart, the shared target and the instant`);
+      else {
+        const other = ledger.records.find((r) => r.id === c.counterpartId);
+        if (!other || other.record?.state !== "CONFLICTING" || !isObject(other.conflict) || other.conflict.counterpartId !== record.id || other.conflict.targetKind !== c.targetKind || other.conflict.targetId !== c.targetId) errors.push(`${record.id}: conflict is not symmetric; proof ${c.counterpartId} must be CONFLICTING back over the same target (a one-sided conflict is an intention, not a property)`);
+        if (!(record.links || []).some((l) => linkStandsOrUnjudged(l) && l.targetKind === c.targetKind && l.targetId === c.targetId)) errors.push(`${record.id}: a conflict needs a link to its shared target that stands or is not yet judged; a judged loss dissolves it`);
+      }
+    } else if (record.conflict !== null) errors.push(`${record.id}: a ${st} record carries no conflict`);
     // Links (BLP-009): every link governed, targets[] equal to the VALID links, each link born of a LINKED event.
     const links = Array.isArray(record.links) ? record.links : null;
     if (!links) errors.push(`${record.id}: links must be an array`);
@@ -927,6 +1341,7 @@ export function validateLedger(ledger) {
   ledger.events.forEach((event, i) => {
     const verdict = validateLedgerEvent(event);
     if (!verdict.ok) errors.push(`events[${i}]: ${verdict.errors[0]}`);
+    else if (event.seq !== i) errors.push(`events[${i}]: seq ${event.seq} does not equal its position; two events at one instant keep their order by seq`);
     else if (!ids.has(event.proofId)) errors.push(`events[${i}]: names unknown record ${event.proofId}`);
     if (i > 0 && ledger.events[i - 1].at > event.at) errors.push(`events[${i}]: out of order`);
   });

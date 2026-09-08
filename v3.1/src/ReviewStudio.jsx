@@ -53,15 +53,17 @@ export default function ReviewStudio(props) {
     // updater more than once); the fold itself is pure.
     const at = new Date().toISOString();
     setPersonEvidenceOverride(evidence);
-    setProofLedger((ledger) => guardLedgerStep(ledger, (l) => applyEvidenceToLedger(l, evidence, at, { bundle: proofBundle }), at));
+    setProofLedger((ledger) => guardLedgerStep(ledger, (l) => applyEvidenceToLedger(l, evidence, at, { bundle: proofBundle }), at, { rejudged: true }));
   };
   // When the posting evidence changes, every link is re-judged by the system against it.
   useEffect(() => {
     const at = new Date().toISOString();
-    setProofLedger((ledger) => (ledger.records.some((r) => (r.links || []).length) ? guardLedgerStep(ledger, (l) => reconcileLinks(l, proofBundle, at), at) : ledger));
+    setProofLedger((ledger) => (ledger.records.some((r) => (r.links || []).length) ? guardLedgerStep(ledger, (l) => reconcileLinks(l, proofBundle, at), at, { rejudged: true }) : ledger));
   }, [bundleKey]); // eslint-disable-line react-hooks/exhaustive-deps
   // The panel hands back an UPDATER so its choices always run against the live ledger.
-  const handleProofLedgerChange = (updater) => { const at = new Date().toISOString(); setProofLedger((ledger) => (typeof updater === "function" ? guardLedgerStep(ledger, updater, at) : ledger)); };
+  // A choice carries the instant the panel read for it, so one act has one clock reading; a choice
+  // re-judges nothing by itself, so it never resolves an open fault (guardLedgerStep default).
+  const handleProofLedgerChange = (updater, at) => { const stamp = typeof at === "string" && !Number.isNaN(Date.parse(at)) ? at : new Date().toISOString(); setProofLedger((ledger) => (typeof updater === "function" ? guardLedgerStep(ledger, updater, stamp) : ledger)); };
   const [governanceReviewState, setGovernanceReviewState] = useState({});
   const governanceSubjectKey = props.posting?.uuid || `${props.title || ""}::${props.employer || ""}::${props.source || ""}`;
   useEffect(() => setGovernanceReviewState({}), [governanceSubjectKey]);

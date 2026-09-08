@@ -4,7 +4,6 @@ import {
   PROOF_TYPE_LABEL,
   PROOF_TYPE_VOCABULARY_STATUS,
   TARGET_KIND_AVAILABILITY,
-  ACTIVE_STATES,
   bundleTargets,
   judgeLink,
   ledgerCounts,
@@ -14,9 +13,19 @@ import {
   setClaimText,
   setProofType,
   unlinkProof,
+  ACCEPTED_STATES,
+  CONFLICT_RESOLUTION,
+  declareProofState,
+  withdrawProofState,
+  offerAgain,
+  declareConflict,
+  resolveConflict,
+  conflictCandidates,
+  linkStanding,
   ledgerFaultText,
 } from "./candidateProofLedgerData.js";
 import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
+import { proofStateText } from "../contracts/evidenceAdapter.js";
 
 // BLP-008 candidate-proof ledger panel. Renders only what the ledger holds: one row per proof
 // record with the exact excerpt under its own label ("what the document says"), the human's own
@@ -25,16 +34,24 @@ import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
 // stand. State is conveyed by text and shape, never colour alone. Staleness is said to be what
 // it is: any change to the pasted text stales every record cut from the earlier text together.
 
-const STATE_TEXT = {
-  CLAIMED_ONLY: "claimed by you, not yet demonstrated",
-  DEMONSTRATED: "demonstrated",
-  CERTIFIED: "certified",
-  WITHHELD: "withheld: no longer offered as evidence",
-  CONFLICTING: "conflicting",
-  STALE: "stale: the pasted text changed since this was recorded",
-};
+// The words for a proof state come from the adapter alone (BLP-010, Supervisor ruling Q6): no local
+// gloss, so the suite can assert the rendered string equals proofStateText(state). What CAUSED a
+// stale state is said in its own element, beside the definition, never inside it, and its words
+// are the data layer's own (row.staleCauseTexts, one table keyed on the governed causes with no
+// default arm; conformance-auditor W-3, W-4): a stale record carries a SET of causes and every one
+// is listed, because it resumes only when each is cleared.
 
 const CLAIM_MAX = 400;
+
+/** The words for a human state act (BLP-010), read from the event the ledger kept; null for any other event. */
+function stateActText(e) {
+  if (e.kind === "STATE_SET") return `Declared ${e.to} at ${e.at} (${e.detail})`;
+  if (e.kind === "CONFLICT_DECLARED") return `Conflict declared at ${e.at} for both records (${e.detail})`;
+  if (e.kind === "CONFLICT_RESOLVED") return `Conflict resolved at ${e.at} for both records (${e.detail})`;
+  if (e.kind === "RESUMED" && e.reason === "OFFERED_AGAIN") return `Offered again at ${e.at}; the record is CLAIMED_ONLY again (${e.detail})`;
+  if (e.kind === "RESUMED" && e.reason === "STATE_WITHDRAWN") return `Declaration withdrawn at ${e.at}; the record is CLAIMED_ONLY again (${e.detail})`;
+  return null;
+}
 
 function ClaimField({ row, disabled, onChange }) {
   const [draft, setDraft] = useState(row.claimText || "");
@@ -52,6 +69,68 @@ function ClaimField({ row, disabled, onChange }) {
         <span data-testid="cpl-claim-state" ref={stateRef} tabIndex={-1} role="status" aria-live="polite">{row.claimText ? `Claim recorded · ${row.claimOrigin}` : "No claim stated yet"} · {draft.length.toLocaleString()} / {CLAIM_MAX}</span>
         <button type="button" data-testid="cpl-claim-save" disabled={disabled || !changed} onClick={() => { pendingFocus.current = true; onChange(row.id, draft); }}>Save claim</button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The human's controls over a record's proof state (BLP-010). Each control is offered only when its
+ * gate can hold, and says why when it cannot; the data layer refuses in words regardless, so a
+ * control shown in error changes nothing. The judgement behind "a link stands" is live: with no
+ * bundle the demonstrated control is withheld with the reason, never enabled on stored state.
+ */
+function StateControls({ row, ledger, bundle, disabled, onDeclare, onWithdraw, onOfferAgain, onDeclareConflict, onResolve }) {
+  const [conflictChoice, setConflictChoice] = useState("");
+  const [thisTo, setThisTo] = useState("DEMONSTRATED");
+  const [counterpartTo, setCounterpartTo] = useState("WITHHELD");
+  const record = ledger.records.find((r) => r.id === row.id);
+  const standing = record ? linkStanding(record, bundle) : null;
+  const unjudged = bundle === undefined;
+  const canDemonstrate = row.state === "CLAIMED_ONLY" && !row.unstructured && !unjudged && standing && !standing.unreadable && standing.standing.length > 0;
+  const whyNotDemonstrate = row.state !== "CLAIMED_ONLY" ? null : row.unstructured ? "no exact excerpt marked, so no accepted state can be declared" : unjudged ? "the posting evidence is not given to this view, so no link can be judged to stand; demonstrated is withheld rather than allowed on stored link state" : standing && standing.unreadable ? `the posting evidence could not be read (${standing.unreadable}), so no link can be judged to stand` : standing && !standing.standing.length ? (row.links.length ? "no link stands against the current posting evidence" : "not yet linked to a target, so there is nothing this excerpt could demonstrate") : null;
+  const candidates = record && ACCEPTED_STATES.includes(row.state) ? conflictCandidates(ledger, row.id, bundle) : [];
+  return (
+    <div className="cpl-stateCtl" data-testid="cpl-state-controls" data-state={row.state}>
+      <span className="cpl-label">Proof state (your declaration)</span>
+      {row.state === "CLAIMED_ONLY" && (
+        <div className="cpl-linkRow">
+          <button type="button" data-testid="cpl-declare-demonstrated" disabled={disabled || !canDemonstrate} aria-describedby={whyNotDemonstrate ? `cpl-declare-why-${row.id}` : undefined} onClick={() => onDeclare(row.id, "DEMONSTRATED")}>Declare demonstrated</button>
+          <button type="button" data-testid="cpl-declare-certified" disabled={disabled || row.unstructured} aria-describedby={row.unstructured ? `cpl-declare-why-${row.id}` : undefined} onClick={() => onDeclare(row.id, "CERTIFIED")}>Declare certified</button>
+        </div>
+      )}
+      {row.state === "CLAIMED_ONLY" && whyNotDemonstrate && <p className="cpl-meta" id={`cpl-declare-why-${row.id}`} data-testid="cpl-declare-why">{row.unstructured ? "Neither demonstrated nor certified is offered" : "Demonstrated is not offered"}: {whyNotDemonstrate}.</p>}
+      {ACCEPTED_STATES.includes(row.state) && (
+        <div className="cpl-linkRow">
+          <button type="button" data-testid="cpl-withdraw" disabled={disabled} onClick={() => onWithdraw(row.id)}>Withdraw this declaration (back to claimed only)</button>
+        </div>
+      )}
+      {ACCEPTED_STATES.includes(row.state) && (candidates.length ? (
+        <div className="cpl-linkPick">
+          <label htmlFor={`cpl-conflict-${row.id}`} className="cpl-label">Declare a conflict with another accepted record over a shared target</label>
+          <select id={`cpl-conflict-${row.id}`} data-testid="cpl-conflict-select" value={conflictChoice} disabled={disabled} onChange={(event) => setConflictChoice(event.target.value)}>
+            <option value="">Choose a record and target</option>
+            {candidates.map((c) => <option key={`${c.counterpartId}|${c.targetKind}|${c.targetId}`} value={`${c.counterpartId}|${c.targetKind}|${c.targetId}`}>{c.counterpartId} over {c.targetKind} {c.targetId}</option>)}
+          </select>
+          <button type="button" data-testid="cpl-conflict-declare" disabled={disabled || !conflictChoice} onClick={() => { const [counterpartId, targetKind, targetId] = conflictChoice.split("|"); setConflictChoice(""); onDeclareConflict(row.id, counterpartId, { targetKind, targetId }); }}>Declare conflict</button>
+        </div>
+      ) : <p className="cpl-meta" data-testid="cpl-conflict-none">No conflict can be declared: no other accepted record shares a target that stands on both sides{unjudged ? " (the posting evidence is not given to this view)" : ""}.</p>)}
+      {row.state === "CONFLICTING" && row.conflict && (
+        <div className="cpl-linkPick" data-testid="cpl-resolve">
+          <span className="cpl-label">Resolve the conflict with proof {row.conflict.counterpartId} over {row.conflict.targetKind} {row.conflict.targetId}: both sides move in one act</span>
+          <label htmlFor={`cpl-resolve-this-${row.id}`} className="cpl-label">This record becomes</label>
+          <select id={`cpl-resolve-this-${row.id}`} data-testid="cpl-resolve-this" value={thisTo} disabled={disabled} onChange={(event) => setThisTo(event.target.value)}>{CONFLICT_RESOLUTION.map((s) => <option key={s} value={s}>{s}</option>)}</select>
+          <label htmlFor={`cpl-resolve-other-${row.id}`} className="cpl-label">The counterpart becomes</label>
+          <select id={`cpl-resolve-other-${row.id}`} data-testid="cpl-resolve-counterpart" value={counterpartTo} disabled={disabled} onChange={(event) => setCounterpartTo(event.target.value)}>{CONFLICT_RESOLUTION.map((s) => <option key={s} value={s}>{s}</option>)}</select>
+          <button type="button" data-testid="cpl-resolve-button" disabled={disabled} onClick={() => onResolve(row.id, { thisTo, counterpartTo })}>Resolve for both</button>
+        </div>
+      )}
+      {row.state === "STALE" && <p className="cpl-meta" data-testid="cpl-state-stale-note">{row.staleCauses.length > 1 ? "This record resumes as claimed only when every cause is cleared: the excerpt confirmed again on its text, and a declared link standing again or linked again; the earlier declaration is not re-asserted." : row.staleCauses[0] === "TARGET_LINK" ? "This record resumes as claimed only when a declared link stands again or you link again; the earlier demonstrated declaration is not re-asserted." : "This record resumes as claimed only when the excerpt is confirmed again; any earlier declaration is not re-asserted."}</p>}
+      {row.state === "WITHHELD" && row.withheldCause === "CONFLICT_RESOLVED" && (
+        <div className="cpl-linkRow">
+          <button type="button" data-testid="cpl-offer-again" disabled={disabled} aria-describedby={`cpl-state-withheld-note-${row.id}`} onClick={() => onOfferAgain(row.id)}>Offer this excerpt again (back to claimed only)</button>
+        </div>
+      )}
+      {row.state === "WITHHELD" && <p className="cpl-meta" id={`cpl-state-withheld-note-${row.id}`} data-testid="cpl-state-withheld-note" data-cause={row.withheldCause}>Withheld: {row.withheldCauseText}; it resumes as claimed only.</p>}
     </div>
   );
 }
@@ -76,7 +155,10 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
   // not be read", which is what judging against nothing would say (conformance-auditor S-new-2).
   const unjudged = bundle === undefined;
   const [choice, setChoice] = useState("");
-  const linkable = ACTIVE_STATES.includes(row.state);
+  // Gated on the row's own linksJudgeable (data layer): an active record, or one stale for its LINK
+  // alone, whose excerpt still stands and whose re-link is the human act that resumes it
+  // (conformance-auditor C-2: a resumption the data layer offers must be reachable from the panel).
+  const linkable = row.linksJudgeable;
   const already = new Set(row.links.map((l) => `${l.targetKind}|${l.targetId}`));
   const options = catalogue.targets.filter((t) => !already.has(`${t.targetKind}|${t.targetId}`));
   // A refused link keeps the choice so the user can read the refusal and try another; a link that
@@ -86,7 +168,7 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
   // the live catalogue at render; where the ledger's stored state disagrees, the row says what the
   // live judgement is and that the ledger has not yet re-checked it, instead of asserting from stored
   // state alone. A re-extracted target's re-link offer is computed here, live, never stored.
-  const liveOf = (link) => (!unjudged && ACTIVE_STATES.includes(row.state) ? judgeLink(link, bundle) : null);
+  const liveOf = (link) => (!unjudged && row.linksJudgeable ? judgeLink(link, bundle) : null);
   const disagrees = (link, live) => live && ((link.state === "VALID") !== live.valid || (!live.valid && live.reason !== link.reason));
   return (
     <div className="cpl-links" data-testid="cpl-links">
@@ -116,7 +198,7 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
           ))}
         </ul>
       ) : <p className="cpl-meta" data-testid="cpl-no-links">Not yet linked to a target.</p>}
-      {!linkable && <p className="cpl-meta" data-testid="cpl-link-blocked">Linking waits until this proof record is active again (it is {row.state}).</p>}
+      {!linkable && <p className="cpl-meta" data-testid="cpl-link-blocked">Linking waits until this proof record is active again (it is {row.state}{row.state === "STALE" ? (row.staleCauses.includes("TARGET_LINK") ? " for its text and its link" : " for its text") : ""}).</p>}
       {linkable && catalogue.sourceId && (
         <div className="cpl-linkPick">
           <label htmlFor={`cpl-link-target-${row.id}`} className="cpl-label">Link to a duty or requirement from the current posting evidence</label>
@@ -161,11 +243,24 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
   useEffect(() => {
     const before = seen.current;
     seen.current = { refusals: refusals.length, events: events.length };
-    if (refusals.length > before.refusals) { const last = refusals[refusals.length - 1]; setNotice({ kind: "refused", text: `Refused: ${last.detail}` }); return; }
+    if (refusals.length > before.refusals) {
+      const last = refusals[refusals.length - 1];
+      // A refused fold still re-judges its links at the same instant; the batch is said after the refusal, never dropped.
+      const batch = events.slice(before.events).filter((e) => e.at === last.at && (e.kind === "LINK_INVALID" || e.kind === "LINK_RESUMED"));
+      const n = (kind) => batch.filter((e) => e.kind === kind).length;
+      const tail = batch.length ? `; the system ${[n("LINK_INVALID") ? `invalidated ${n("LINK_INVALID")} link${n("LINK_INVALID") === 1 ? "" : "s"}` : null, n("LINK_RESUMED") ? `resumed ${n("LINK_RESUMED")} link${n("LINK_RESUMED") === 1 ? "" : "s"}` : null].filter(Boolean).join(" and ")}` : "";
+      setNotice({ kind: "refused", text: `Refused: ${last.detail}${tail}` });
+      return;
+    }
     if (events.length > before.events) {
       const last = events[events.length - 1];
       if (last.kind === "PROOF_TYPE_SET") setNotice({ kind: "applied", text: `Proof type recorded at ${last.at}` });
       else if (last.kind === "CLAIM_SET") setNotice({ kind: "applied", text: `Claim recorded at ${last.at}` });
+      else if (stateActText(last)) setNotice({ kind: "applied", text: stateActText(last) });
+      else if (last.kind === "RECORDED" || last.kind === "RECONFIRMED") { const batch = events.filter((e) => e.at === last.at); const recorded = batch.filter((e) => e.kind === "RECORDED").length, again = batch.filter((e) => e.kind === "RECONFIRMED").length; setNotice({ kind: "applied", text: `Evidence applied at ${last.at}: ${[recorded ? `${recorded} record${recorded === 1 ? "" : "s"} recorded` : null, again ? `${again} excerpt${again === 1 ? "" : "s"} confirmed again` : null].filter(Boolean).join(", ")}` }); }
+      else if (last.kind === "STALE_CAUSE") setNotice({ kind: "refused", text: `The system changed what a stale record waits on at ${last.at} (${last.reason}: ${last.detail})` });
+      else if (last.kind === "RESUMED" && ["TARGET_RESTORED", "CONFLICT_DISSOLVED", "TARGET_RELINKED"].includes(last.reason)) setNotice({ kind: "applied", text: `The ${last.actor === "system" ? "system" : "human"} resumed a record as CLAIMED_ONLY at ${last.at} (${last.reason}: ${last.detail})` });
+      else if (last.kind === "STALE" && last.reason !== "SOURCE_TEXT_CHANGED") setNotice({ kind: "refused", text: `The system found a declaration or conflict lost its object at ${last.at} (${last.reason}: ${last.detail})` });
       else if (last.kind === "LINKED") setNotice({ kind: "applied", text: `Link recorded at ${last.at} (${last.detail})` });
       else if (last.kind === "UNLINKED") setNotice({ kind: "applied", text: `Link removed at ${last.at} (${last.detail})` });
       else if (last.kind === "LINK_INVALID" || last.kind === "LINK_RESUMED") {
@@ -176,21 +271,24 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
         const parts = [invalid.length ? `invalidated ${invalid.length} link${invalid.length === 1 ? "" : "s"} (${[...new Set(invalid.map((e) => e.reason))].map((r) => LINK_REASON_TEXT[r] || r).join("; ")})` : null, resumed.length ? `resumed ${resumed.length} link${resumed.length === 1 ? "" : "s"}` : null].filter(Boolean);
         // A clamped stamp is said beside the instant, not only in the event detail (conformance-auditor S-new-3).
         const clamp = (batch.map((e) => e.detail || "").find((d) => /clock read /.test(d)) || "").replace(/^.*?(clock read .*)$/, "$1");
-        setNotice({ kind: invalid.length ? "refused" : "applied", text: `The system ${parts.join(" and ")} at ${last.at}${clamp ? ` (${clamp})` : ""}` });
+        // A human state act whose commit re-judged links at the same instant (an offer again) is the
+        // headline; the link batch is said after it, never in its place.
+        const act = events.filter((e) => e.at === last.at).map(stateActText).find(Boolean);
+        setNotice({ kind: invalid.length && !act ? "refused" : "applied", text: `${act ? `${act}; the system ` : "The system "}${parts.join(" and ")}${act ? "" : ` at ${last.at}`}${clamp ? ` (${clamp})` : ""}` });
       }
     }
   }, [refusals.length, events.length, refusals, events]);
   const choose = (mutate) => {
     const at = new Date().toISOString();
-    onLedgerChange((current) => mutate(current, at).ledger);
+    onLedgerChange((current) => mutate(current, at).ledger, at);
   };
   return (
     <section className="cpl-root" data-testid="candidate-proof-ledger" aria-label="Candidate proof ledger" data-record-count={rows.length} data-stale-count={staleCount}>
       <style>{`
-        .cpl-root{margin:0 clamp(14px,1.05vw,28px) 12px;border:1px solid #dfe5ec;border-radius:9px;background:#fff;padding:11px 12px;color:#1a202c}.cpl-root *{box-sizing:border-box;min-width:0}.cpl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.cpl-head b{display:block;margin-top:2px;font-size:12px}.cpl-counts{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.cpl-counts span{border:1px solid #cbd5e1;border-radius:999px;padding:2px 7px;font-size:7px;font-weight:900;color:#475569}.cpl-note{margin:7px 0 0;color:#475569;font-size:8px;line-height:1.4}.cpl-note[data-kind="stale"]{border-left:3px solid #64748b;padding-left:7px;color:#1a202c;font-weight:900}.cpl-empty{margin-top:8px;border:1px dashed #b7c3d2;border-radius:8px;padding:10px;color:#475569;font-size:9px;line-height:1.4}.cpl-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.cpl-row{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:8px 9px;display:grid;gap:6px}.cpl-row[data-state="STALE"]{border-style:dashed;border-left-color:#64748b}.cpl-row[data-state="WITHHELD"]{border-left-color:#92400e;border-style:dotted}.cpl-id{font:7px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#475569;word-break:break-all}.cpl-state{font-size:8px;font-weight:900;color:#1a202c}.cpl-label{display:block;font-size:8px;font-weight:900;color:#475569}.cpl-row blockquote{margin:2px 0 0;padding:0 0 0 6px;border-left:2px solid #e2e8f0;font-size:9px;line-height:1.35;white-space:pre-wrap;max-height:96px;overflow:auto}.cpl-claim label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:3px}.cpl-claim textarea{width:100%;min-height:44px;border:1px solid #cbd5e1;border-radius:7px;padding:6px 8px;font:9px/1.4 Inter,Arial,sans-serif;resize:vertical}.cpl-claimRow{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:4px;font-size:8px;color:#475569}.cpl-claimRow span{min-width:0;overflow:hidden;text-overflow:ellipsis}.cpl-claimRow button{flex-shrink:0;min-width:44px}.cpl-root button,.cpl-root select{min-height:44px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:5px 8px;font-size:8px;font-weight:900;cursor:pointer;color:#1a202c}.cpl-root button:disabled{cursor:not-allowed;opacity:.48}.cpl-type{display:grid;gap:3px}.cpl-type select{width:100%}.cpl-type small{font-size:7px;color:#475569}.cpl-list ul{margin:2px 0 0;padding-left:14px;font-size:8px;line-height:1.4;color:#1a202c}.cpl-meta{font-size:8px;color:#475569;line-height:1.4}.cpl-root textarea:focus-visible,.cpl-root button:focus-visible,.cpl-root select:focus-visible,.cpl-root summary:focus-visible{outline:3px solid #1a56db;outline-offset:2px}.cpl-links ul{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px}.cpl-link{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:6px 7px;display:grid;gap:4px}.cpl-link[data-state="INVALID"]{border-style:dashed;border-left-color:#64748b}.cpl-linkRow{display:flex;flex-wrap:wrap;gap:6px}.cpl-linkRow button{flex:1 1 140px}.cpl-linkPick{display:grid;gap:4px;margin-top:6px}.cpl-linkPick select{width:100%}.cpl-events{font-size:8px;color:#475569}.cpl-events summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:900}.cpl-events ol{margin:2px 0 0;padding-left:14px;line-height:1.4}
+        .cpl-root{margin:0 clamp(14px,1.05vw,28px) 12px;border:1px solid #dfe5ec;border-radius:9px;background:#fff;padding:11px 12px;color:#1a202c}.cpl-root *{box-sizing:border-box;min-width:0}.cpl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.cpl-head b{display:block;margin-top:2px;font-size:12px}.cpl-counts{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.cpl-counts>span{border:1px solid #cbd5e1;border-radius:999px;padding:2px 7px;font-size:7px;font-weight:900;color:#475569}.cpl-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.cpl-note{margin:7px 0 0;color:#475569;font-size:8px;line-height:1.4}.cpl-note[data-kind="stale"]{border-left:3px solid #64748b;padding-left:7px;color:#1a202c;font-weight:900}.cpl-empty{margin-top:8px;border:1px dashed #b7c3d2;border-radius:8px;padding:10px;color:#475569;font-size:9px;line-height:1.4}.cpl-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.cpl-row{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:8px 9px;display:grid;gap:6px}.cpl-row[data-state="STALE"]{border-style:dashed;border-left-color:#64748b}.cpl-row[data-state="WITHHELD"]{border-left-color:#92400e;border-style:dotted}.cpl-id{font:7px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#475569;word-break:break-all}.cpl-state{font-size:8px;font-weight:900;color:#1a202c}.cpl-label{display:block;font-size:8px;font-weight:900;color:#475569}.cpl-row blockquote{margin:2px 0 0;padding:0 0 0 6px;border-left:2px solid #e2e8f0;font-size:9px;line-height:1.35;white-space:pre-wrap;max-height:96px;overflow:auto}.cpl-claim label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:3px}.cpl-claim textarea{width:100%;min-height:44px;border:1px solid #cbd5e1;border-radius:7px;padding:6px 8px;font:9px/1.4 Inter,Arial,sans-serif;resize:vertical}.cpl-claimRow{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:4px;font-size:8px;color:#475569}.cpl-claimRow span{min-width:0;overflow:hidden;text-overflow:ellipsis}.cpl-claimRow button{flex-shrink:0;min-width:44px}.cpl-root button,.cpl-root select{min-height:44px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:5px 8px;font-size:8px;font-weight:900;cursor:pointer;color:#1a202c}.cpl-root button:disabled{cursor:not-allowed;opacity:.48}.cpl-type{display:grid;gap:3px}.cpl-type select{width:100%}.cpl-type small{font-size:7px;color:#475569}.cpl-list ul{margin:2px 0 0;padding-left:14px;font-size:8px;line-height:1.4;color:#1a202c}.cpl-meta{font-size:8px;color:#475569;line-height:1.4}.cpl-root textarea:focus-visible,.cpl-root button:focus-visible,.cpl-root select:focus-visible,.cpl-root summary:focus-visible{outline:3px solid #1a56db;outline-offset:2px}.cpl-links ul{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px}.cpl-link{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:6px 7px;display:grid;gap:4px}.cpl-link[data-state="INVALID"]{border-style:dashed;border-left-color:#64748b}.cpl-linkRow{display:flex;flex-wrap:wrap;gap:6px}.cpl-linkRow button{flex:1 1 140px}.cpl-linkPick{display:grid;gap:4px;margin-top:6px}.cpl-stateCtl{display:grid;gap:4px;border-top:1px dashed #e2e8f0;padding-top:6px}.cpl-linkPick select{width:100%}.cpl-events{font-size:8px;color:#475569}.cpl-events summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:900}.cpl-events ol{margin:2px 0 0;padding-left:14px;line-height:1.4}
       `}</style>
       <div className="cpl-head"><div><div className="wu-srcid">CANDIDATE PROOF LEDGER · SESSION ONLY</div><b>Proof records</b></div><span className="cpl-state" data-testid="cpl-total">{rows.length} record{rows.length === 1 ? "" : "s"}</span></div>
-      <div className="cpl-counts" data-testid="cpl-counts">{["CLAIMED_ONLY", "STALE", "WITHHELD", "DEMONSTRATED", "CERTIFIED", "CONFLICTING"].filter((s) => counts[s]).map((s) => <span key={s} data-state={s}>{counts[s]} {s} · {STATE_TEXT[s]}</span>)}</div>
+      <div className="cpl-counts" data-testid="cpl-counts">{["CLAIMED_ONLY", "STALE", "WITHHELD", "DEMONSTRATED", "CERTIFIED", "CONFLICTING"].filter((s) => counts[s]).map((s) => <span key={s} data-state={s}>{counts[s]} {s}<span className="cpl-sr">: {proofStateText(s)}</span></span>)}</div>
       <p className="cpl-note">Each record is one exact excerpt you confirmed, kept with its source and span ids. Nothing here is stored beyond this session, and nothing is inferred about what an excerpt proves: the claim is yours to state, the proof type is yours to choose, the links to the posting's duties and requirements are yours to draw, and destinations arrive with a later requirement.</p>
       <p className="cpl-note" data-testid="cpl-link-availability">Links can target {TARGET_KIND_AVAILABILITY.duty.text} and {TARGET_KIND_AVAILABILITY.requirement.text}. Not yet linkable: skills ({TARGET_KIND_AVAILABILITY.skill.text}; {TARGET_KIND_AVAILABILITY.skill.owner}); competencies ({TARGET_KIND_AVAILABILITY.competency.text}; {TARGET_KIND_AVAILABILITY.competency.owner}); accepted review observations ({TARGET_KIND_AVAILABILITY["review-observation"].text}; owner {TARGET_KIND_AVAILABILITY["review-observation"].owner}).{untrustedCount ? ` ${untrustedCount} duty ${untrustedCount === 1 ? "row is" : "rows are"} not linkable because ${untrustedCount === 1 ? "its" : "their"} parentage is neither verified nor confirmed by you.` : ""}{catalogue.unlinkable.some((u) => u.reason === "BUNDLE_NOT_OK" || u.reason === "NO_BUNDLE") ? ` ${catalogue.unlinkable[0].text}.` : ""}</p>
       {/* The three link notes below are plain visible text, reached in reading order; the one live
@@ -209,7 +307,10 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
         <ul className="cpl-list" aria-label="Proof records">
           {rows.map((row) => (
             <li key={row.id} className="cpl-row" data-testid="cpl-record" data-proof-id={row.id} data-state={row.state} data-source-id={row.sourceId} data-span-id={row.spanId} data-proof-type={row.proofType} data-current-source={currentSourceId && currentSourceId === row.sourceId ? "true" : "false"}>
-              <div className="cpl-state" data-testid="cpl-record-state">{row.state} · {row.state === "STALE" && row.onCurrentSource ? "stale: no longer marked on the text now in the box" : STATE_TEXT[row.state]}</div>
+              <div className="cpl-state" data-testid="cpl-record-state">{row.state} · <span data-testid="cpl-record-state-text">{proofStateText(row.state)}</span></div>
+              {row.staleCauseTexts.map((text, i) => <div key={row.staleCauses[i]} className="cpl-meta" data-testid="cpl-stale-cause" data-cause={row.staleCauses[i]}>cause: {text}</div>)}
+              {row.proofTypeStateNote && <div className="cpl-meta" data-testid="cpl-type-state-note">{row.proofTypeStateNote}</div>}
+              <StateControls row={row} ledger={ledger} bundle={bundle} disabled={readOnly || Boolean(fault)} onDeclare={(id, state) => choose((current, at) => declareProofState(current, id, state, at, { bundle }))} onWithdraw={(id) => choose((current, at) => withdrawProofState(current, id, at))} onOfferAgain={(id) => choose((current, at) => offerAgain(current, id, at, { bundle }))} onDeclareConflict={(id, counterpartId, target) => choose((current, at) => declareConflict(current, id, counterpartId, target, at, { bundle }))} onResolve={(id, choice) => choose((current, at) => resolveConflict(current, id, choice, at, { bundle }))} />
               <div className="cpl-id">{row.id}<br />{row.spanId}</div>
               <div><span className="cpl-label">What the document says · characters {row.start}-{row.end}{row.unstructured ? " · whole pasted text, no exact excerpt marked" : ""}</span><blockquote data-testid="cpl-excerpt">{row.excerptText}</blockquote></div>
               <ClaimField row={row} disabled={readOnly} onChange={(id, text) => choose((current, at) => setClaimText(current, id, text, at))} />

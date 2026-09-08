@@ -47,7 +47,7 @@ import {
 } from "./evidenceContracts.js";
 import { jobAdText, jobAdSections } from "../review/job-ad-sections.js";
 
-export const ADAPTER_VERSION = "1.1.0"; // 1.1.0 (BLP-005): evidence-state text, one definition of the words a surface shows per state
+export const ADAPTER_VERSION = "1.2.0"; // 1.1.0 (BLP-005): evidence-state text, one definition of the words a surface shows per state; 1.2.0 (BLP-010): proof-state text, additive
 
 // Extraction versions are declared here so a prompt or pipeline change bumps the number and
 // every duty id changes with it (name-N per the contract; the verbatim parents do not move).
@@ -468,6 +468,24 @@ const STALE_TEXT = Object.freeze({
 /** The sentence a surface shows for a stale record of each kind (decision, output, proof). */
 export function staleText(kind) {
   return STALE_TEXT[kind] || `stale: unrecognised record kind (${String(kind)})`;
+}
+
+// One definition of the words a surface shows for each of the six canonical proof states (BLP-010,
+// Supervisor ruling Q6). Each sentence says what the state means PROCEDURALLY: what act put the
+// record there and what it does and does not license. No sentence characterises the evidence's
+// worth. STALE reuses staleText("proof") verbatim; a panel that shows a local gloss instead fails
+// the suite that compares the rendered string with this one.
+const PROOF_STATE_TEXT = Object.freeze({
+  CLAIMED_ONLY: "claimed only: you confirmed this excerpt as your evidence and have not yet declared what it demonstrates or certifies; it licenses no destination",
+  DEMONSTRATED: "demonstrated: you declared that this excerpt demonstrates a duty or requirement of the posting, on a link that stood against the posting evidence when you declared it; while it stands it may be approved for a destination",
+  CERTIFIED: "certified: you declared that this excerpt records a qualification or credential; while it stands it may be approved for a destination",
+  CONFLICTING: "conflicting: you declared this excerpt and another to be in conflict over the same target; neither licenses a destination until you resolve which stands",
+  STALE: STALE_TEXT.proof,
+  WITHHELD: "withheld: you withheld this excerpt as evidence, by removing it, clearing the evidence or resolving a conflict; it licenses nothing until you offer it again",
+});
+/** The sentence a surface shows for a proof state; unknown states are named, never guessed. */
+export function proofStateText(state) {
+  return PROOF_STATE_TEXT[state] || `unrecognised proof state (${String(state)})`;
 }
 
 const FAILURE_TEXT = Object.freeze({
