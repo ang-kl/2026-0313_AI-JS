@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T14:23:55+08:00"
+      "updatedAt": "2026-09-08T14:46:40+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -681,11 +681,6 @@
           "label": "Evidence adapter: the one constructor of canonical identity for a posting; mints no id of its own; validates with knownSpans; completeness never inferred"
         },
         {
-          "kind": "TEST",
-          "reference": "v3.1/tests/evidence-round-trip.mjs",
-          "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
-        },
-        {
           "kind": "FILE",
           "reference": "v3.1/api/mcf.js",
           "label": "RESIDUAL RISK (Blueprint Supervisor scope ruling 2, 2026-09-08; outlives BLP-003-BLOCKER-01): api/mcf.js and api/careers.js cap posting bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength, so EvidenceSource.completeness is recorded UNKNOWN (withheld) and is never inferred from body length; the additive route change (originalLength, cap) lands as its own small PR, after which completeness becomes COMPLETE or TRUNCATED for real."
@@ -709,6 +704,31 @@
           "kind": "FILE",
           "reference": "v3.1/api/state.js",
           "label": "KNOWN OMISSION (pre-existing, unchanged by BLP-003): the 'links' ledger scope is absent from api/state.js SCOPES, so locked links stay device-local in localStorage while review decisions cross devices through /api/state."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-round-trip.mjs",
+          "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium at 1440x1000 AND 430x932 (45 checks): offsets, re-extraction, incomplete csg identity, completeness UNKNOWN, caps, legacy ledgers, dangling/forged references; Step 2 -> Step 3 -> source row -> workspace -> return and a full remount at both widths; proposal ids sug-<fromId>-<toId> and comment anchors byte-identical across remount and across widths; 216 checks total"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "KNOWN OMISSION (acceptance criterion 1, candidate-proof identifiers): no ProofRecord is minted anywhere in the product yet, so candidate-proof identifier stability cannot be exercised on a live path; a test now would require a stubbed path, which instructions section 11 rejects as evidence. Deferred to BLP-007, which mints them; the contract's ProofRecord (BLP-002, 338 checks) is the only coverage until then."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "KNOWN OMISSION (acceptance criterion 1, output identifiers): no OutputBlock is minted anywhere in the product yet; createOutputBlock taking a caller-supplied id is contract design, not a defect. Output identifier stability cannot be exercised on a live path and is deferred to BLP-018, which owns generation; contract coverage only until then."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "NOTE for BLP-013 (split, merge, relabel): a composed proposal id sug-<fromId>-<toId> is stable but not unambiguously decomposable once span ids are involved, because span:<sourceId>:<start>-<end> contains both separators. BLP-013 must carry the two component ids explicitly rather than parse the composed string; recorded here while the composition is fresh, not redesigned in BLP-003."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6750323949db8f5e5864730231411f0e764d59f8",
+          "label": "DEFECT FOUND BY PHONE-WIDTH VERIFICATION and fixed in 6750323: the fixed 'Work Universe' return button sat at top 72px while the sticky site header measures 95px at 430px, so return navigation could not be tapped on a phone; it now sits below the measured --site-header-height at every width (v3.1/src/ReviewStudio.jsx)."
         }
       ],
       "blockers": [
@@ -721,12 +741,22 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/4020d3cfe73adc6d05278b352be22f52c5b6d112",
-              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0 over contracts 1.0.3; Review Studio, Work Universe and App.jsx wiring; evidence-round-trip test 186 checks; Step 3 manifest ranges; CI wiring)"
+              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0; merged to main as 25cff53 by PR #490; superseded by 6750323)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/25cff532e0c6e539e3534709b388fa4347c1c575",
+              "label": "Merge commit 25cff53 (squash of PR #490, carries 4020d3c); recorded as evidence only, mergeCommit stays unrecorded until the revised implementation is merged"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6750323949db8f5e5864730231411f0e764d59f8",
+              "label": "BLP-003 implementation commit 6750323 (revision in place at IMPLEMENTED_UNVERIFIED: round trip at 430x932 through the panel navigator, proposal-id and comment-anchor stability, return button positioned below the measured site header; supersedes 4020d3c, merged as 25cff53)"
             },
             {
               "kind": "TEST",
               "reference": "v3.1/tests/evidence-round-trip.mjs",
-              "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
+              "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium at 1440x1000 AND 430x932 (45 checks): offsets, re-extraction, incomplete csg identity, completeness UNKNOWN, caps, legacy ledgers, dangling/forged references; Step 2 -> Step 3 -> source row -> workspace -> return and a full remount at both widths; proposal ids sug-<fromId>-<toId> and comment anchors byte-identical across remount and across widths; 216 checks total"
             }
           ]
         }
@@ -747,15 +777,25 @@
         "implementationCommit": {
           "state": "RECORDED",
           "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
-          "commitSha": "4020d3cfe73adc6d05278b352be22f52c5b6d112",
+          "commitSha": "6750323949db8f5e5864730231411f0e764d59f8",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/4020d3cfe73adc6d05278b352be22f52c5b6d112",
-              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0 over contracts 1.0.3; Review Studio, Work Universe and App.jsx wiring; evidence-round-trip test 186 checks; Step 3 manifest ranges; CI wiring)"
+              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0; merged to main as 25cff53 by PR #490; superseded by 6750323)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/25cff532e0c6e539e3534709b388fa4347c1c575",
+              "label": "Merge commit 25cff53 (squash of PR #490, carries 4020d3c); recorded as evidence only, mergeCommit stays unrecorded until the revised implementation is merged"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6750323949db8f5e5864730231411f0e764d59f8",
+              "label": "BLP-003 implementation commit 6750323 (revision in place at IMPLEMENTED_UNVERIFIED: round trip at 430x932 through the panel navigator, proposal-id and comment-anchor stability, return button positioned below the measured site header; supersedes 4020d3c, merged as 25cff53)"
             }
           ],
-          "note": "Implementation commit 4020d3c on the working branch: adapter 1.0.0, wiring, round-trip test, Step 3 manifest source-range remap and CI wiring. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded."
+          "note": "Implementation commit 6750323 on the working branch supersedes 4020d3c (which PR #490 merged to main as 25cff53) with the phone-width round trip, proposal-id assertions and the return-button fix; 4020d3c and 25cff53 are kept as evidence. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -799,6 +839,7 @@
       "affectedFiles": [
         "v3.1/src/contracts/evidenceAdapter.js",
         "v3.1/src/App.jsx",
+        "v3.1/src/ReviewStudio.jsx",
         "v3.1/src/work-universe/WorkUniverseLanding.jsx",
         "v3.1/src/ReviewStudioLegacy.jsx",
         "v3.1/src/review/Desk.jsx",
@@ -839,18 +880,28 @@
           "from": "IN_PROGRESS",
           "to": "IMPLEMENTED_UNVERIFIED",
           "changedAt": "2026-09-08T14:16:39+08:00",
-          "reason": "Evidence adapter constructs EvidenceSource and spans from the Step 2 posting and the engine duty list (content-addressed distilled ids with verbatim parents; offset-addressed requirement lines; caps recorded); Review Studio dissection, decision and link ledgers, trace pairs, Work Universe source rows and return navigation all key on those ids; positional ids survive only as the explicit WITHHELD_NO_SOURCE_ROWS / WITHHELD_INCOMPLETE_IDENTITY fallback; pre-existing ledger rows are preserved and surfaced as withheld. Round-trip test passes locally in node and Chromium; verification pending.",
+          "reason": "Evidence adapter constructs EvidenceSource and spans from the Step 2 posting and the engine duty list (content-addressed distilled ids with verbatim parents; offset-addressed requirement lines; caps recorded); Review Studio dissection, decision and link ledgers, trace pairs, Work Universe source rows and return navigation all key on those ids; positional ids survive only as the explicit WITHHELD_NO_SOURCE_ROWS / WITHHELD_INCOMPLETE_IDENTITY fallback; pre-existing ledger rows are preserved and surfaced as withheld. Round-trip test passes locally in node and Chromium; verification pending. Revised in place while at this status after PR #490 merged the first implementation (4020d3c -> 25cff53): two automated review findings on PR #491, upheld by the Blueprint Supervisor, showed the round trip ran at one desktop viewport (instructions section 9 item 8 requires phone behaviour for user-facing work) and that proposal identifiers named by acceptance criterion 1 were not asserted. The Supervisor withdrew its draft COMPLETE approval before it reached main. Revision 6750323 runs the same walk at 430x932 through the panel navigator, asserts proposal ids and comment anchors byte-identical across remount and across widths, and fixes the phone defect the pass found (return button under the site header). Candidate-proof and output identifiers are recorded as known omissions with owners BLP-007 and BLP-018.",
           "approvedBy": null,
           "evidenceLinks": [
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/4020d3cfe73adc6d05278b352be22f52c5b6d112",
-              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0 over contracts 1.0.3; Review Studio, Work Universe and App.jsx wiring; evidence-round-trip test 186 checks; Step 3 manifest ranges; CI wiring)"
+              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0; merged to main as 25cff53 by PR #490; superseded by 6750323)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/25cff532e0c6e539e3534709b388fa4347c1c575",
+              "label": "Merge commit 25cff53 (squash of PR #490, carries 4020d3c); recorded as evidence only, mergeCommit stays unrecorded until the revised implementation is merged"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6750323949db8f5e5864730231411f0e764d59f8",
+              "label": "BLP-003 implementation commit 6750323 (revision in place at IMPLEMENTED_UNVERIFIED: round trip at 430x932 through the panel navigator, proposal-id and comment-anchor stability, return button positioned below the measured site header; supersedes 4020d3c, merged as 25cff53)"
             },
             {
               "kind": "TEST",
               "reference": "v3.1/tests/evidence-round-trip.mjs",
-              "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
+              "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium at 1440x1000 AND 430x932 (45 checks): offsets, re-extraction, incomplete csg identity, completeness UNKNOWN, caps, legacy ledgers, dangling/forged references; Step 2 -> Step 3 -> source row -> workspace -> return and a full remount at both widths; proposal ids sug-<fromId>-<toId> and comment anchors byte-identical across remount and across widths; 216 checks total"
             }
           ]
         }
