@@ -1,14 +1,14 @@
 # V3.1 Blueprint Completion: Onboarding and Delivery Guide
 
 **Document ID:** `GUIDE-V3-BLUEPRINT-COMPLETION-001`  
-**Version:** 1.0.4  
+**Version:** 1.0.5  
 **Prepared:** 2026-09-08 (SGT)  
 **Repository:** [`ang-kl/2026-0313_AI-JS`](https://github.com/ang-kl/2026-0313_AI-JS)  
 **Product surface:** [`https://v3.takearoundabout.com`](https://v3.takearoundabout.com)  
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
-**Current main observed:** `0a0ce553e53c234dc9f4efb2e4791917f35702dc`  
+**Current main observed:** `9adc7f3` (`docs(v3.1): approve BLP-002 COMPLETE with merge and automated-runtime provenance (#489)`)  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `f6e480c1bdc65916d35ae5605d013806dd82bde65833dcda088bb47df42e7e0a`  
+**Register snapshot SHA-256:** `cc60a6647d167cf7b6dce4340fbeef0ab81670934cd0bd2ed7cae33f8265ed71`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
@@ -54,12 +54,13 @@ The present repository contains a strong working foundation: Step 1a role and or
 However, the full blueprint is **not complete**. The completion programme intentionally starts from a stricter definition than "the screen exists." A requirement becomes complete only when its contracts, implementation, positive and negative tests, provenance, responsive behaviour, and Blueprint Supervisor approval are all recorded. The canonical register currently contains:
 
 - `2` requirements approved as `COMPLETE`: `BLP-001`, `BLP-002`.
-- `28` requirements `NOT_STARTED`: `BLP-003` through `BLP-030`.
-- `0` requirements `IN_PROGRESS`, `IMPLEMENTED_UNVERIFIED`, `BLOCKED` or `WITHHELD`.
+- `1` requirement `IMPLEMENTED_UNVERIFIED`: `BLP-003`.
+- `27` requirements `NOT_STARTED`: `BLP-004` through `BLP-030`.
+- `0` requirements `IN_PROGRESS`, `BLOCKED` or `WITHHELD`.
 
 This does not erase completed product work. It means the existing work must be reconciled against the new canonical contracts and evidence gates before it can satisfy a `BLP-*` completion claim.
 
-The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved `BLP-001` as `COMPLETE`; the approval evidence is recorded in the register. `BLP-002`, the shared evidence contracts, was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 at contract 1.0.3. The immediate next action is `BLP-003`, stable evidence identifiers, on a fresh branch from the then-current `main`.
+The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved `BLP-001` as `COMPLETE`; the approval evidence is recorded in the register. `BLP-002`, the shared evidence contracts, was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 at contract 1.0.3. `BLP-003`, stable evidence identifiers, is `IMPLEMENTED_UNVERIFIED` at implementation commit `4020d3c`: an evidence adapter now builds canonical `EvidenceSource` and span records from the Step 2 posting and the engine duty list, and the Review Studio, Work Universe and return navigation key on those ids; Blueprint Supervisor verification is the immediate next action.
 
 ## 2. What this product is
 
@@ -194,8 +195,8 @@ As of this guide:
 | Status | Count | Requirements |
 |---|---:|---|
 | `COMPLETE` | 2 | `BLP-001`, `BLP-002` |
-| `NOT_STARTED` | 28 | `BLP-003` through `BLP-030` |
-| `IMPLEMENTED_UNVERIFIED` | 0 | None |
+| `IMPLEMENTED_UNVERIFIED` | 1 | `BLP-003` |
+| `NOT_STARTED` | 27 | `BLP-004` through `BLP-030` |
 
 The authoritative current values are in [`v3-blueprint-completion-register.json`](./v3-blueprint-completion-register.json), not this narrative snapshot.
 
@@ -313,7 +314,7 @@ The table below is an onboarding summary. Exact normative wording and dependenci
 |---|---|---|---|---|
 | `BLP-001` | P0 | `COMPLETE` | Merge and record the Step 2 provenance-only update without altering product behaviour. | None |
 | `BLP-002` | P0 | `COMPLETE` | Define canonical `EvidenceSource`, `EvidenceSpan`, `ProofRecord`, `ReviewChange`, `OutputBlock`, `VisualProfile`, and `EvidenceWindow` contracts. | `BLP-001` |
-| `BLP-003` | P0 | `NOT_STARTED` | Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation. | `BLP-002` |
+| `BLP-003` | P0 | `IMPLEMENTED_UNVERIFIED` | Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation. | `BLP-002` |
 | `BLP-004` | P0 | `NOT_STARTED` | Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value. | `BLP-002` |
 | `BLP-005` | P0 | `NOT_STARTED` | Add positive source round-trip, reference-integrity, withholding, stale-data, and failure-path contract tests. | `BLP-002`, `BLP-003`, `BLP-004` |
 | `BLP-006` | P0 | `NOT_STARTED` | Reconcile one canonical reviewer roster and one canonical review-action vocabulary. | `BLP-002` |
@@ -821,7 +822,7 @@ PR [#486](https://github.com/ang-kl/2026-0313_AI-JS/pull/486) merged the provena
 ### 20.2 Immediate next action
 
 1. Run the completion contract, strict Feature Map contract, integrity contract, and build against the reconciled register.
-2. `BLP-002` was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 (contracts 1.0.3, merge commit `0a0ce553e53c234dc9f4efb2e4791917f35702dc`). Start `BLP-003` on a new branch from the then-current `main`, validating distilled spans with their parents in view.
+2. `BLP-002` was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 (contracts 1.0.3, merge commit `0a0ce553e53c234dc9f4efb2e4791917f35702dc`). `BLP-003` reached `IMPLEMENTED_UNVERIFIED` at commit `4020d3c` (evidence adapter 1.0.0; round-trip test `v3.1/tests/evidence-round-trip.mjs`, 186 checks in node and Chromium). Next: Blueprint Supervisor verification of that commit against its declared files, then the merge and automated-runtime provenance, then `BLP-004`. Residual risk carried on the BLP-003 record: posting completeness is recorded `UNKNOWN` until the api routes expose `originalLength` (separate small PR).
 
 ### 20.3 Tooling note
 
