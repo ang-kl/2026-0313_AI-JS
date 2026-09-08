@@ -44,6 +44,8 @@ const permittedTransitions = [
   ["NOT_STARTED", "IN_PROGRESS"], ["NOT_STARTED", "BLOCKED"], ["IN_PROGRESS", "BLOCKED"],
   ["BLOCKED", "IN_PROGRESS"], ["IN_PROGRESS", "IMPLEMENTED_UNVERIFIED"],
   ["IMPLEMENTED_UNVERIFIED", "IN_PROGRESS"], ["IMPLEMENTED_UNVERIFIED", "AUTOMATED_VERIFIED"],
+  // Policy-gated: assertStatusHistory permits this edge only when completionPolicy.requiresAutomatedRuntime is false.
+  ["IMPLEMENTED_UNVERIFIED", "COMPLETE"],
   ["AUTOMATED_VERIFIED", "IN_PROGRESS"], ["AUTOMATED_VERIFIED", "DEPLOYED_VERIFIED"],
   ["DEPLOYED_VERIFIED", "IN_PROGRESS"], ["DEPLOYED_VERIFIED", "PHYSICAL_VERIFIED"],
   ["AUTOMATED_VERIFIED", "COMPLETE"], ["DEPLOYED_VERIFIED", "COMPLETE"],
@@ -284,7 +286,7 @@ function transitionEndpoints(entry, scope) {
   assert(nonemptyString(entry.changedAt) && !Number.isNaN(Date.parse(entry.changedAt)), `${scope}.changedAt must be a date-time`);
   return { from, to };
 }
-function assertStatusHistory(item, scope) {
+function assertStatusHistory(item, policy, scope) {
   assert(Array.isArray(item.statusHistory), `${scope}.statusHistory must be an array`);
   if (!item.statusHistory.length) {
     assert(item.status === "NOT_STARTED", `${scope} without status history must remain NOT_STARTED`);
@@ -298,7 +300,12 @@ function assertStatusHistory(item, scope) {
     const { from, to } = transitionEndpoints(entry, entryScope);
     assert(from === previous, `${entryScope}.fromStatus must continue from ${previous}`);
     if (from === null) assert(to === "NOT_STARTED", `${entryScope} initial event must establish NOT_STARTED`);
-    else assert(permittedTransitions.some(([a, b]) => a === from && b === to), `${entryScope} uses prohibited transition ${from} -> ${to}`);
+    else {
+      assert(permittedTransitions.some(([a, b]) => a === from && b === to), `${entryScope} uses prohibited transition ${from} -> ${to}`);
+      if (from === "IMPLEMENTED_UNVERIFIED" && to === "COMPLETE") {
+        assert(policy.automatedRuntime === false, `${entryScope} may transition IMPLEMENTED_UNVERIFIED -> COMPLETE only when completionPolicy.requiresAutomatedRuntime is false`);
+      }
+    }
     if (["AUTOMATED_VERIFIED", "DEPLOYED_VERIFIED", "PHYSICAL_VERIFIED", "COMPLETE"].includes(to)) {
       assert(entry.approvedBy === "blueprint-supervisor", `${entryScope} controlled transition requires Blueprint Supervisor approval`);
       assert(Array.isArray(entry.evidenceLinks) && entry.evidenceLinks.length > 0, `${entryScope} controlled transition requires supporting evidence`);
@@ -327,6 +334,12 @@ function assertStatusProvenanceConsistency(item, records, scope) {
     assert(implementationRecorded, `${scope} ${item.status} requires a recorded implementation`);
   }
   if (item.status === "AUTOMATED_VERIFIED") assert(automatedPassed, `${scope} AUTOMATED_VERIFIED requires passed automated runtime evidence`);
+  // Scoped to the record's current resting status: only a record that is COMPLETE right now by way of the direct
+  // edge is held to NOT_RUN. A record reopened and later corrected under an authorised policy change is not trapped
+  // by an earlier event in its append-only history.
+  const lastEvent = (item.statusHistory || []).at(-1);
+  const restsOnDirectCompletion = item.status === "COMPLETE" && !!lastEvent && (lastEvent.fromStatus ?? lastEvent.from) === "IMPLEMENTED_UNVERIFIED" && (lastEvent.toStatus ?? lastEvent.to) === "COMPLETE";
+  if (restsOnDirectCompletion) assert(recordState(records.automatedRuntime) === "NOT_RUN", `${scope} rests at COMPLETE by the direct IMPLEMENTED_UNVERIFIED -> COMPLETE edge and must keep automated runtime evidence at NOT_RUN`);
   if (["DEPLOYED_VERIFIED", "PHYSICAL_VERIFIED"].includes(item.status)) {
     assert(mergeRecorded && deploymentPassed && automatedPassed, `${scope} ${item.status} requires merge, deployment and automated runtime evidence`);
   }
@@ -367,6 +380,9 @@ function assertComplete(item, records, policy, scope) {
   if (policy.deployment) assert(recordState(records.deployment) === "SUCCESS", `${scope} completion policy requires successful deployment`);
   if (policy.automatedRuntime) assert(recordState(records.automatedRuntime) === "PASSED", `${scope} completion policy requires passed automated runtime`);
   if (policy.physicalRuntime) assert(recordState(records.physicalRuntime) === "PASSED", `${scope} completion policy requires passed physical runtime`);
+  if (!policy.deployment) assert(["NOT_DEPLOYED", "SUCCESS"].includes(recordState(records.deployment)), `${scope} COMPLETE: a deployment group not required by policy must rest at NOT_DEPLOYED or carry SUCCESS, not ${recordState(records.deployment)}`);
+  if (!policy.automatedRuntime) assert(["NOT_RUN", "PASSED"].includes(recordState(records.automatedRuntime)), `${scope} COMPLETE: an automated-runtime group not required by policy must rest at NOT_RUN or carry PASSED, not ${recordState(records.automatedRuntime)}`);
+  if (!policy.physicalRuntime) assert(["NOT_RUN", "PASSED"].includes(recordState(records.physicalRuntime)), `${scope} COMPLETE: a physical-runtime group not required by policy must rest at NOT_RUN or carry PASSED, not ${recordState(records.physicalRuntime)}`);
   assert(item.blockers.every((blocker) => blocker.status === "RESOLVED"), `${scope} COMPLETE cannot retain unresolved blockers`);
   assert(isObject(item.supervisorApproval), `${scope}.supervisorApproval must be an object`);
   assert(item.supervisorApproval.approvedStatus === "COMPLETE", `${scope} COMPLETE requires supervisor approval for COMPLETE`);
@@ -453,7 +469,7 @@ for (const [index, item] of items.entries()) {
   if (nonemptyString(records.merge.pullRequest)) {
     assert(isOpenedPullRequestUrl(records.merge.pullRequest), `${scope}.provenance.mergeCommit.pullRequest must be an opened PR URL, not a compare URL`);
   }
-  assertStatusHistory(item, scope);
+  assertStatusHistory(item, policy, scope);
   assertStatusProvenanceConsistency(item, records, scope);
   if (["AUTOMATED_VERIFIED", "DEPLOYED_VERIFIED", "PHYSICAL_VERIFIED", "COMPLETE"].includes(item.status)) {
     assert(isObject(item.supervisorApproval), `${scope}.supervisorApproval must be an object`);
@@ -640,5 +656,23 @@ for (const [index, row] of guideRows.entries()) {
 assert(guideHtml.includes(`name="guide-source-sha256" content="${guideSourceHash}"`), "blueprint onboarding guide HTML is stale relative to its Markdown source");
 assert(guideHtml.includes('href="V3-Blueprint-Completion-Onboarding-Guide.md"'), "blueprint onboarding guide HTML must link its Markdown source");
 assert(guideHtml.includes('href="V3-Agent-Readable-Feature-Map-Index.html"'), "blueprint onboarding guide HTML must link the master Feature Map");
+
+// Self-check of the policy gate on the direct completion edge. Without this fixture nothing proves the
+// edge is closed to a record whose policy requires automated runtime.
+{
+  const directEdgeFixture = {
+    status: "COMPLETE",
+    statusHistory: [
+      { from: "NOT_STARTED", to: "IN_PROGRESS", reason: "gate fixture", changedAt: "2026-01-01T00:00:00Z", approvedBy: null, evidenceLinks: [] },
+      { from: "IN_PROGRESS", to: "IMPLEMENTED_UNVERIFIED", reason: "gate fixture", changedAt: "2026-01-02T00:00:00Z", approvedBy: null, evidenceLinks: [] },
+      { from: "IMPLEMENTED_UNVERIFIED", to: "COMPLETE", reason: "gate fixture", changedAt: "2026-01-03T00:00:00Z", approvedBy: "blueprint-supervisor", evidenceLinks: [{ kind: "OTHER", reference: "gate-fixture", label: "gate fixture" }] },
+    ],
+  };
+  let refused = false;
+  try { assertStatusHistory(directEdgeFixture, { automatedRuntime: true }, "GATE-FIXTURE"); }
+  catch (error) { refused = /requiresAutomatedRuntime is false/.test(error.message); }
+  assert(refused, "policy gate self-check: a record whose policy requires automated runtime must be refused the direct IMPLEMENTED_UNVERIFIED -> COMPLETE edge");
+  assertStatusHistory(directEdgeFixture, { automatedRuntime: false }, "GATE-FIXTURE");
+}
 
 console.log("Blueprint completion contract passed: 30 canonical requirements, exact dependencies, lifecycle and release provenance enforced.");

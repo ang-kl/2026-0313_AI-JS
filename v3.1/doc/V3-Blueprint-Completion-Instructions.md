@@ -116,6 +116,7 @@ BLOCKED -> IN_PROGRESS
 IN_PROGRESS -> IMPLEMENTED_UNVERIFIED
 IMPLEMENTED_UNVERIFIED -> IN_PROGRESS
 IMPLEMENTED_UNVERIFIED -> AUTOMATED_VERIFIED
+IMPLEMENTED_UNVERIFIED -> COMPLETE
 AUTOMATED_VERIFIED -> IN_PROGRESS
 AUTOMATED_VERIFIED -> DEPLOYED_VERIFIED
 DEPLOYED_VERIFIED -> IN_PROGRESS
@@ -131,7 +132,7 @@ DEPLOYED_VERIFIED -> WITHHELD
 WITHHELD -> IN_PROGRESS
 ```
 
-A transition back to `IN_PROGRESS` is REQUIRED when implementation, evidence, contracts, dependencies, or protected behaviour changes after verification. Direct transitions that skip required evidence stages are prohibited. `COMPLETE` may be reopened only by the Blueprint Supervisor when regression, stale provenance, or invalid evidence is discovered; the replacement status MUST be `IN_PROGRESS` or `WITHHELD`, with a recorded reason.
+A transition back to `IN_PROGRESS` is REQUIRED when implementation, evidence, contracts, dependencies, or protected behaviour changes after verification. Direct transitions that skip required evidence stages are prohibited. `IMPLEMENTED_UNVERIFIED -> COMPLETE` is permitted only for a requirement whose `completionPolicy.requiresAutomatedRuntime` is `false`: for such a requirement `AUTOMATED_VERIFIED` names an evidence stage that policy does not require, so it is not a skipped stage. Every other requirement MUST traverse `AUTOMATED_VERIFIED`. The edge is policy-gated and the executable contract enforces the gate; a record MUST NOT acquire it by changing its policy flag after implementation begins (see Section 7). `COMPLETE` may be reopened only by the Blueprint Supervisor when regression, stale provenance, or invalid evidence is discovered; the replacement status MUST be `IN_PROGRESS` or `WITHHELD`, with a recorded reason.
 
 ## 7. Requirement record schema
 
@@ -239,14 +240,14 @@ Each `BLP-*` record MUST contain exactly the canonical fields below. Implementat
 
 `completionPolicy` is immutable for a requirement after implementation begins unless the user authorises a policy correction and the Supervisor records that correction in `statusHistory`. Apply these policies:
 
-1. Normal `BLP-001` through `BLP-026` requirements MUST set `requiresDeployment: false` and `requiresPhysicalRuntime: false`. They MAY become `COMPLETE` after their applicable automated evidence passes and the Supervisor approves. `requiresAutomatedRuntime` MUST be `true` for testable code or user-facing behaviour and MAY be `false` only for a documentation- or provenance-only requirement whose non-applicability is explained in `supervisorApproval.note`.
+1. Normal `BLP-001` through `BLP-026` requirements MUST set `requiresDeployment: false` and `requiresPhysicalRuntime: false`. They MAY become `COMPLETE` after their applicable automated evidence passes and the Supervisor approves. Where `requiresAutomatedRuntime` is `false`, the requirement transitions `IMPLEMENTED_UNVERIFIED -> COMPLETE` directly on Supervisor approval; `AUTOMATED_VERIFIED` is neither an available nor a required intermediate state for it (Section 6). `requiresAutomatedRuntime` MUST be `true` for testable code or user-facing behaviour and MAY be `false` only for a documentation- or provenance-only requirement whose non-applicability is explained in `supervisorApproval.note`.
 2. `BLP-027` and `BLP-028` MUST set `requiresDeployment: true`, `requiresAutomatedRuntime: true`, and `requiresPhysicalRuntime: false`.
 3. `BLP-029` MUST set all three policy fields to `true`.
 4. `BLP-030` MUST set all three policy fields to `true` and MUST reconcile every preceding requirement. Its completion authority is an immutable external GitHub release attestation that names the already merged, deployed, automated-verified, and physical-verified `BLP-029` subject commit. `supervisorApproval.attestationSubjectCommit` MUST equal the `BLP-029` deployed and verified commit, `attestationUrl` MUST identify the immutable release, and `attestationSha256` MUST identify the attested register payload. The in-repository register is a mirror of that attestation; later documentation-sync commits do not replace or reopen the attested subject commit.
 
 Implementation commit, merge commit, deployment status, automated runtime, and physical runtime MUST remain five separate provenance groups. They MUST NOT be collapsed into one `verified`, `released`, `done`, or provenance value. A successful deployment status does not prove runtime behaviour. Automated mobile emulation does not prove physical-device behaviour.
 
-All recorded commit identifiers MUST be exact 40-character commit SHAs. When `requiresDeployment` is `true`, `deploymentStatus.deployedCommit` MUST exactly equal `mergeCommit.commitSha`. When automated runtime verifies a deployed release, `automatedRuntimeVerification.verifiedCommit` MUST exactly equal both `deploymentStatus.deployedCommit` and `mergeCommit.commitSha`. When deployment is not required, automated verification MUST name the exact implementation or merge commit it tested; the Supervisor MUST verify that the accepted merge contains that implementation before approving `COMPLETE`. When `requiresPhysicalRuntime` is `true`, `physicalRuntimeVerification.verifiedCommit` MUST exactly equal `deploymentStatus.deployedCommit`, `automatedRuntimeVerification.verifiedCommit`, and `mergeCommit.commitSha`. Branch names, tags, environment names, and abbreviated SHAs do not satisfy these equality rules.
+All recorded commit identifiers MUST be exact 40-character commit SHAs. When `requiresDeployment` is `true`, `deploymentStatus.deployedCommit` MUST exactly equal `mergeCommit.commitSha`. When automated runtime verifies a deployed release, `automatedRuntimeVerification.verifiedCommit` MUST exactly equal both `deploymentStatus.deployedCommit` and `mergeCommit.commitSha`. When deployment is not required and `requiresAutomatedRuntime` is `true`, automated verification MUST name the exact implementation or merge commit it tested. In every case, the Supervisor MUST verify that the accepted merge contains the recorded implementation before approving `COMPLETE`. When `requiresPhysicalRuntime` is `true`, `physicalRuntimeVerification.verifiedCommit` MUST exactly equal `deploymentStatus.deployedCommit`, `automatedRuntimeVerification.verifiedCommit`, and `mergeCommit.commitSha`. Branch names, tags, environment names, and abbreviated SHAs do not satisfy these equality rules.
 
 `statusHistory` MUST be append-only, chronologically ordered, and contain the complete sequence of permitted transitions. Its final `to` value MUST equal the record's current `status`. Every transition to a Supervisor-controlled status MUST use `approvedBy: "blueprint-supervisor"` and contain non-empty supporting `evidenceLinks`. `supervisorApproval.approvedStatus` MUST equal the current status, `approvedBy` MUST be `blueprint-supervisor`, and approval evidence MUST be non-empty for `AUTOMATED_VERIFIED`, `DEPLOYED_VERIFIED`, `PHYSICAL_VERIFIED`, or `COMPLETE`.
 
@@ -293,13 +294,13 @@ A requirement may become `COMPLETE` only when all applicable conditions below ar
 8. Desktop and phone behaviour are verified where the requirement is user-facing.
 9. Implementation commit and merge commit are recorded separately as exact 40-character SHAs.
 10. Deployment status records `deployedCommit` independently of runtime verification when `completionPolicy.requiresDeployment` is `true`.
-11. Automated-runtime evidence records `verifiedCommit` when `completionPolicy.requiresAutomatedRuntime` is `true` and satisfies the exact-match rules in Section 7.
+11. Automated-runtime evidence records `verifiedCommit` when `completionPolicy.requiresAutomatedRuntime` is `true` and satisfies the exact-match rules in Section 7. Where `requiresAutomatedRuntime` is `false`, the automated-runtime group MUST remain `NOT_RUN` with a note stating that its evidence is not required, and `supervisorApproval.note` MUST carry the Section 7 policy-1 justification.
 12. Physical-runtime evidence records `verifiedCommit` when `completionPolicy.requiresPhysicalRuntime` is `true` and satisfies the exact-match rules in Section 7.
 13. No unresolved P0 or P1 regression exists.
 14. `v3/`, Railway configuration, Step 1, and existing Step 2 behaviour are unchanged unless explicitly authorised.
 15. `statusHistory` ends at `COMPLETE`, and `supervisorApproval` records the Supervisor's review and approval of that status.
 
-For every `COMPLETE` record, each provenance group required by `completionPolicy` MUST contain a passing state, exact commit, timestamp, and non-empty evidence links. A provenance group not required by policy MAY remain `NOT_DEPLOYED` or `NOT_RUN`, but its note MUST state that the group's evidence is not required for this requirement. The Supervisor MUST NOT demand premature deployment or physical evidence for normal P0-P4 completion, and MUST NOT waive required deployment or physical evidence for `BLP-027` through `BLP-030`.
+For every `COMPLETE` record, each provenance group required by `completionPolicy` MUST contain a passing state, exact commit, timestamp, and non-empty evidence links. A provenance group not required by policy MAY remain at its non-run state, `NOT_DEPLOYED` for `deploymentStatus` and `NOT_RUN` for `automatedRuntimeVerification` and `physicalRuntimeVerification`, or MAY carry genuinely passing evidence; it MUST NOT rest at `UNKNOWN`, `PENDING` or `FAILED` in a `COMPLETE` record. Where it remains at its non-run state, its note MUST state that the group's evidence is not required for this requirement. The Supervisor MUST NOT demand premature deployment or physical evidence for normal P0-P4 completion, and MUST NOT waive required deployment or physical evidence for `BLP-027` through `BLP-030`.
 
 ## 10. P0-P5 release gates
 
