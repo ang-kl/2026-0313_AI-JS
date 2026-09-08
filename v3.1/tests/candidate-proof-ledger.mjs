@@ -295,6 +295,9 @@ async function runViewport({ name, width, height, phone }) {
   await page.waitForFunction(() => /Claim recorded/.test(document.querySelector('[data-testid="cpl-claim-state"]')?.textContent || ""), null, { timeout: 5000 });
   eq(await page.evaluate(() => document.activeElement?.dataset.testid || document.activeElement?.tagName), "cpl-claim-state", `${tag}: after saving, focus moves to the announced claim state, not to body (W-6)`);
   eq(await page.getByTestId("cpl-claim-state").first().getAttribute("role"), "status", `${tag}: the claim state is a status region`);
+  // The notice is derived from the kept ledger in an effect, so it lands one render after the claim
+  // state; the read waits for it rather than racing the runner (run 34236469225 failed here at phone width).
+  await page.waitForFunction(() => /Claim recorded at/.test(document.querySelector('[data-testid="cpl-notice"]')?.textContent || ""), null, { timeout: 5000 });
   ok(/Claim recorded at/.test(await page.getByTestId("cpl-notice").innerText()), `${tag}: the panel notice says the claim was recorded`);
   await page.locator('[data-testid="cpl-record"] summary').first().click();
   rows = await records(page);
