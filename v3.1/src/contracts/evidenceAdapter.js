@@ -47,7 +47,7 @@ import {
 } from "./evidenceContracts.js";
 import { jobAdText, jobAdSections } from "../review/job-ad-sections.js";
 
-export const ADAPTER_VERSION = "1.0.0";
+export const ADAPTER_VERSION = "1.1.0"; // 1.1.0 (BLP-005): evidence-state text, one definition of the words a surface shows per state
 
 // Extraction versions are declared here so a prompt or pipeline change bumps the number and
 // every duty id changes with it (name-N per the contract; the verbatim parents do not move).
@@ -71,6 +71,14 @@ export const BUNDLE_STATE = Object.freeze({
   CONFLICTING_EVIDENCE: WITHHOLD.CONFLICTING_EVIDENCE,
 });
 
+// BLP-005: a posting that came from a PARTIAL poll (some MyCareersFuture pages read, a later page
+// failed) carries the incompleteness on the bundle even though no surface discloses it yet, exactly as
+// completeness UNKNOWN was recorded before the routes measured it. Disclosure has no owner in the
+// register and is escalated to the Human Lead; the fact is recorded here so it cannot be lost.
+const RESIDUAL_POLL_PARTIAL = Object.freeze({
+  code: "POLL_PARTIAL",
+  detail: "the employer poll that produced this posting stopped at a failed page, so the posting set it came from may be incomplete",
+});
 const RESIDUAL_COMPLETENESS = Object.freeze({
   code: "COMPLETENESS_UNKNOWN",
   detail: "api/mcf.js and api/careers.js cap bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength; completeness recorded UNKNOWN, never inferred from length.",
@@ -203,6 +211,7 @@ export function buildPostingEvidence({ posting, duties, extractionVersion, retri
   });
   source.withheld.forEach((w) => withheld.push(w));
   if (!measured) residualRisks.push(RESIDUAL_COMPLETENESS);
+  if (posting && posting.pollPartial === true) residualRisks.push(RESIDUAL_POLL_PARTIAL);
 
   const bodySpan = source.text.length ? createVerbatimSpan(source, 0, source.text.length, { role: "body" }) : null;
   const lineSpans = buildLineSpans(source);
@@ -422,4 +431,72 @@ export function partitionLinks(links, currentIds) {
     else withheld.push({ link: l, reason: WITHHOLD.STALE_EVIDENCE, legacyIdentity: !!(l && (isLegacyEvidenceId(l.from && l.from.id) || isLegacyEvidenceId(l.to && l.to.id))), detail: "anchor identity is not on the current evidence set; re-affirm by hand" });
   });
   return { current, withheld };
+}
+
+
+// ---------------------------------------------------------------------------------------------
+// Evidence-state text (BLP-005, Supervisor rulings Q2 and Q4). ONE definition of the words a
+// surface shows for a withheld, stale or failed state, so the states are distinct by reason code
+// AND by the sentence a reader sees, and so BLP-010 / BLP-018 inherit the strings rather than
+// inventing new ones. Rules: a failure names WHICH source and what it means for the reader, and
+// is never phrased as an absence; a withholding says why nothing is shown; a stale state says
+// the value is shown but no longer current and why. Pure text, no colour, no DOM.
+// ---------------------------------------------------------------------------------------------
+export const EVIDENCE_STATE = Object.freeze({ OK: "ok", EMPTY: "empty", WITHHELD: "withheld", STALE: "stale", FAILURE: "failure" });
+
+const WITHHOLD_TEXT = Object.freeze({
+  [WITHHOLD.NO_SOURCE_ROWS]: "withheld: no source rows reached this view, so nothing is shown rather than a guess",
+  [WITHHOLD.NO_CANDIDATE_PROOF]: "withheld: no candidate proof is on record for this claim",
+  [WITHHOLD.CONFLICTING_EVIDENCE]: "withheld: the evidence conflicts and no side was chosen",
+  [WITHHOLD.STALE_EVIDENCE]: "withheld: this was recorded against an earlier version of the evidence and is not carried forward",
+  [WITHHOLD.UNAVAILABLE_FIELD]: "withheld: the source did not supply this value",
+  [WITHHOLD.INCOMPLETE_IDENTITY]: "withheld: the posting identity is incomplete, so nothing is attributed to it",
+  [WITHHOLD.CAP_EXCEEDED]: "withheld: beyond the row cap, so it is counted but not shown",
+  [WITHHOLD.UNSUPPORTED_VISUAL]: "withheld: no supported visual for this data",
+  [WITHHOLD.NO_PARENT_SPAN]: "withheld: no source span backs this distilled text",
+});
+/** The sentence a surface shows for a withholding reason; an unknown reason is itself withheld, never invented. */
+export function withholdingText(reason) {
+  return WITHHOLD_TEXT[reason] || `withheld: reason not recognised (${String(reason)})`;
+}
+
+const STALE_TEXT = Object.freeze({
+  decision: "stale: this decision was made against an earlier version of the evidence; it is kept on record but not applied to this view",
+  output: "stale: this generated text cites evidence that has since changed; regenerate before relying on it",
+  proof: "stale: this proof was recorded against evidence that has since changed; re-confirm before relying on it",
+});
+/** The sentence a surface shows for a stale record of each kind (decision, output, proof). */
+export function staleText(kind) {
+  return STALE_TEXT[kind] || `stale: unrecognised record kind (${String(kind)})`;
+}
+
+const FAILURE_TEXT = Object.freeze({
+  TIMEOUT: (source) => `${source} did not respond in time, so no postings are shown from that source. Try again in a moment.`,
+  BUSY: (source) => `${source} is refusing requests right now, so no postings are shown from that source. Try again shortly.`,
+  SERVER: (source) => `${source} returned an error, so no postings are shown from that source. Try again in a moment.`,
+  NETWORK: (source) => `${source} could not be reached, so no postings are shown from that source. Check the connection and try again.`,
+  MALFORMED: (source) => `${source} returned a response this app could not read, so no postings are shown from that source.`,
+});
+/** The sentence a surface shows when a SOURCE FAILED: names the source, says what it means, never an absence. */
+export function failureText(source, code) {
+  const make = FAILURE_TEXT[String(code || "").toUpperCase()] || ((s) => `${s} could not be read (${String(code || "unknown")}), so no postings are shown from that source.`);
+  return make(source || "The source");
+}
+/** The sentence a surface shows for a genuine empty result: the source answered and had nothing matching. */
+export function emptyText(source, query) {
+  return `${source || "The source"} answered and no live postings matched ${query ? `"${query}"` : "the query"}.`;
+}
+/**
+ * Classify a route payload into an evidence state. FAILS CLOSED: a fallback with any code but EMPTY,
+ * a fallback with no code, or no payload at all is a FAILURE, never an absence, the same discipline
+ * as windowRows withholding on a failed bundle (Supervisor condition, BLP-005). Only an explicit
+ * EMPTY, or a non-fallback answer with no rows, is an empty answer.
+ */
+export function classifyRoutePayload(payload) {
+  if (!payload || typeof payload !== "object") return EVIDENCE_STATE.FAILURE;
+  const code = String(payload.code || "").toUpperCase();
+  if (payload.fallback && code && code !== "EMPTY") return EVIDENCE_STATE.FAILURE;
+  if (payload.fallback && !code) return EVIDENCE_STATE.FAILURE;
+  const rows = Array.isArray(payload.matches) ? payload.matches : Array.isArray(payload.jobs) ? payload.jobs : [];
+  return rows.length ? EVIDENCE_STATE.OK : EVIDENCE_STATE.EMPTY;
 }

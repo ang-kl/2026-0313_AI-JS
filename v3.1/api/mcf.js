@@ -320,19 +320,23 @@ async function mcfSearch(query, { limit = PAGE_SIZE } = {}) {
 
 // Paged MCF search - offset version used exclusively by resolveCompany.
 // Does NOT modify mcfSearch (frozen). Returns normalised jobs or [] on failure.
-async function mcfSearchPage(query, offset) {
-  if (!query || !query.trim()) return [];
+// BLP-005: a page that FAILED (timeout, non-2xx, unreadable body) is reported as a failure with
+// its cause, never folded into an empty page. Before this, every cause returned [] and the company
+// resolver then answered EMPTY ("No live postings found"), a failure phrased as an absence.
+async function mcfSearchPageResult(query, offset) {
+  if (!query || !query.trim()) return { hits: [], failure: null };
   const url = `${MCF_BASE}?search=${encodeURIComponent(query)}&limit=${PAGE_SIZE}&offset=${offset}`;
   try {
     const res = await fetchWithTimeout(url, MCF_TIMEOUT_MS);
-    if (!res.ok) return [];
+    if (!res.ok) return { hits: [], failure: res.status === 429 || res.status === 503 ? 'BUSY' : 'SERVER' };
     const data = await res.json();
     const results = data?.results || [];
-    return results.map(normaliseJob).filter(Boolean);
+    return { hits: results.map(normaliseJob).filter(Boolean), failure: null };
   } catch (err) {
-    return [];
+    return { hits: [], failure: err && err.name === 'AbortError' ? 'TIMEOUT' : 'SERVER' };
   }
 }
+// (The former array-shaped mcfSearchPage wrapper had no remaining caller and was removed under BLP-005.)
 
 // Deterministic company-name normaliser (CO1.5). Applied identically to the
 // user query and to each MCF postedCompanyName / hiringCompanyName.
@@ -376,7 +380,7 @@ async function resolveCompany(companyQuery, limitCap) {
   if (!queryKey) {
     return {
       matches: [], query, queryKey, ambiguous: false, totalPostings: 0,
-      pagesPolled: 0, fallback: true, ...WARM_ERRORS.empty,
+      pagesPolled: 0, pagesFailed: 0, fallback: true, ...WARM_ERRORS.empty,
       source: 'MyCareersFuture Singapore',
     };
   }
@@ -385,12 +389,27 @@ async function resolveCompany(companyQuery, limitCap) {
   // MCF full-text search term so MCF pre-filters candidate postings.
   let allJobs = [];
   let pagesPolled = 0;
+  let pagesFailed = 0;
+  let firstFailure = null;
   for (let page = 0; page < COMPANY_MAX_PAGES; page++) {
     const offset = page * PAGE_SIZE;
-    const hits = await mcfSearchPage(query, offset);
-    pagesPolled++;
+    const { hits, failure } = await mcfSearchPageResult(query, offset);
+    if (failure) { pagesFailed++; if (!firstFailure) firstFailure = failure; break; } // a failed page ends the poll: what follows is unknown, not empty
+    pagesPolled++; // counts pages actually READ; a failed page is counted in pagesFailed, never as polled
     allJobs = allJobs.concat(hits);
     if (hits.length < PAGE_SIZE) break; // last page reached
+  }
+
+  // BLP-005 criterion 3: nothing read AND a page failed is a FAILURE of the source, not an empty
+  // answer. The code names the cause (TIMEOUT / BUSY / SERVER) so the client can say which source
+  // failed and what that means, instead of "no postings found".
+  if (!allJobs.length && pagesFailed > 0) {
+    const cause = firstFailure === 'TIMEOUT' ? WARM_ERRORS.timeout : firstFailure === 'BUSY' ? WARM_ERRORS.busy : WARM_ERRORS.server;
+    return {
+      matches: [], query, queryKey, ambiguous: false, totalPostings: 0,
+      pagesPolled, pagesFailed, fallback: true, ...cause,
+      source: 'MyCareersFuture Singapore',
+    };
   }
 
   // Deduplicate by uuid.
@@ -410,9 +429,19 @@ async function resolveCompany(companyQuery, limitCap) {
   });
 
   if (!filtered.length) {
+    // BLP-005 (conformance-auditor C1): nothing matched AND a page failed is still a failure of the
+    // source, not an empty answer: the pages that failed may have held the matches.
+    if (pagesFailed > 0) {
+      const cause = firstFailure === 'TIMEOUT' ? WARM_ERRORS.timeout : firstFailure === 'BUSY' ? WARM_ERRORS.busy : WARM_ERRORS.server;
+      return {
+        matches: [], query, queryKey, ambiguous: false, totalPostings: 0,
+        pagesPolled, pagesFailed, fallback: true, ...cause,
+        source: 'MyCareersFuture Singapore',
+      };
+    }
     return {
       matches: [], query, queryKey, ambiguous: false, totalPostings: 0,
-      pagesPolled, fallback: true,
+      pagesPolled, pagesFailed, fallback: true,
       code: 'EMPTY',
       message: 'No live MyCareersFuture postings found for that company.',
       source: 'MyCareersFuture Singapore',
@@ -455,7 +484,7 @@ async function resolveCompany(companyQuery, limitCap) {
   const ambiguous = matches.length >= 2;
 
   return {
-    matches, query, queryKey, ambiguous, totalPostings, pagesPolled,
+    matches, query, queryKey, ambiguous, totalPostings, pagesPolled, pagesFailed,
     source: 'MyCareersFuture Singapore',
   };
 }

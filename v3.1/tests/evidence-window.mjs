@@ -15,6 +15,7 @@
 //
 // Run: node tests/evidence-window.mjs
 
+import { GENERIC_FRESHNESS_PHRASES } from "./support/surface-phrases.mjs";
 import assert from "node:assert/strict";
 
 let checks = 0;
@@ -222,7 +223,7 @@ const rows = windowRows(built);
 deq(rows.map((r) => r.key), [...EVIDENCE_WINDOW_FIELDS], "seven rows in contract order");
 ok(rows.every((r) => typeof r.text === "string" && r.text.length > 0), "every row has text");
 ok(rows.filter((r) => r.withheld).every((r) => /^withheld \(/.test(r.text)), "every withheld row says so in words");
-for (const phrase of ["snapshot at analysis", "recent", "current"]) ok(!rows.some((r) => r.text.toLowerCase().includes(phrase)), `no generic substitute "${phrase}" in any rendered row`);
+for (const phrase of GENERIC_FRESHNESS_PHRASES) ok(!rows.some((r) => r.text.toLowerCase().includes(phrase)), `no generic substitute "${phrase}" in any rendered row`);
 ok(rows.every((r) => r.origin && (r.withheld ? r.origin === ORIGIN.WITHHELD : r.origin !== ORIGIN.WITHHELD)), "every row carries its origin, WITHHELD exactly when withheld");
 // Fail closed (conformance-auditor W3): a window that fails its own validation is withheld field by field, never shipped half-right.
 const broken = windowRows({ ...built, validation: { ok: false, errors: ["forced"] } });
@@ -336,7 +337,7 @@ async function runViewport({ name, width, height, phone }) {
   ok(print.filter((f) => f.state === "withheld").every((f) => /withheld/.test(f.text)), `${tag}: print withheld fields say so in text`);
   // Negative: no generic substitute on any of the three surfaces.
   const surfaces = await page.evaluate(() => Array.from(document.querySelectorAll('[data-testid="evidence-window"], [data-testid="print-evidence-window"]')).map((el) => el.textContent.toLowerCase()).join(" | "));
-  for (const phrase of ["snapshot at analysis", "recent", "current"]) ok(!surfaces.includes(phrase), `${tag}: no generic substitute "${phrase}" on the window surfaces`);
+  for (const phrase of GENERIC_FRESHNESS_PHRASES) ok(!surfaces.includes(phrase), `${tag}: no generic substitute "${phrase}" on the window surfaces`);
   await page.screenshot({ path: `test-results/evidence-window/${name}.png`, fullPage: true });
   await page.close();
   return footer;
