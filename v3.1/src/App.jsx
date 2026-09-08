@@ -16485,6 +16485,11 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             <span style={{ fontSize: 11.5, color: C.muted }}>({csgState.total} posting{csgState.total === 1 ? "" : "s"})</span>
           )}
         </div>
+        {/* The careers.gov.sg box renders ONLY the failure state, so data-state is the literal FAILURE.
+            careers.gov.sg CAN answer a genuine EMPTY (code EMPTY, fallback true, jobs []); that case is
+            shown by omitting the column, the pre-existing design for private employers ("drop the
+            redundant no-roles panel"), so the EMPTY state has no box here. Recorded as a known
+            omission on BLP-005 for the Human Lead's decision. */}
         {csgFailed && (
           <div role="status" aria-live="polite" data-testid="csg-results-state" data-state={EVIDENCE_STATE.FAILURE} data-source="careers.gov.sg" data-source-code={csgState.code || ""}
             style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>

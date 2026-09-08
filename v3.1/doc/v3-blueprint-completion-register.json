@@ -1586,6 +1586,11 @@
           "kind": "TEST",
           "reference": "v3.1/tests/evidence-contract.mjs",
           "label": "NOTE: the two files originally declared for BLP-005 (tests/evidence-contract.mjs, tests/evidence-round-trip.mjs) were not changed; their positive round-trip and reference-integrity coverage from BLP-002 and BLP-003 stands (396 and 171 + 216 checks) and the new suite adds the failure, stale and inventory fixtures beside them."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "KNOWN OMISSION (Supervisor question on verification, answered): careers.gov.sg can answer a genuine EMPTY (code EMPTY, fallback true, jobs []). The careers.gov.sg column renders a box only for the FAILURE state (data-state is the literal FAILURE, stated in a comment at the site); a genuine EMPTY is shown by omitting the column, the pre-existing Step 1a design for private employers, where most searches return no public-sector roles. So the two columns are asymmetric: MyCareersFuture shows failure and empty in words, careers.gov.sg shows failure in words and empty by absence of the column. Whether the empty answer should also be said in words (a box on every private-employer search) is the Human Lead's call; recorded rather than decided by inference."
         }
       ],
       "blockers": [
