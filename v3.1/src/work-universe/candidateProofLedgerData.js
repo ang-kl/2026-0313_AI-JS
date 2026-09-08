@@ -1150,6 +1150,24 @@ export function linkStanding(record, bundle) {
 }
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
+/**
+ * Why no link stands, from the links' OWN reasons and never from a default (conformance-auditor,
+ * third pass): a link invalid with CANDIDATE_SOURCE_CHANGED waits on its record, and nothing is
+ * known to have changed about the posting, so it must not be narrated as invalid against the
+ * posting evidence; only a target-side reason says that. A link not judged is said as not judged.
+ */
+const TARGET_SIDE_REASONS = Object.freeze(["TARGET_SOURCE_CHANGED", "TARGET_ABSENT", "TARGET_UNTRUSTED", "TARGET_TEXT_CHANGED", "TARGET_REEXTRACTED"]);
+function noLinkStandsText(record) {
+  const invalid = (record.links || []).filter((l) => l.state === "INVALID");
+  const waiting = invalid.filter((l) => l.reason === "CANDIDATE_SOURCE_CHANGED").length;
+  const target = invalid.filter((l) => TARGET_SIDE_REASONS.includes(l.reason)).length;
+  const unjudged = invalid.filter((l) => l.reason === "TARGET_EVIDENCE_UNAVAILABLE").length;
+  if (waiting + target + unjudged !== invalid.length) throw new Error(`a link carries a reason outside the governed set: ${invalid.map((l) => l.reason).join(", ")}`);
+  if (waiting && !target && !unjudged) return `no link stands while this record is ${record.record.state}: ${plural(waiting, "link")} ${waiting === 1 ? "waits" : "wait"} on the record, not on the posting`;
+  if (target && !waiting && !unjudged) return `no valid link to a target: ${plural(target, "link")} ${target === 1 ? "is" : "are"} invalid against the current posting evidence`;
+  if (unjudged && !waiting && !target) return `no link stands: ${plural(unjudged, "link")} not judged, the posting evidence could not be read; unknown, not lost`;
+  return `no link stands: ${[waiting ? `${plural(waiting, "link")} waiting on the record` : null, target ? `${plural(target, "link")} invalid against the current posting evidence` : null, unjudged ? `${plural(unjudged, "link")} not judged` : null].filter(Boolean).join(", ")}`;
+}
 export function missingEvidenceOf(record, { currentSourceId, bundle } = {}) {
   const missing = [];
   const state = record.record.state;
@@ -1162,7 +1180,7 @@ export function missingEvidenceOf(record, { currentSourceId, bundle } = {}) {
   if (!record.claimText) missing.push("no claim stated in your own words");
   if (record.proofType === "UNSPECIFIED") missing.push("no proof type chosen");
   const links = linkStanding(record, bundle);
-  if (!links.standing.length) missing.push(!links.total ? "not yet linked to a target (see target links)" : links.caveat ? `no link currently stands: ${links.caveat} (see target links)` : "no valid link to a target: every link is invalid against the current posting evidence (see target links)");
+  if (!links.standing.length) missing.push(!links.total ? "not yet linked to a target (see target links)" : links.caveat ? `no link currently stands: ${links.caveat} (see target links)` : `${noLinkStandsText(record)} (see target links)`);
   else if (links.caveat) missing.push(`${links.caveat} (see target links)`);
   if (!PROOF_DESTINATION.some((key) => record.record.destinations[key] === "ALLOWED")) missing.push("no destination approved yet (see destination approvals)");
   if (!ACCEPTED_STATES.includes(state)) missing.push(state === "CLAIMED_ONLY" ? "proof state is CLAIMED_ONLY, not DEMONSTRATED or CERTIFIED: declare it, on a standing link for demonstrated" : `proof state is ${state}, not DEMONSTRATED or CERTIFIED`);
