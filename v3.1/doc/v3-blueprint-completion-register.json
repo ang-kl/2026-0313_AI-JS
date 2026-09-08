@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T11:54:13+08:00"
+      "updatedAt": "2026-09-08T12:01:54+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -301,7 +301,12 @@
         {
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffa8f095edc80c678ef3b941ba2338af6b7c7914",
-          "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1: checked parentage, source completeness, Supervisor findings A-H)"
+          "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1, superseded by 09024db)"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/09024db814756fa600bed1f6d351e9753c705b2f",
+          "label": "BLP-002 implementation commit 09024db (contracts 1.0.2: AI parentage DECLARED not VERIFIED, audited USER_CONFIRMED)"
         },
         {
           "kind": "COMMIT",
@@ -311,12 +316,12 @@
         {
           "kind": "TEST",
           "reference": "v3.1/tests/evidence-contract.mjs",
-          "label": "Evidence contract test: 7 contracts, 308 measured checks, exit 0 (local and CI)"
+          "label": "Evidence contract test: 7 contracts, 326 measured checks, exit 0 (local and CI)"
         },
         {
           "kind": "FILE",
           "reference": "v3.1/src/contracts/evidenceContracts.js",
-          "label": "Canonical evidence contracts, contract 1.0.1, normalisation ptn-1"
+          "label": "Canonical evidence contracts, contract 1.0.2, normalisation ptn-1"
         }
       ],
       "blockers": [
@@ -334,7 +339,12 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffa8f095edc80c678ef3b941ba2338af6b7c7914",
-              "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1: checked parentage, source completeness, Supervisor findings A-H)"
+              "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1, superseded by 09024db)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/09024db814756fa600bed1f6d351e9753c705b2f",
+              "label": "BLP-002 implementation commit 09024db (contracts 1.0.2: AI parentage DECLARED not VERIFIED, audited USER_CONFIRMED)"
             },
             {
               "kind": "COMMIT",
@@ -344,7 +354,7 @@
             {
               "kind": "TEST",
               "reference": "v3.1/tests/evidence-contract.mjs",
-              "label": "Evidence contract test: 7 contracts, 308 measured checks, exit 0 (local and CI)"
+              "label": "Evidence contract test: 7 contracts, 326 measured checks, exit 0 (local and CI)"
             }
           ]
         }
@@ -365,7 +375,7 @@
         "implementationCommit": {
           "state": "RECORDED",
           "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
-          "commitSha": "ffa8f095edc80c678ef3b941ba2338af6b7c7914",
+          "commitSha": "09024db814756fa600bed1f6d351e9753c705b2f",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -375,7 +385,12 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffa8f095edc80c678ef3b941ba2338af6b7c7914",
-              "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1: checked parentage, source completeness, Supervisor findings A-H)"
+              "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1, superseded by 09024db)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/09024db814756fa600bed1f6d351e9753c705b2f",
+              "label": "BLP-002 implementation commit 09024db (contracts 1.0.2: AI parentage DECLARED not VERIFIED, audited USER_CONFIRMED)"
             },
             {
               "kind": "COMMIT",
@@ -383,7 +398,7 @@
               "label": "BLP-002 CI wiring commit 808fb35 (evidence-contract test in the browser gate)"
             }
           ],
-          "note": "Implementation commit ffa8f09 on the working branch carries contracts 1.0.1 (the Blueprint Supervisor's findings A-H on 1.0.0 applied); it supersedes bd11513, which is kept as evidence. CI wiring is 808fb35 on the same branch. Not yet merged."
+          "note": "Implementation commit 09024db on the working branch carries contracts 1.0.2 (the Blueprint Supervisor's re-verification of 1.0.1 applied); it supersedes ffa8f09 and bd11513, both kept as evidence. CI wiring is 808fb35 on the same branch. Not yet merged."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -461,7 +476,7 @@
           "from": "IN_PROGRESS",
           "to": "IMPLEMENTED_UNVERIFIED",
           "changedAt": "2026-09-08T11:40:55+08:00",
-          "reason": "Seven canonical contracts implemented with deterministic validators and a positive/negative contract test; CI wiring added. Implementation later revised to contracts 1.0.1 (ffa8f09) on the Blueprint Supervisor's findings while still at this status; verification pending.",
+          "reason": "Seven canonical contracts implemented with deterministic validators and a positive/negative contract test; CI wiring added. Implementation revised in place while at this status on the Blueprint Supervisor's findings: 1.0.1 (ffa8f09), then 1.0.2 (09024db); verification pending.",
           "approvedBy": null,
           "evidenceLinks": [
             {
@@ -472,7 +487,12 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffa8f095edc80c678ef3b941ba2338af6b7c7914",
-              "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1: checked parentage, source completeness, Supervisor findings A-H)"
+              "label": "BLP-002 implementation commit ffa8f09 (contracts 1.0.1, superseded by 09024db)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/09024db814756fa600bed1f6d351e9753c705b2f",
+              "label": "BLP-002 implementation commit 09024db (contracts 1.0.2: AI parentage DECLARED not VERIFIED, audited USER_CONFIRMED)"
             },
             {
               "kind": "COMMIT",
@@ -482,12 +502,12 @@
             {
               "kind": "TEST",
               "reference": "v3.1/tests/evidence-contract.mjs",
-              "label": "Evidence contract test: 7 contracts, 308 measured checks, exit 0 (local and CI)"
+              "label": "Evidence contract test: 7 contracts, 326 measured checks, exit 0 (local and CI)"
             },
             {
               "kind": "FILE",
               "reference": "v3.1/src/contracts/evidenceContracts.js",
-              "label": "Canonical evidence contracts, contract 1.0.1, normalisation ptn-1"
+              "label": "Canonical evidence contracts, contract 1.0.2, normalisation ptn-1"
             }
           ]
         }
