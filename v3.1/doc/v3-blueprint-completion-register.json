@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T14:16:39+08:00"
+      "updatedAt": "2026-09-08T14:23:55+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -684,12 +684,37 @@
           "kind": "TEST",
           "reference": "v3.1/tests/evidence-round-trip.mjs",
           "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/mcf.js",
+          "label": "RESIDUAL RISK (Blueprint Supervisor scope ruling 2, 2026-09-08; outlives BLP-003-BLOCKER-01): api/mcf.js and api/careers.js cap posting bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength, so EvidenceSource.completeness is recorded UNKNOWN (withheld) and is never inferred from body length; the additive route change (originalLength, cap) lands as its own small PR, after which completeness becomes COMPLETE or TRUNCATED for real."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "KNOWN OMISSION: EvidenceSource.retrievedAt is withheld (WITHHELD_UNAVAILABLE_FIELD) because the Step 2 handoff carries no retrieval time for the posting; owner BLP-004 (EvidenceWindow fields), not BLP-003."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "KNOWN OMISSION: tests/browser-gate.mjs:576 asserts the literal testid v31-workspace-evidence-s0 inside a branch its own fixture never enters (jobs: []); that id now exists only on the legacy no-source path, so a future fixture that yields source rows would fail the gate. Left untouched as outside BLP-003's declared scope; owner BLP-005 (test-evaluation-engineer). The correct fix reads data-evidence-id from the row; reintroducing positional ids is not a fix."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "KNOWN OMISSION: the withheld-ledger strip (data-testid evidence-withheld-ledger, 'N earlier links / decisions kept but not re-anchored') renders only on the Duties & Exposure tab of the six-view analysis surface; the canvas surface has no equivalent indicator yet."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/state.js",
+          "label": "KNOWN OMISSION (pre-existing, unchanged by BLP-003): the 'links' ledger scope is absent from api/state.js SCOPES, so locked links stay device-local in localStorage while review decisions cross devices through /api/state."
         }
       ],
       "blockers": [
         {
           "id": "BLP-003-BLOCKER-01",
-          "description": "The canonical identity contract and complete positive round-trip evidence are not recorded. Residual risk carried on this record (Blueprint Supervisor scope ruling 2, 2026-09-08): api/mcf.js and api/careers.js cap posting bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength, so EvidenceSource.completeness is recorded UNKNOWN (withheld) and never inferred from length; the additive route change (originalLength, cap) lands as its own small PR, after which completeness becomes COMPLETE or TRUNCATED for real.",
+          "description": "The canonical identity contract and complete positive round-trip evidence are not recorded.",
           "ownerRole": "contract-engineer",
           "status": "OPEN",
           "evidenceLinks": [
