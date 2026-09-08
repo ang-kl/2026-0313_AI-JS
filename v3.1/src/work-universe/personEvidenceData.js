@@ -233,5 +233,16 @@ export function isManualPersonEvidence(value) {
   if (!isConfirmationRecord(value.confirmationRecord) || value.confirmationRecord.confirmedBy !== LOCAL_HUMAN_ACTOR.id) return false;
   if (!value.source || !validateEvidenceSource(value.source).ok || value.sourceId !== value.source.id) return false;
   if (!Array.isArray(value.proofs) || !value.proofs.length) return false;
-  return value.proofs.every((proof) => proof && typeof proof.spanId === "string" && proof.spanId.startsWith("span:") && proof.sourceId === value.source.id && Array.isArray(proof.evidenceIds) && proof.evidenceIds[0] === proof.spanId && proof.record && validateProofRecord(proof.record).ok);
+  // Every proof view field a consumer may render is checked against the payload's own source:
+  // offsets are integers inside the text, the text is the exact slice, the hash is the source's
+  // (conformance-auditor C-3 under BLP-008: a number no validator can reject is not evidence).
+  const text = value.source.text;
+  return value.proofs.every((proof) => proof
+    && typeof proof.spanId === "string" && proof.spanId.startsWith("span:") && proof.sourceId === value.source.id
+    && Array.isArray(proof.evidenceIds) && proof.evidenceIds[0] === proof.spanId
+    && Number.isInteger(proof.start) && Number.isInteger(proof.end) && proof.start >= 0 && proof.end > proof.start && proof.end <= text.length
+    && proof.text === text.slice(proof.start, proof.end) && proof.text.trim().length > 0
+    && proof.sourceTextHash === value.source.textHash
+    && proof.spanId === `span:${value.source.id}:${proof.start}-${proof.end}`
+    && proof.record && validateProofRecord(proof.record).ok && proof.record.id === proof.id && proof.record.excerptSpanId === proof.spanId && proof.record.candidateSourceId === proof.sourceId);
 }
