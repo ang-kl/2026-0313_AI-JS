@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T15:07:04+00:00"
+      "updatedAt": "2026-09-08T23:33:32+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -3161,7 +3161,7 @@
       "title": "Link proof records to role evidence",
       "requirement": "Link proof records to duties, requirements, skills, competencies, and accepted review observations.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-008"
       ],
@@ -3230,7 +3230,7 @@
         {
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
-          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-009's predecessor BLP-008 was IMPLEMENTED_UNVERIFIED and unpushed when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-009 cannot reach COMPLETE before BLP-008 does (itself barred until BLP-007); if either reopens at approval, BLP-009 is re-checked EMPIRICALLY; and the Supervisor ruled that BLP-008 and BLP-009 are pushed as SEPARATE pull requests in dependency order, so that a finding on one cannot hold the other's merge hostage, unless the Human Lead prefers one PR for CI cost, in which case both records must name the shared merge and dispatch honestly. OUTCOME: BLP-008 was approved COMPLETE at a64363f (PR #500, merge c3923af) before this record was written, so the barrier named here is discharged; this record is written on the branch head that carries that approval. EARLY MERGE, recorded as the Supervisor required: PR #501 (head e694906, carrying this requirement's first implementation ff4c7c0 and the BLP-008 approval a64363f) was merged to main as e6b3af3 at 2026-09-08T15:04:05Z, before the Supervisor's condition for merge (their re-read of the corrected boundary) was met and before the corrective commit 592db34 was pushed at 2026-09-08T15:07Z. VERIFIABLE FACTS: the merging account is ang-kl (the API's merged_by), which is also the account the PR was opened from and the account that triggers every workflow run in this programme; the timestamp and the head merged are as stated; git diff e6b3af3 e694906 -- v3.1/src v3.1/tests .github v3.1/doc is empty. COORDINATOR'S OWN STATEMENT, attributed and not established by the API: the coordinating session did not issue the merge and was building the boundary fix at that time; the API cannot distinguish which human or session was at the keyboard, so this is recorded as the coordinator's statement, not as a fact. CONSEQUENCE: main carried the setState-inside-updater boundary (ReviewStudio.jsx at e6b3af3) from 15:04:05Z until the corrective merge of the PR carrying 592db34; that window is bounded by the two merge commits and is to be closed by the corrective merge's own timestamp when recorded. The Supervisor ruled: no approval of BLP-009 on e6b3af3; the fix and this record correction go up as their own PR; the approval cycle (dispatch, verifiedCommit, blob identity against 592db34) runs on that PR's merge commit; no dispatch run on e6b3af3 is to be cited. BLP-008's COMPLETE record also reached main at e6b3af3 by the same merge; its approval (issued at 22:34:58 on the dispatch at c3923af) is unaffected. NOTE ON COMMIT c9497fc: that reconciliation merge's own message states the attribution as a fact ('merged by the Human Lead before the boundary fix'); the message is part of the permanent record and is not rewritten, and this note supersedes it: the established facts are the account and the timestamp, and the attribution is the coordinator's statement as recorded above."
+          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-009's predecessor BLP-008 was IMPLEMENTED_UNVERIFIED and unpushed when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-009 cannot reach COMPLETE before BLP-008 does (itself barred until BLP-007); if either reopens at approval, BLP-009 is re-checked EMPIRICALLY; and the Supervisor ruled that BLP-008 and BLP-009 are pushed as SEPARATE pull requests in dependency order, so that a finding on one cannot hold the other's merge hostage, unless the Human Lead prefers one PR for CI cost, in which case both records must name the shared merge and dispatch honestly. OUTCOME: BLP-008 was approved COMPLETE at a64363f (PR #500, merge c3923af) before this record was written, so the barrier named here is discharged; this record is written on the branch head that carries that approval. EARLY MERGE, recorded as the Supervisor required: PR #501 (head e694906, carrying this requirement's first implementation ff4c7c0 and the BLP-008 approval a64363f) was merged to main as e6b3af3 at 2026-09-08T15:04:05Z, before the Supervisor's condition for merge (their re-read of the corrected boundary) was met and before the corrective commit 592db34 was pushed at 2026-09-08T15:07Z. VERIFIABLE FACTS: the merging account is ang-kl (the API's merged_by), which is also the account the PR was opened from and the account that triggers every workflow run in this programme; the timestamp and the head merged are as stated; git diff e6b3af3 e694906 -- v3.1/src v3.1/tests .github v3.1/doc is empty. COORDINATOR'S OWN STATEMENT, attributed and not established by the API: the coordinating session did not issue the merge and was building the boundary fix at that time; the API cannot distinguish which human or session was at the keyboard, so this is recorded as the coordinator's statement, not as a fact. CONSEQUENCE: main carried the setState-inside-updater boundary (ReviewStudio.jsx at e6b3af3) from 15:04:05Z until the corrective merge of the PR carrying 592db34; that window is bounded by the two merge commits and is to be closed by the corrective merge's own timestamp when recorded. The Supervisor ruled: no approval of BLP-009 on e6b3af3; the fix and this record correction go up as their own PR; the approval cycle (dispatch, verifiedCommit, blob identity against 592db34) runs on that PR's merge commit; no dispatch run on e6b3af3 is to be cited. BLP-008's COMPLETE record also reached main at e6b3af3 by the same merge; its approval (issued at 22:34:58 on the dispatch at c3923af) is unaffected. NOTE ON COMMIT c9497fc: that reconciliation merge's own message states the attribution as a fact ('merged by the Human Lead before the boundary fix'); the message is part of the permanent record and is not rewritten, and this note supersedes it: the established facts are the account and the timestamp, and the attribution is the coordinator's statement as recorded above. WINDOW CLOSED: the corrective merge is f1d94e9 (PR #502) at 2026-09-08T23:29:21+08:00, so main carried the boundary from 2026-09-08T15:04:05Z to 2026-09-08T23:29:21+08:00; the approval cycle ran on f1d94e9 (dispatch run 34245092988) with blob identity against 592db34 established by the empty scoped diff; the account (ang-kl) and the timestamp are the API's facts; that the coordinating session issued this merge through the API after the Supervisor's condition was met and the gate was green on 1426a73 is the coordinator's own statement, marked as such, with the API's 405 refusal on the draft followed by the undraft as its visible trace. The principle carried: never state more than the evidence carries."
         },
         {
           "kind": "FILE",
@@ -3300,7 +3300,7 @@
         {
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudio.jsx",
-          "label": "DEFECT found by the Supervisor at ff4c7c0, not by the builder or the suites: the boundary that caught the W-a throw (guarded) called setProofLedgerFault inside the setProofLedger updater at three sites, the same class the Supervisor blocked on BLP-008; under React.StrictMode (src/main.jsx) a discarded render pass could commit the withheld sentence from a pass that was thrown away, or clear it from a speculative success while the kept ledger came from the throwing pass, and the production build does not double-invoke so the 213-check Chromium suite could not see it. Fixed in 592db34: the boundary returns a value (guardLedgerStep), the fault lives ON the kept ledger under validateLedger, the panel derives its words from that ledger, and A12b asserts it in the direction that fails if the sentence can be produced without a fault present or cleared while one is. Lesson carried: a fix at a React boundary is where this family keeps reappearing; a boundary must return a value and never run a side effect inside an updater. REACHED MAIN: this defect was on main from the early merge e6b3af3 (2026-09-08T15:04:05Z) until the corrective merge; the suites could not have caught it because the production build does not double-invoke render passes, so 224 green Chromium checks at ff4c7c0 said nothing about it, and only a reading of the boundary against StrictMode could."
+          "label": "DEFECT found by the Supervisor at ff4c7c0, not by the builder or the suites: the boundary that caught the W-a throw (guarded) called setProofLedgerFault inside the setProofLedger updater at three sites, the same class the Supervisor blocked on BLP-008; under React.StrictMode (src/main.jsx) a discarded render pass could commit the withheld sentence from a pass that was thrown away, or clear it from a speculative success while the kept ledger came from the throwing pass, and the production build does not double-invoke so the 213-check Chromium suite could not see it. Fixed in 592db34: the boundary returns a value (guardLedgerStep), the fault lives ON the kept ledger under validateLedger, the panel derives its words from that ledger, and A12b asserts it in the direction that fails if the sentence can be produced without a fault present or cleared while one is. Lesson carried: a fix at a React boundary is where this family keeps reappearing; a boundary must return a value and never run a side effect inside an updater. REACHED MAIN: this defect was on main from the early merge e6b3af3 (2026-09-08T15:04:05Z) until the corrective merge; the suites could not have caught it because the production build does not double-invoke render passes, so 224 green Chromium checks at ff4c7c0 said nothing about it, and only a reading of the boundary against StrictMode could. WINDOW CLOSED at 2026-09-08T23:29:21+08:00 by f1d94e9 (PR #502)."
         }
       ],
       "blockers": [
@@ -3308,7 +3308,7 @@
           "id": "BLP-009-BLOCKER-01",
           "description": "Proof-to-target link implementation and evidence are not recorded.",
           "ownerRole": "contract-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -3319,6 +3319,31 @@
               "kind": "TEST",
               "reference": "v3.1/tests/proof-links.mjs",
               "label": "Proof-links suite: Part A node 159 checks at 592db34 (the catalogue offers only content-addressed duty ids and offset-span requirement ids with VERIFIED parentage, the AI-only duty unlinkable with its parentage named; a trusted duty and a verbatim requirement link with the exact target text snapshotted, the contract targets equal to the VALID links and validateProofRecord passing against the bundle's known spans; skills, competencies and accepted observations refused with NO_IDENTIFIER_CLASS or NO_DECISION_RECORD naming the owner, each refusal on the record and no record changed; an unverified duty, an id not in the bundle, a duplicate, no bundle, an unknown record and an unknown kind refused; a posting change invalidates every link together with TARGET_SOURCE_CHANGED by the system, the contract targets emptied, the snapshots and both texts untouched; the same bundle resumes the links with the snapshot still equal to the current text; TARGET_ABSENT, TARGET_TEXT_CHANGED and TARGET_UNTRUSTED each named; a stale candidate record takes its links with it and restoring the text brings them back; unlinking by a human keeps its history; forged links, targets out of step, a link without its event, a link to a kind without an identifier class, an empty snapshot and a human-attributed invalidation refused; deterministic), Part B Chromium 224 checks total at 1440x1000 and 430x932 (the panel names the unlinkable kinds and their owner; a confirmed excerpt links to a duty and a requirement chosen from a list that offers no skill, competency or observation; both target texts sit beside the excerpt labelled as snapshots at link time, never as the current text; the jump opens the linked duty in the evidence workspace by its canonical id and the links survive the return; the candidate record going stale invalidates both links with the reason in words and the snapshots kept; restoring the text resumes them; unlinking is said in words; nothing reaches browser storage; 44px controls; no overflow) Sections A10-A13 assert the four rulings, each in the direction that would fail if the fix collapsed: the two unreadable-bundle branches with the assertion that their reason differs from TARGET_SOURCE_CHANGED; one matching row offers and two or more offer nothing and say so; a backdated and an offset-form earlier clock are clamped and said, a forged ledger makes reconcile throw, a refused fold re-judges its links; a view without a bundle says it was not re-checked, with an unreadable bundle says the links could not be judged, and with a changed posting says the stored VALID links no longer stand. Every notice read in Part B captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion (the shape the Supervisor required on BLP-008)."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f1d94e91ac03905301b2eb1664e91d8832c28644",
+              "label": "Merge commit f1d94e9 (squash of PR #502 at head 1426a73: the corrective implementation 592db34, its record commits 6e18443 and a5060cb, the no-content reconciliation merge c9497fc onto e6b3af3, and the two note commits 170c735 and 1426a73). Tree identity: git diff 1426a73 f1d94e9 with no pathspec is empty, and git diff 592db34 1426a73 -- v3.1/src v3.1/tests .github is empty, so the merged tree carries 592db34's implementation blob for blob. Merged at 2026-09-08T23:29:21+08:00 by the account ang-kl (the API's merged_by), after the Supervisor's condition (their re-read of 592db34) was met and the gate was green on 1426a73 (pull_request run 84, 34243649810, the run carrying the real-base-ref feature-map assurance). COORDINATOR'S OWN STATEMENT, marked as before: the coordinating session issued this merge through the API, moving the PR out of draft first after the API refused the merge on a draft with 405; that refusal and the undraft are the API-visible trace, and the session identity is stated, not established by the API."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/e6b3af3227cc515d45f33529ae31c902900e76b0",
+              "label": "Early merge e6b3af3 (PR #501 at head e694906, merged 2026-09-08T15:04:05Z by the account ang-kl per the API, before the Supervisor's condition was met): carried the first implementation ff4c7c0 with the setState-inside-updater boundary to main. No approval was issued on it and no dispatch run on it is cited. WINDOW CLOSED: main carried that boundary from 2026-09-08T15:04:05Z until f1d94e9 at 2026-09-08T23:29:21+08:00."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34245092988",
+              "label": "Browser-gate run 34245092988 (job 102124929040) on merged main f1d94e9 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Proof-links suite on the dispatch run: Part A node PASS 159 checks; Part B Chromium PASS 224 checks total at 1440x1000 and 430x932 (the counts are the run's own output at f1d94e9, equal to the counts recorded at 592db34)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "BLP-003 to BLP-008 suites re-run unchanged on the same dispatch run (candidate-proof-ledger 103 + 184, person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0)"
             }
           ]
         }
@@ -3352,15 +3377,36 @@
               "label": "SUPERSEDED as the implementation commit by 592db34 (the fault boundary set state inside a React updater; corrected on the Supervisor's finding). BLP-009 implementation commit ff4c7c0: the link layer on the BLP-008 ledger (candidateProofLedgerData.js: bundleTargets offers only stable identifiers from the posting's BLP-003 bundle, distilled duty ids whose parentage is VERIFIED or USER_CONFIRMED and verbatim requirement span ids; linkProof snapshots the target's source id, source hash, exact text and derivation state at link time, keeps the contract record's targets[] equal to the VALID links only, and asserts target integrity itself (present in the bundle, trusted, same source, same text) rather than relying on the contract's checkCitedSpans, which skips an absent target and checks a verbatim one for nothing; reconcileLinks re-judges every link by system detection, a posting change invalidating every link to the earlier posting together, a stale or withheld record invalidating its own links, and a link resuming when the same target stands again; unlinkProof is a human act; four new event kinds with reasons pinned; validateLedger governs every link field and refuses a link without its LINKED event, a targets[] out of step with the VALID links, or a kind without an identifier class), CandidateProofLedger.jsx (per record: the pick list of current targets, each link with its state in words, its target text labelled as the snapshot at link time and never as the current text, Open target in evidence workspace through BLP-003's own jump, Unlink; the panel says which kinds cannot be linked yet and why, with the owner; the posting-change note says every link to the earlier posting is invalid together and that no link was examined on its own), ReviewStudio.jsx (the posting bundle built once beside the ledger, folded with it and re-judged when the bundle changes, clock at the boundary), WorkUniverseLanding.jsx (bundle and jump passed through), tests/proof-links.mjs (node 148 checks over a real adapter bundle, Chromium 213 at 1440x1000 and 430x932, the counts AT ff4c7c0 before the boundary revision added A12b on the company flow, every assertion naming what would make it fail), gate workflow line AFTER THE RE-AUDIT RULINGS (Supervisor: C-a, C-b, W-a, W-b in scope): judgeLink gives one verdict per condition with no default arm (TARGET_EVIDENCE_UNAVAILABLE for a target that could not be read, unknown and never valid; TARGET_REEXTRACTED with a re-link OFFERED only when exactly one current row carries the snapshot text, two or more offering nothing); relinkProof as one human act with two events naming each other; a system stamp clamped to the ledger's last instant, compared as instants and said in the event; a reconcile that cannot validate throws and is caught at the ReviewStudio boundary into a warm withheld panel state; every refusal exit of the fold re-judges its links; linkStanding, missingEvidenceOf and downstreamUsesOf re-judge live when given a bundle and say 'not re-checked', 'could not be judged' or 'not checked: this record is STALE, not active' when they cannot; an exhaustive resume-reason table (TARGET_RESTORED, TARGET_EVIDENCE_READ, CANDIDATE_SOURCE_RESTORED); LEDGER_VERSION 1.1.0; the Step 3 feature-map router range moved to ReviewStudio's new lines (26-99 to 27-122)."
             }
           ],
-          "note": "Implementation commit 592db34 (revision of ff4c7c0, kept as superseded evidence) on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 592db34 (revision of ff4c7c0, kept as superseded evidence) on the working branch. Merged to main as f1d94e9 by PR #502 (its predecessor ff4c7c0 had reached main earlier as e6b3af3 by PR #501, without approval); merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "f1d94e91ac03905301b2eb1664e91d8832c28644",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/502",
+          "mergedAt": "2026-09-08T23:29:21+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/502",
+              "label": "PR #502 merged to main (the corrective PR carrying 592db34)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f1d94e91ac03905301b2eb1664e91d8832c28644",
+              "label": "Exact merge commit f1d94e9"
+            },
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/501",
+              "label": "PR #501, the early merge e6b3af3 that carried ff4c7c0 before the correction; recorded, not approved"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/e6b3af3227cc515d45f33529ae31c902900e76b0",
+              "label": "Early merge e6b3af3 (PR #501 at head e694906, merged 2026-09-08T15:04:05Z by the account ang-kl per the API, before the Supervisor's condition was met): carried the first implementation ff4c7c0 with the setState-inside-updater boundary to main. No approval was issued on it and no dispatch run on it is cited. WINDOW CLOSED: main carried that boundary from 2026-09-08T15:04:05Z until f1d94e9 at 2026-09-08T23:29:21+08:00."
+            }
+          ],
+          "note": "Merge commit f1d94e9 (PR #502, squash of the corrective implementation 592db34, records 6e18443 and a5060cb, the no-content reconciliation c9497fc and the attribution note 1426a73), merged 2026-09-08T23:29:21+08:00. Merge identity proven two ways: git diff 1426a73 f1d94e9 with no pathspec is empty, and all seven affected files are blob-identical to 592db34. The first implementation ff4c7c0 is retained as superseded evidence, together with its own suite counts of 148 node and 213 Chromium as the figures at that commit; the current figures 159 and 224 belong to 592db34. PR #501 merged the superseded implementation to main as e6b3af3 before the Supervisor's condition was met; that history is recorded rather than rewritten."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -3369,17 +3415,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-009 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/proof-links.mjs",
+          "checkedAt": "2026-09-08T23:32:36+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34245092988",
+              "label": "Browser-gate run 34245092988 (job 102124929040) on merged main f1d94e9 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Proof-links suite on the dispatch run: Part A node PASS 159 checks; Part B Chromium PASS 224 checks total at 1440x1000 and 430x932 (the counts are the run's own output at f1d94e9, equal to the counts recorded at 592db34)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "BLP-003 to BLP-008 suites re-run unchanged on the same dispatch run (candidate-proof-ledger 103 + 184, person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0)"
+            }
+          ],
+          "note": "Run on the merged tree at f1d94e9 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit (the pull_request run 34243649810 on 1426a73 is kept as the PR's green check, not as this evidence). No run on the early merge e6b3af3 is cited. Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised by this run; that assurance belongs to the pull_request run 34243649810 (run 84) on 1426a73, which supplied the real base e6b3af3 and passed the locator check, and the blueprint-register construction-scope step is gated on a codex branch-name prefix and skipped on every run of this branch; this run executes tests/proof-links.mjs with the BLP-003 to BLP-008 suites at both viewports after browser-gate and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "f1d94e91ac03905301b2eb1664e91d8832c28644"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -3389,7 +3451,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-009 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -3442,14 +3504,123 @@
               "label": "Proof-links suite: Part A node 159 checks at 592db34 (the catalogue offers only content-addressed duty ids and offset-span requirement ids with VERIFIED parentage, the AI-only duty unlinkable with its parentage named; a trusted duty and a verbatim requirement link with the exact target text snapshotted, the contract targets equal to the VALID links and validateProofRecord passing against the bundle's known spans; skills, competencies and accepted observations refused with NO_IDENTIFIER_CLASS or NO_DECISION_RECORD naming the owner, each refusal on the record and no record changed; an unverified duty, an id not in the bundle, a duplicate, no bundle, an unknown record and an unknown kind refused; a posting change invalidates every link together with TARGET_SOURCE_CHANGED by the system, the contract targets emptied, the snapshots and both texts untouched; the same bundle resumes the links with the snapshot still equal to the current text; TARGET_ABSENT, TARGET_TEXT_CHANGED and TARGET_UNTRUSTED each named; a stale candidate record takes its links with it and restoring the text brings them back; unlinking by a human keeps its history; forged links, targets out of step, a link without its event, a link to a kind without an identifier class, an empty snapshot and a human-attributed invalidation refused; deterministic), Part B Chromium 224 checks total at 1440x1000 and 430x932 (the panel names the unlinkable kinds and their owner; a confirmed excerpt links to a duty and a requirement chosen from a list that offers no skill, competency or observation; both target texts sit beside the excerpt labelled as snapshots at link time, never as the current text; the jump opens the linked duty in the evidence workspace by its canonical id and the links survive the return; the candidate record going stale invalidates both links with the reason in words and the snapshots kept; restoring the text resumes them; unlinking is said in words; nothing reaches browser storage; 44px controls; no overflow) Sections A10-A13 assert the four rulings, each in the direction that would fail if the fix collapsed: the two unreadable-bundle branches with the assertion that their reason differs from TARGET_SOURCE_CHANGED; one matching row offers and two or more offer nothing and say so; a backdated and an offset-form earlier clock are clamped and said, a forged ledger makes reconcile throw, a refused fold re-judges its links; a view without a bundle says it was not re-checked, with an unreadable bundle says the links could not be judged, and with a changed posting says the stored VALID links no longer stand. Every notice read in Part B captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion (the shape the Supervisor required on BLP-008)."
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T23:33:30+08:00",
+          "reason": "Blueprint Supervisor established merge identity by two independent routes. Whole-tree: git diff 1426a73 f1d94e9 with NO pathspec is empty, so the squash carries the pull request head's entire tree, every path, which is a stronger form than the scoped check used on earlier requirements. Per file: all seven declared affected files are blob-identical between implementation commit 592db34 and merge commit f1d94e9 - candidateProofLedgerData.js 8f99c7dadc1b, CandidateProofLedger.jsx eb8227b93f61, WorkUniverseLanding.jsx bb0228785a14, ReviewStudio.jsx 0c0b240a9fc5, tests/proof-links.mjs feace9930f9f, .github/workflows/v31-browser-gate.yml d48fc6e0a6ea, doc/v3-step3-feature-map.manifest.json 3d604f25576e - so f1d94e9 == 1426a73 == 592db34 for the implementation. Read the workflow_dispatch run 34245092988 (job 102124929040) on main at f1d94e9, conclusion success, from the job object and the log: proof-links 159 node and 224 Chromium at 1440x1000 and 430x932, candidate-proof-ledger 103 and 184 unchanged, BLP-007 65 and 104, evidence-round-trip 171+216, evidence-window 39+107+146, reviewer-contract 61+120, evidence-failure-paths 113+160, evidence-contract 396 at contract 1.1.0, governance ledger, audit integrity, register and feature-map contracts passing. No figure in the run differs from the expectation at 592db34. Step 9 skipped by its branch-name gate, correct on main.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f1d94e91ac03905301b2eb1664e91d8832c28644",
+              "label": "Merge commit f1d94e9 (squash of PR #502 at head 1426a73: the corrective implementation 592db34, its record commits 6e18443 and a5060cb, the no-content reconciliation merge c9497fc onto e6b3af3, and the two note commits 170c735 and 1426a73). Tree identity: git diff 1426a73 f1d94e9 with no pathspec is empty, and git diff 592db34 1426a73 -- v3.1/src v3.1/tests .github is empty, so the merged tree carries 592db34's implementation blob for blob. Merged at 2026-09-08T23:29:21+08:00 by the account ang-kl (the API's merged_by), after the Supervisor's condition (their re-read of 592db34) was met and the gate was green on 1426a73 (pull_request run 84, 34243649810, the run carrying the real-base-ref feature-map assurance). COORDINATOR'S OWN STATEMENT, marked as before: the coordinating session issued this merge through the API, moving the PR out of draft first after the API refused the merge on a draft with 405; that refusal and the undraft are the API-visible trace, and the session identity is stated, not established by the API."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/592db3474490e54b7ba9c84b8221ee241aa997b3",
+              "label": "Implementation commit 592db34 (candidateProofLedgerData.js with guardLedgerStep and the governed faults, CandidateProofLedger.jsx, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/proof-links.mjs A12b, gate workflow line, feature-map manifest ranges)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/e6b3af3227cc515d45f33529ae31c902900e76b0",
+              "label": "Early merge e6b3af3 (PR #501 at head e694906, merged 2026-09-08T15:04:05Z by the account ang-kl per the API, before the Supervisor's condition was met): carried the first implementation ff4c7c0 with the setState-inside-updater boundary to main. No approval was issued on it and no dispatch run on it is cited. WINDOW CLOSED: main carried that boundary from 2026-09-08T15:04:05Z until f1d94e9 at 2026-09-08T23:29:21+08:00."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34245092988",
+              "label": "Browser-gate run 34245092988 (job 102124929040) on merged main f1d94e9 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Proof-links suite on the dispatch run: Part A node PASS 159 checks; Part B Chromium PASS 224 checks total at 1440x1000 and 430x932 (the counts are the run's own output at f1d94e9, equal to the counts recorded at 592db34)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "BLP-003 to BLP-008 suites re-run unchanged on the same dispatch run (candidate-proof-ledger 103 + 184, person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0)"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T23:33:32+08:00",
+          "reason": "All three acceptance criteria are discharged. Criterion 1: a link targets only a stable identifier drawn from the posting's canonical evidence bundle - a distilled duty with VERIFIED or USER_CONFIRMED parentage, or a verbatim requirement span - and skills, competencies and accepted review observations are refused in the ledger's own words with an owner named, because no identifier class exists for the first two and acceptance itself survives no remount for the third; nothing is minted from a label. Criterion 2: each link carries the target's exact text at link time beside the candidate excerpt in one view, labelled as a snapshot and never as the current text, with a jump that opens the target where BLP-003 already renders it. Criterion 3: invalidation is by system detection with one verdict per condition and no default arm, keeping the snapshot for inspection and mutating no text; a re-link is offered only when exactly one current row carries the snapshot text, and an ambiguous match is refused in words that say the app will not choose. The Supervisor verified the load-bearing property directly: validateProofRecord is nearly a no-op for verbatim targets and entirely a no-op for an absent one, so target integrity is asserted by the requirement's own layer rather than inherited from the contract.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f1d94e91ac03905301b2eb1664e91d8832c28644",
+              "label": "Merge commit f1d94e9 (squash of PR #502 at head 1426a73: the corrective implementation 592db34, its record commits 6e18443 and a5060cb, the no-content reconciliation merge c9497fc onto e6b3af3, and the two note commits 170c735 and 1426a73). Tree identity: git diff 1426a73 f1d94e9 with no pathspec is empty, and git diff 592db34 1426a73 -- v3.1/src v3.1/tests .github is empty, so the merged tree carries 592db34's implementation blob for blob. Merged at 2026-09-08T23:29:21+08:00 by the account ang-kl (the API's merged_by), after the Supervisor's condition (their re-read of 592db34) was met and the gate was green on 1426a73 (pull_request run 84, 34243649810, the run carrying the real-base-ref feature-map assurance). COORDINATOR'S OWN STATEMENT, marked as before: the coordinating session issued this merge through the API, moving the PR out of draft first after the API refused the merge on a draft with 405; that refusal and the undraft are the API-visible trace, and the session identity is stated, not established by the API."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/592db3474490e54b7ba9c84b8221ee241aa997b3",
+              "label": "Implementation commit 592db34 (candidateProofLedgerData.js with guardLedgerStep and the governed faults, CandidateProofLedger.jsx, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/proof-links.mjs A12b, gate workflow line, feature-map manifest ranges)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/e6b3af3227cc515d45f33529ae31c902900e76b0",
+              "label": "Early merge e6b3af3 (PR #501 at head e694906, merged 2026-09-08T15:04:05Z by the account ang-kl per the API, before the Supervisor's condition was met): carried the first implementation ff4c7c0 with the setState-inside-updater boundary to main. No approval was issued on it and no dispatch run on it is cited. WINDOW CLOSED: main carried that boundary from 2026-09-08T15:04:05Z until f1d94e9 at 2026-09-08T23:29:21+08:00."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34245092988",
+              "label": "Browser-gate run 34245092988 (job 102124929040) on merged main f1d94e9 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Proof-links suite on the dispatch run: Part A node PASS 159 checks; Part B Chromium PASS 224 checks total at 1440x1000 and 430x932 (the counts are the run's own output at f1d94e9, equal to the counts recorded at 592db34)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "BLP-003 to BLP-008 suites re-run unchanged on the same dispatch run (candidate-proof-ledger 103 + 184, person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0)"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T23:33:32+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f1d94e91ac03905301b2eb1664e91d8832c28644",
+            "label": "Merge commit f1d94e9 (squash of PR #502 at head 1426a73: the corrective implementation 592db34, its record commits 6e18443 and a5060cb, the no-content reconciliation merge c9497fc onto e6b3af3, and the two note commits 170c735 and 1426a73). Tree identity: git diff 1426a73 f1d94e9 with no pathspec is empty, and git diff 592db34 1426a73 -- v3.1/src v3.1/tests .github is empty, so the merged tree carries 592db34's implementation blob for blob. Merged at 2026-09-08T23:29:21+08:00 by the account ang-kl (the API's merged_by), after the Supervisor's condition (their re-read of 592db34) was met and the gate was green on 1426a73 (pull_request run 84, 34243649810, the run carrying the real-base-ref feature-map assurance). COORDINATOR'S OWN STATEMENT, marked as before: the coordinating session issued this merge through the API, moving the PR out of draft first after the API refused the merge on a draft with 405; that refusal and the undraft are the API-visible trace, and the session identity is stated, not established by the API."
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/592db3474490e54b7ba9c84b8221ee241aa997b3",
+            "label": "Implementation commit 592db34 (candidateProofLedgerData.js with guardLedgerStep and the governed faults, CandidateProofLedger.jsx, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/proof-links.mjs A12b, gate workflow line, feature-map manifest ranges)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/e6b3af3227cc515d45f33529ae31c902900e76b0",
+            "label": "Early merge e6b3af3 (PR #501 at head e694906, merged 2026-09-08T15:04:05Z by the account ang-kl per the API, before the Supervisor's condition was met): carried the first implementation ff4c7c0 with the setState-inside-updater boundary to main. No approval was issued on it and no dispatch run on it is cited. WINDOW CLOSED: main carried that boundary from 2026-09-08T15:04:05Z until f1d94e9 at 2026-09-08T23:29:21+08:00."
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34245092988",
+            "label": "Browser-gate run 34245092988 (job 102124929040) on merged main f1d94e9 by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/proof-links.mjs",
+            "label": "Proof-links suite on the dispatch run: Part A node PASS 159 checks; Part B Chromium PASS 224 checks total at 1440x1000 and 430x932 (the counts are the run's own output at f1d94e9, equal to the counts recorded at 592db34)"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+            "label": "BLP-003 to BLP-008 suites re-run unchanged on the same dispatch run (candidate-proof-ledger 103 + 184, person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0)"
+          }
+        ],
+        "note": "Approved on the Supervisor's own reading of run 34245092988, not on any summary. Dispatch caveat carried and verified at the step's own command line: the feature-map step ran with FEATURE_MAP_BASE_REF empty, so this run passes it without exercising the base-ref comparison; the base-ref assurance belongs to the pull_request run 34243649810 on 1426a73 (conclusion success, 15:16:08 to 15:20:45Z), and the record says which run carries which. The register-scope step is skipped by a branch-name gate that cannot match main. DEFECT FOUND BY THE SUPERVISOR AND REACHING MAIN: at ff4c7c0 the boundary catching the W-a throw called setProofLedgerFault inside the setProofLedger updater at three sites - the same class blocked on BLP-008 - so under React.StrictMode a discarded render pass could commit the withheld sentence from a pass that was thrown away, or clear it from a speculative success while the kept ledger came from the throwing pass. No suite could catch it: the production build does not double-invoke, and the 213-check Chromium suite passed with the defect present. It reached main because PR #501 merged at head e694906 as e6b3af3 on 2026-09-08 at 15:04:05Z, before the Supervisor's condition for merge was met and before the corrective commit 592db34 was pushed at about 15:07Z; main carried the defect from that moment until merge commit f1d94e9 at 2026-09-08T23:29:21+08:00, which closes the window, and the Supervisor confirmed the closure by artefact (grep for setProofLedgerFault in ReviewStudio.jsx at f1d94e9 returns zero). The Supervisor ruled that BLP-009 must not be approved on e6b3af3, that no dispatch run on e6b3af3 be cited, and that the approval cycle run on the corrective merge; that ruling is followed here. On attribution the register states the account and the timestamp as the API's facts and any claim about which session or human acted as an attributed statement, because the API cannot distinguish them; commit c9497fc's message states an attribution as fact and the register supersedes it without rewriting pushed history. LEDGER_VERSION 1.0.0 -> 1.1.0 remains with the Human Lead under Rule V-1. Known omissions stand with their owners, including the posting-side browser step that cannot be driven through the UI and is asserted in node instead.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
