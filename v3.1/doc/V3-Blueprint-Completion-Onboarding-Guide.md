@@ -1,14 +1,14 @@
 # V3.1 Blueprint Completion: Onboarding and Delivery Guide
 
 **Document ID:** `GUIDE-V3-BLUEPRINT-COMPLETION-001`  
-**Version:** 1.0.1  
+**Version:** 1.0.2  
 **Prepared:** 2026-09-08 (SGT)  
 **Repository:** [`ang-kl/2026-0313_AI-JS`](https://github.com/ang-kl/2026-0313_AI-JS)  
 **Product surface:** [`https://v3.takearoundabout.com`](https://v3.takearoundabout.com)  
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
-**Current main observed:** `ffc9dea8c6aaa5945fdd06778571e8cca8923097`  
+**Current main observed:** `ad69d8b48d5686a08fea5d968e695a1362430702`  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `9370c8dc02cd9623c3d6223b7d81a34086ee6c28631cf7374fb371fa73e5e2a8`  
+**Register snapshot SHA-256:** `3eca549e8f105e6177551175e9509e7c6b5ae22062e4c23de82afa1fcc1b24c6`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
@@ -53,13 +53,13 @@ The present repository contains a strong working foundation: Step 1a role and or
 
 However, the full blueprint is **not complete**. The completion programme intentionally starts from a stricter definition than "the screen exists." A requirement becomes complete only when its contracts, implementation, positive and negative tests, provenance, responsive behaviour, and Blueprint Supervisor approval are all recorded. The canonical register currently contains:
 
-- `1` requirement `IMPLEMENTED_UNVERIFIED`: `BLP-001`.
+- `1` requirement approved as `COMPLETE`: `BLP-001`.
 - `29` requirements `NOT_STARTED`: `BLP-002` through `BLP-030`.
-- `0` requirements approved as `COMPLETE`.
+- `0` requirements `IN_PROGRESS`, `IMPLEMENTED_UNVERIFIED`, `BLOCKED` or `WITHHELD`.
 
 This does not erase completed product work. It means the existing work must be reconciled against the new canonical contracts and evidence gates before it can satisfy a `BLP-*` completion claim.
 
-The immediate next action is for the Blueprint Supervisor to review PR #486 and its exact merge commit, then approve `BLP-001` as `COMPLETE` only if the evidence satisfies the register. Implementation of the shared evidence contracts in `BLP-002` may begin only after that approval.
+The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved `BLP-001` as `COMPLETE`; the approval evidence is recorded in the register. The immediate next action is to start `BLP-002`, the shared evidence contracts, on a fresh branch from the then-current `main`.
 
 ## 2. What this product is
 
@@ -183,6 +183,8 @@ NOT_STARTED
   -> COMPLETE
 ```
 
+A requirement whose `completionPolicy.requiresAutomatedRuntime` is `false` has no automated-runtime stage to pass, so it moves `IMPLEMENTED_UNVERIFIED -> COMPLETE` directly on Blueprint Supervisor approval. That edge is policy-gated in the instructions and enforced by the contract test; `BLP-001` is the only current instance.
+
 `BLOCKED` means implementation cannot proceed because a named prerequisite is unmet. `WITHHELD` means a required proof legitimately does not exist and the missing evidence and consequence are recorded. Neither word means "probably complete."
 
 ### 5.3 Current register state
@@ -191,9 +193,9 @@ As of this guide:
 
 | Status | Count | Requirements |
 |---|---:|---|
-| `IMPLEMENTED_UNVERIFIED` | 1 | `BLP-001` |
+| `COMPLETE` | 1 | `BLP-001` |
 | `NOT_STARTED` | 29 | `BLP-002` through `BLP-030` |
-| `COMPLETE` | 0 | None |
+| `IMPLEMENTED_UNVERIFIED` | 0 | None |
 
 The authoritative current values are in [`v3-blueprint-completion-register.json`](./v3-blueprint-completion-register.json), not this narrative snapshot.
 
@@ -242,7 +244,7 @@ The present branch adds the operating package needed to manage completion:
 - Master Feature Map links: [`v3-feature-map-index.json`](./v3-feature-map-index.json) and [HTML index](./V3-Agent-Readable-Feature-Map-Index.html).
 - CI integration: [`.github/workflows/v31-browser-gate.yml`](../../.github/workflows/v31-browser-gate.yml).
 
-This package defines exactly 30 immutable IDs, exact dependencies, protected scopes, lifecycle transitions, evidence rules, completion policies, supervisor authority, and final release-attestation requirements. Its contract test currently passes locally. It is not yet merged, so it is not itself a completed release artefact.
+This package defines exactly 30 immutable IDs, exact dependencies, protected scopes, lifecycle transitions, evidence rules, completion policies, supervisor authority, and final release-attestation requirements. It was merged to `main` in commit `ad69d8b48d5686a08fea5d968e695a1362430702` on 2026-09-08, and its contract test passes against that commit. Merging the package is governance work; it is not a `BLP-*` completion claim.
 
 ### 6.5 Provenance already known
 
@@ -309,7 +311,7 @@ The table below is an onboarding summary. Exact normative wording and dependenci
 
 | ID | Gate | Status | Objective and practical definition of done | Required predecessors |
 |---|---|---|---|---|
-| `BLP-001` | P0 | `IMPLEMENTED_UNVERIFIED` | Merge and record the Step 2 provenance-only update without altering product behaviour. | None |
+| `BLP-001` | P0 | `COMPLETE` | Merge and record the Step 2 provenance-only update without altering product behaviour. | None |
 | `BLP-002` | P0 | `NOT_STARTED` | Define canonical `EvidenceSource`, `EvidenceSpan`, `ProofRecord`, `ReviewChange`, `OutputBlock`, `VisualProfile`, and `EvidenceWindow` contracts. | `BLP-001` |
 | `BLP-003` | P0 | `NOT_STARTED` | Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation. | `BLP-002` |
 | `BLP-004` | P0 | `NOT_STARTED` | Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value. | `BLP-002` |
@@ -694,9 +696,10 @@ Agents must use the exact return headings in [Section 12 of the canonical instru
 
 ### Wave 0: merge the governance package
 
-1. Complete Blueprint Supervisor review and approval of merged PR #486 for `BLP-001`.
-2. Merge the completion instructions, register, schema, contract test, guide, and master-index links as documentation and governance work.
-3. Confirm Step 1, Step 2 behaviour, `v3/`, and Railway configuration remain unchanged.
+1. Merge the completion instructions, register, schema, contract test, guide, and master-index links as documentation and governance work. Done in `ad69d8b48d5686a08fea5d968e695a1362430702`.
+2. Amend the instructions and the contract test so that a requirement whose policy does not require automated runtime may move `IMPLEMENTED_UNVERIFIED -> COMPLETE` directly, gated on that policy flag, and correct the `BLP-001` deployment provenance resting state and note.
+3. Complete Blueprint Supervisor review and approval of merged PR #486 for `BLP-001`, recording the approval in the register and regenerating this guide.
+4. Confirm Step 1, Step 2 behaviour, `v3/`, and Railway configuration remain unchanged.
 
 ### Wave 1: P0 truth foundation
 
@@ -802,7 +805,7 @@ A requirement is not done because code compiles or a screenshot looks correct. I
 - positive, empty, withheld, error, and stale states are verified where applicable;
 - desktop and phone behaviour pass for user-facing work;
 - implementation and merge commits are separate exact SHAs;
-- required deployment, automated-runtime, and physical-runtime evidence identify the exact same release commit;
+- deployment, automated-runtime, and physical-runtime evidence, where `completionPolicy` requires them, identify the exact same release commit;
 - no unresolved P0 or P1 regression exists;
 - status history is valid and append-only;
 - the Blueprint Supervisor records approval with evidence.
@@ -813,14 +816,12 @@ For the full programme, completion additionally requires all 30 canonical record
 
 ### 20.1 Current approval gate
 
-PR [#486](https://github.com/ang-kl/2026-0313_AI-JS/pull/486) merged the provenance-only implementation commit `bf6c2ab7b8f97151370e9a822406988a1d4b04c0` into `main` as `ffc9dea8c6aaa5945fdd06778571e8cca8923097` on 2026-09-07. The former blocker is resolved. `BLP-001` remains `IMPLEMENTED_UNVERIFIED` until the Blueprint Supervisor checks the exact scope and provenance evidence and records approval.
+PR [#486](https://github.com/ang-kl/2026-0313_AI-JS/pull/486) merged the provenance-only implementation commit `bf6c2ab7b8f97151370e9a822406988a1d4b04c0` into `main` as `ffc9dea8c6aaa5945fdd06778571e8cca8923097` on 2026-09-07. On 2026-09-08 the Blueprint Supervisor verified the implementation commit against its four declared files, confirmed the squash merge is content-identical by blob SHA over the same base, confirmed no protected path changed, and approved `BLP-001` as `COMPLETE` at 11:02 SGT. The approval, its evidence links and its policy justification are recorded in the register's `statusHistory` and `supervisorApproval` for `BLP-001`.
 
 ### 20.2 Immediate next action
 
 1. Run the completion contract, strict Feature Map contract, integrity contract, and build against the reconciled register.
-2. Have the Blueprint Supervisor review PR #486, implementation commit `bf6c2ab7b8f97151370e9a822406988a1d4b04c0`, and merge commit `ffc9dea8c6aaa5945fdd06778571e8cca8923097`.
-3. If approved, append the Supervisor evidence and transition `BLP-001` to `COMPLETE`; otherwise record the precise missing evidence or regression.
-4. Start `BLP-002` on a new branch from the then-current `main` only after `BLP-001` is approved.
+2. Start `BLP-002` on a new branch from the then-current `main`. It is no longer gated, because `BLP-001` is approved.
 
 ### 20.3 Tooling note
 

@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T07:34:00+08:00"
+      "updatedAt": "2026-09-08T11:02:45+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -34,7 +34,7 @@
       "title": "Merge and record the Step 2 provenance-only update",
       "requirement": "Merge and record the Step 2 provenance-only update without altering product behaviour.",
       "priority": "P0",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [],
       "ownerRole": "provenance-maintainer",
       "acceptanceCriteria": [
@@ -130,13 +130,13 @@
           "note": "PR #486 merged the provenance-only update to main; Blueprint Supervisor completion approval remains pending."
         },
         "deploymentStatus": {
-          "state": "UNKNOWN",
+          "state": "NOT_DEPLOYED",
           "provider": null,
           "environment": null,
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment claim is recorded.",
+          "note": "Deployment evidence is not required by the BLP-001 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
@@ -204,14 +204,64 @@
               "label": "Exact merge commit"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T11:02:45+08:00",
+          "reason": "Blueprint Supervisor verified implementation commit bf6c2ab against the four declared affectedFiles, confirmed the PR #486 squash merge ffc9dea is content-identical by blob SHA over the same base 990a83a, confirmed no change under v3.1/src, v3.1/api, v3/ or Railway configuration, and confirmed the completion contract passes at exit 0. BLP-001 requires no automated-runtime, deployment or physical-runtime evidence under its completionPolicy.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bf6c2ab7b8f97151370e9a822406988a1d4b04c0",
+              "label": "Provenance-only implementation commit bf6c2ab"
+            },
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+              "label": "PR #486 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffc9dea8c6aaa5945fdd06778571e8cca8923097",
+              "label": "Exact merge commit ffc9dea"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/blueprint-completion-contract.mjs",
+              "label": "Blueprint completion contract, exit 0"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T11:02:45+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bf6c2ab7b8f97151370e9a822406988a1d4b04c0",
+            "label": "Provenance-only implementation commit bf6c2ab"
+          },
+          {
+            "kind": "PULL_REQUEST",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+            "label": "PR #486 merged to main"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffc9dea8c6aaa5945fdd06778571e8cca8923097",
+            "label": "Exact merge commit ffc9dea"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/blueprint-completion-contract.mjs",
+            "label": "Blueprint completion contract, exit 0"
+          }
+        ],
+        "note": "Section 7 policy 1 justification: BLP-001 is a documentation and provenance-only requirement. Its merged change edits four v3.1/doc feature-map artefacts and no executable code, so requiresAutomatedRuntime is false; there is no runtime surface for an automated check to exercise. Deployment and physical-runtime evidence are likewise not required. Residual risk: the local clone is shallow, so implementation commit bf6c2ab was verified through the GitHub API rather than locally, and the PR merge_commit_sha field was not directly read; merge identity was established by identical blob SHAs for all four files over the shared base 990a83a.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
