@@ -34,7 +34,7 @@ const bad = (validation, pattern, label) => {
 };
 
 // --- versioning and vocabularies -----------------------------------------------------------------
-assert.equal(CONTRACT_VERSION, "1.0.1");
+assert.equal(CONTRACT_VERSION, "1.0.2");
 assert.equal(TEXT_NORMALISATION_VERSION, "ptn-1");
 assert.deepEqual(ORIGINS, ["SOURCE_VERBATIM", "DETERMINISTIC", "AI_ASSISTED", "USER_AUTHORED", "WITHHELD"]);
 assert.equal(Object.keys(CONTRACTS).length, 7, "exactly seven canonical contracts");
@@ -59,7 +59,8 @@ assert.equal(normaliseDistilledText("  Build   PIPELINES \n daily "), "build pip
 // Every Unicode space separator folds to U+0020 and zero-width characters vanish (finding B).
 assert.equal(normalisePostingText("Build pipelines daily　now​﻿."), "Build pipelines daily now.");
 assert.equal(normaliseDistilledText("Build pipelines​"), "build pipelines");
-assert.equal(sha256Hex(normalisePostingText("a b")), sha256Hex(normalisePostingText("a b")), "thin space and space hash alike");
+assert.equal(sha256Hex(normalisePostingText("a\u2009b")), sha256Hex(normalisePostingText("a b")), "thin space and space hash alike");
+assert.equal(normalisePostingText("one\u2028two\u2029three\u0085four"), "one\ntwo\nthree\nfour", "line and paragraph separators and NEL are line breaks");
 
 // --- 1. EvidenceSource ---------------------------------------------------------------------------
 assert.deepEqual(makeSourceId({ sourceSystem: SOURCE_SYSTEM.MCF, nativeId: "MCF-2026-0001" }), { id: "src:mycareersfuture:MCF-2026-0001", withheld: null });
@@ -139,25 +140,39 @@ assert.equal(duty.origin, ORIGIN.AI_ASSISTED);
 assert.equal(duty.derivationState, "UNVERIFIED");
 assert.equal(isDistilledSpanTrusted(duty), false);
 ok(validateEvidenceSpan(duty, { knownSpans: [span] }), "unverified distilled span is a valid record");
-// With parent-relative windows naming the supporting phrase, it is VERIFIED and inspectable (finding A).
-const dutyVerified = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, derivation: [{ parentSpanId: span.id, start: 0, end: 15 }] });
-assert.equal(dutyVerified.derivationState, "VERIFIED");
-assert.equal(dutyVerified.id, duty.id, "derivation does not change identity");
-assert.equal(isDistilledSpanTrusted(dutyVerified), true);
-ok(validateEvidenceSpan(dutyVerified, { knownSpans: [span] }), "verified distilled span");
-bad(validateEvidenceSpan({ ...dutyVerified, derivation: [{ parentSpanId: span.id, start: 0, end: 999 }] }, { knownSpans: [span] }), /window exceeds its parent text/, "derivation window overrun");
-bad(validateEvidenceSpan({ ...dutyVerified, derivation: [{ parentSpanId: "span:other", start: 0, end: 3 }] }, { knownSpans: [span] }), /not one of its parents/, "derivation window on a non-parent");
-bad(validateEvidenceSpan({ ...duty, derivationState: "VERIFIED" }, { knownSpans: [span] }), /does not follow from its origin and derivation/, "claimed VERIFIED without windows");
-const dutyConfirmed = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, userConfirmed: true });
+// With parent-relative windows naming the supporting phrase, an AI distillation is DECLARED: inspectable, not trusted (finding A, 1.0.2).
+const dutyDeclared = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, derivation: [{ parentSpanId: span.id, start: 0, end: 15 }] });
+assert.equal(dutyDeclared.derivationState, "DECLARED");
+assert.equal(dutyDeclared.id, duty.id, "derivation does not change identity");
+assert.equal(isDistilledSpanTrusted(dutyDeclared), false, "a resolvable window is not verification");
+ok(validateEvidenceSpan(dutyDeclared, { knownSpans: [span] }), "declared distilled span");
+bad(validateEvidenceSpan({ ...dutyDeclared, derivation: [{ parentSpanId: span.id, start: 0, end: 999 }] }, { knownSpans: [span] }), /window exceeds its parent text/, "derivation window overrun");
+bad(validateEvidenceSpan({ ...dutyDeclared, derivation: [{ parentSpanId: "span:other", start: 0, end: 3 }] }, { knownSpans: [span] }), /not one of its parents/, "derivation window on a non-parent");
+bad(validateEvidenceSpan({ ...duty, derivationState: "VERIFIED" }, { knownSpans: [span] }), /does not follow from its origin, derivation windows and confirmation/, "claimed VERIFIED without windows");
+bad(validateEvidenceSpan({ ...dutyDeclared, derivationState: "VERIFIED" }, { knownSpans: [span] }), /does not follow from its origin/, "AI distillation cannot claim VERIFIED even with windows");
+// The Supervisor's P2 probe: an unrelated AI distillation with a window covering "Manag" resolves, but is DECLARED and untrusted.
+const payrollSource = createEvidenceSource({ id: "src:mycareersfuture:MCF-2026-0002", kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, rawText: "Manage the payroll run each month.", retrievedAt: "2026-09-08T03:00:00Z", complete: true });
+const payrollSpan = createVerbatimSpan(payrollSource, 0, payrollSource.text.length);
+const berlin = createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [payrollSpan.id], sourceId: payrollSource.id, derivation: [{ parentSpanId: payrollSpan.id, start: 0, end: 5 }] });
+assert.equal(berlin.derivationState, "DECLARED");
+assert.equal(isDistilledSpanTrusted(berlin), false);
+ok(validateEvidenceSpan(berlin, { knownSpans: [payrollSpan] }), "the fabrication is a valid record, and it is not trusted");
+// A human confirmation must name who and when; a bare claim is refused (finding A, 1.0.2).
+const dutyConfirmed = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, confirmation: { confirmedBy: "human:editor", confirmedAt: "2026-09-08T04:05:00Z", reviewChangeId: "rc-77" } });
 assert.equal(dutyConfirmed.derivationState, "USER_CONFIRMED");
-ok(validateEvidenceSpan(dutyConfirmed, { knownSpans: [span] }), "human-confirmed link");
+assert.deepEqual(dutyConfirmed.confirmation, { confirmedBy: "human:editor", confirmedAt: "2026-09-08T04:05:00Z", reviewChangeId: "rc-77" });
+assert.equal(isDistilledSpanTrusted(dutyConfirmed), true);
+ok(validateEvidenceSpan(dutyConfirmed, { knownSpans: [span] }), "human-confirmed link with provenance");
+bad(validateEvidenceSpan({ ...duty, derivationState: "USER_CONFIRMED" }, { knownSpans: [span] }), /a bare claim is not a human decision/, "the Supervisor's P3 probe: claimed USER_CONFIRMED with no confirmer");
+bad(validateEvidenceSpan({ ...dutyConfirmed, confirmation: { confirmedBy: "human:editor" } }, { knownSpans: [span] }), /named human and an ISO 8601 time/, "confirmation without a time");
+assert.equal(createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, confirmation: { confirmedBy: "", confirmedAt: "2026-09-08T04:05:00Z" } }).derivationState, "UNVERIFIED", "an empty confirmer does not confirm");
 // A DETERMINISTIC distillation must actually be derivable from its parents.
 const dutyDet = createDistilledSpan({ text: "build pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, origin: ORIGIN.DETERMINISTIC });
 assert.equal(dutyDet.derivationState, "VERIFIED");
 ok(validateEvidenceSpan(dutyDet, { knownSpans: [span] }), "deterministic distillation that occurs in its parent");
 const invented = createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, origin: ORIGIN.DETERMINISTIC });
 bad(validateEvidenceSpan(invented, { knownSpans: [span] }), /must be derivable from its parents' text/, "the Supervisor's Berlin probe: invented deterministic distillation");
-assert.equal(createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).derivationState, "UNVERIFIED", "the same text as an AI distillation is merely unverified, and therefore untrusted");
+assert.equal(createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).derivationState, "UNVERIFIED", "the same text as an AI distillation without windows is unverified, and therefore untrusted");
 // Same text, same version, different casing/spacing: same id. Re-extraction: new id, same parents.
 assert.equal(createDistilledSpan({ text: "  build AND maintain data   pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).id, duty.id);
 const reextracted = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-4", parentSpanIds: [span.id], sourceId: mcfId });
@@ -208,14 +223,15 @@ bad(validateEvidenceBundle({ source, spans: [span, span] }), /duplicate span id/
 // --- 3. ProofRecord ------------------------------------------------------------------------------------
 const cvSource = createEvidenceSource({ id: "src:manual-paste:session-1", kind: "candidate-document", sourceSystem: SOURCE_SYSTEM.MANUAL_PASTE, rawText: "Led migration of 40 pipelines to Airflow in 2025.", retrievedAt: "2026-09-08T03:10:00Z", complete: true });
 const excerpt = createVerbatimSpan(cvSource, 0, 31);
-const proof = createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id, state: "DEMONSTRATED", confirmation: "USER-CONFIRMED", targets: [{ targetKind: "duty", targetId: dutyVerified.id }], destinations: { resume: "ALLOWED" } });
+const proof = createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id, state: "DEMONSTRATED", confirmation: "USER-CONFIRMED", targets: [{ targetKind: "duty", targetId: dutyDet.id }], destinations: { resume: "ALLOWED" } });
 assert.equal(proof.origin, ORIGIN.USER_AUTHORED);
 assert.equal(proof.destinations.coverLetter, "UNSET");
 assert.ok(proof.id.startsWith("proof:"));
 ok(validateProofRecord(proof), "confirmed demonstrated proof");
-ok(validateProofRecord(proof, { knownSpans: [span, dutyVerified, excerpt] }), "proof targeting a verified distilled span");
-bad(validateProofRecord(proof, { knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED; it cannot support a claim/, "proof targeting an unverified distilled span");
-ok(validateProofRecord(proof, { knownSpans: [span, dutyConfirmed, excerpt] }), "proof targeting a human-confirmed distilled span");
+ok(validateProofRecord(proof, { knownSpans: [span, dutyDet, excerpt] }), "proof targeting a verified (deterministic) distilled span");
+bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: duty.id }] }, { knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED; only VERIFIED or USER_CONFIRMED/, "proof targeting an unverified distilled span");
+bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: dutyDeclared.id }] }, { knownSpans: [span, dutyDeclared, excerpt] }), /parentage is DECLARED; only VERIFIED or USER_CONFIRMED/, "proof targeting a declared-only AI distillation");
+ok(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: dutyConfirmed.id }] }, { knownSpans: [span, dutyConfirmed, excerpt] }), "proof targeting a human-confirmed distilled span");
 bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: nothing.id }] }, { knownSpans: [nothing] }), /cites withheld record/, "proof targeting a withheld record");
 assert.equal(createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id }).state, "WITHHELD", "default state is WITHHELD");
 bad(validateProofRecord({ ...proof, confirmation: null }), /requires USER-CONFIRMED/, "demonstrated without confirmation");
@@ -258,7 +274,10 @@ ok(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id, span.id] }), "o
 assert.equal(block.evidenceHash, computeEvidenceHash([duty.id, excerpt.id]), "evidence hash is order-independent");
 bad(validateOutputBlock(block, { allowlist: [span.id] }), /outside the supplied allowlist/, "citation outside allowlist");
 bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED/, "citation of an unverified distilled span");
-ok(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, dutyVerified, excerpt] }), "citation of a verified distilled span");
+bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, dutyDeclared, excerpt] }), /parentage is DECLARED/, "the Supervisor's P4 probe: citation of a declared-only AI distillation is refused");
+ok(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, dutyConfirmed, excerpt] }), "citation of a human-confirmed distilled span");
+const detBlock = createOutputBlock({ ...block, id: "ob-3", sourceRefs: [excerpt.id, dutyDet.id] });
+ok(validateOutputBlock(detBlock, { allowlist: [excerpt.id, dutyDet.id], knownSpans: [span, dutyDet, excerpt] }), "citation of a verified deterministic distillation");
 bad(validateOutputBlock({ ...block, sourceRefs: [] , evidenceHash: computeEvidenceHash([]) }), /at least one evidence id/, "unsupported factual text");
 bad(validateOutputBlock({ ...block, evidenceHash: "0".repeat(64) }), /evidenceHash does not match/, "hash drift");
 bad(validateOutputBlock({ ...block, state: "ACCEPTED", policyResult: "NOT_RUN" }), /requires policyResult PASS/, "accepted without policy pass");

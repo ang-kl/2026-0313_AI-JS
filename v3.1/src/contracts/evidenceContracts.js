@@ -36,13 +36,27 @@
 //          strip zero-width characters (no hash had been persisted under the narrower rule),
 //          qualified ids for parentless distillations, leading zeros rejected in extraction
 //          versions, content-addressed cap labels, id-less history events reported as such.
+//   1.0.2  Supervisor re-verification of 1.0.1: VERIFIED now means checked and is reserved for the
+//          deterministic containment test; an AI_ASSISTED distillation with resolvable windows is
+//          DECLARED, which is inspectable but not trusted; USER_CONFIRMED requires a confirmer and
+//          a time (and may name the ReviewChange that recorded the decision); trust is VERIFIED or
+//          USER_CONFIRMED only. ptn-1 also folds U+2028, U+2029 and U+0085 to a line break.
+//
+// Validation scope: rule 7 runs only when the validator can see the parents. Consumers MUST validate
+// distilled spans through validateEvidenceBundle or pass knownSpans; a standalone call checks shape
+// only and must never be treated as a parentage check.
+//
+// Normalisation rule going forward: ptn-1 was widened in place before any hash was persisted. Once a
+// ptn-1 hash has been persisted (first merge to main), any change to the pipeline is a new version,
+// ptn-2, never an in-place edit.
 //
 // Protected scope: this module is additive. It changes no Step 1, Step 2, graph, review, print,
 // v3/ or Railway behaviour. Consumers adopt it under later requirements (BLP-003 onward).
 
-export const CONTRACT_VERSION = "1.0.1";
-// ptn-1 folds every Unicode space separator (category Zs) to U+0020 and removes zero-width
-// characters (U+200B, U+200C, U+200D, U+FEFF). It has never been persisted in a narrower form.
+export const CONTRACT_VERSION = "1.0.2";
+// ptn-1 folds every Unicode space separator (category Zs) to U+0020, removes zero-width characters
+// (U+200B, U+200C, U+200D, U+FEFF) and treats U+2028, U+2029 and U+0085 as line breaks. It has never
+// been persisted in a narrower form.
 export const TEXT_NORMALISATION_VERSION = "ptn-1";
 
 export const ORIGIN = Object.freeze({
@@ -80,7 +94,9 @@ export const SOURCE_SYSTEM = Object.freeze({
 export const SOURCE_SYSTEMS = Object.freeze(Object.values(SOURCE_SYSTEM));
 
 export const SPAN_KIND = Object.freeze(["verbatim", "distilled", "withheld"]);
-export const DERIVATION_STATE = Object.freeze(["VERIFIED", "UNVERIFIED", "USER_CONFIRMED"]);
+// VERIFIED: checked (deterministic containment). DECLARED: AI windows resolve but derivation is not
+// checkable. UNVERIFIED: no windows. USER_CONFIRMED: a named human confirmed the link at a time.
+export const DERIVATION_STATE = Object.freeze(["VERIFIED", "DECLARED", "UNVERIFIED", "USER_CONFIRMED"]);
 export const SOURCE_COMPLETENESS = Object.freeze(["COMPLETE", "TRUNCATED", "UNKNOWN"]);
 export const PROOF_STATE = Object.freeze(["DEMONSTRATED", "CERTIFIED", "CLAIMED_ONLY", "WITHHELD", "CONFLICTING", "STALE"]);
 export const PROOF_TARGET_KIND = Object.freeze(["duty", "requirement", "skill", "competency", "review-observation"]);
@@ -171,10 +187,10 @@ export function sha256Hex(text) {
 // ---------------------------------------------------------------------------------------------
 // Small deterministic helpers.
 // ---------------------------------------------------------------------------------------------
-const HEX64 = /^[0-9a-f]{64}$/;
 const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
 const IANA_ZONE = /^[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+$|^UTC$/;
 const ZERO_WIDTH = /[\u200b\u200c\u200d\ufeff]/g;
+const LINE_SEPARATORS = /[\u2028\u2029\u0085]/g;
 const UNICODE_SPACE = /\p{Zs}/gu;
 
 function isObject(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
@@ -184,7 +200,8 @@ function isInteger(value) { return Number.isInteger(value); }
 
 /**
  * Pinned posting-text normalisation (TEXT_NORMALISATION_VERSION). Idempotent. NFC; CRLF and CR to
- * LF; zero-width characters removed; every Unicode space separator folded to U+0020; trailing
+ * LF, as are U+2028, U+2029 and U+0085; zero-width characters removed; every Unicode space
+ * separator folded to U+0020; trailing
  * whitespace stripped per line; runs of three or more line breaks collapsed to one blank line;
  * trimmed.
  */
@@ -192,6 +209,7 @@ export function normalisePostingText(raw) {
   return String(raw ?? "")
     .normalize("NFC")
     .replace(/\r\n?/g, "\n")
+    .replace(LINE_SEPARATORS, "\n")
     .replace(ZERO_WIDTH, "")
     .replace(UNICODE_SPACE, " ")
     .split("\n")
@@ -380,16 +398,21 @@ function withheldSpanId(sourceId, reason, detail) {
 
 /**
  * Decide how a distilled span's parentage is verified. DETERMINISTIC: the normalised distilled text
- * must occur inside the normalised concatenation of its parents' text. AI_ASSISTED: the span must
- * carry `derivation`, one or more parent-relative windows { parentSpanId, start, end } naming the
- * supporting phrase; with windows it is VERIFIED once they resolve against the parents, without
- * them it is UNVERIFIED. A human may confirm an AI link (USER_CONFIRMED). Only VERIFIED or
- * USER_CONFIRMED distilled spans may back a ProofRecord target or an OutputBlock citation.
+ * must occur inside the normalised concatenation of its parents' text, which the validator checks,
+ * so the state is VERIFIED. AI_ASSISTED: the span may carry `derivation`, parent-relative windows
+ * { parentSpanId, start, end } naming the supporting phrase; with resolvable windows it is DECLARED,
+ * inspectable but not checkable, because genuine AI distillation compresses and rephrases; without
+ * them it is UNVERIFIED. A named human may confirm a link at a recorded time (USER_CONFIRMED). Only
+ * VERIFIED or USER_CONFIRMED distilled spans may back a ProofRecord target or an OutputBlock citation.
  */
-export function deriveDerivationState({ origin, derivation, userConfirmed }) {
-  if (userConfirmed === true) return "USER_CONFIRMED";
+export function isConfirmationRecord(value) {
+  return isObject(value) && nonemptyString(value.confirmedBy) && isIsoDateTime(value.confirmedAt)
+    && (value.reviewChangeId === null || value.reviewChangeId === undefined || nonemptyString(value.reviewChangeId));
+}
+export function deriveDerivationState({ origin, derivation, confirmation }) {
+  if (isConfirmationRecord(confirmation)) return "USER_CONFIRMED";
   if (origin === ORIGIN.DETERMINISTIC) return "VERIFIED";
-  return Array.isArray(derivation) && derivation.length ? "VERIFIED" : "UNVERIFIED";
+  return Array.isArray(derivation) && derivation.length ? "DECLARED" : "UNVERIFIED";
 }
 
 /**
@@ -398,7 +421,7 @@ export function deriveDerivationState({ origin, derivation, userConfirmed }) {
  * When no parent can be named the span is withheld: it is not a distilled span at all, and the
  * withheld record is qualified by a hash of the text so two failures never collide.
  */
-export function createDistilledSpan({ text, extractionVersion, parentSpanIds, sourceId, origin, derivation, userConfirmed } = {}) {
+export function createDistilledSpan({ text, extractionVersion, parentSpanIds, sourceId, origin, derivation, confirmation } = {}) {
   const parents = Array.isArray(parentSpanIds) ? parentSpanIds.filter(nonemptyString) : [];
   const normalised = normaliseDistilledText(text);
   if (!parents.length) {
@@ -416,7 +439,8 @@ export function createDistilledSpan({ text, extractionVersion, parentSpanIds, so
     extractionVersion,
     parentSpanIds: parents,
     derivation: windows,
-    derivationState: deriveDerivationState({ origin: resolvedOrigin, derivation: windows, userConfirmed }),
+    confirmation: isConfirmationRecord(confirmation) ? { confirmedBy: confirmation.confirmedBy, confirmedAt: confirmation.confirmedAt, reviewChangeId: nonemptyString(confirmation.reviewChangeId) ? confirmation.reviewChangeId : null } : null,
+    derivationState: deriveDerivationState({ origin: resolvedOrigin, derivation: windows, confirmation }),
     origin: resolvedOrigin,
   };
 }
@@ -472,7 +496,11 @@ export function validateEvidenceSpan(span, { source, knownSpans } = {}) {
     if (span.id !== makeDistilledSpanId(span.text, span.extractionVersion)) errors.push("distilled span id must be content-addressed on normalised text and extraction version");
     if (!Array.isArray(span.derivation)) errors.push("distilled span derivation must be an array (possibly empty)");
     if (!DERIVATION_STATE.includes(span.derivationState)) errors.push(`distilled span derivationState must be one of ${DERIVATION_STATE.join(", ")}`);
-    else if (span.derivationState !== "USER_CONFIRMED" && span.derivationState !== deriveDerivationState({ origin: span.origin, derivation: span.derivation })) errors.push("distilled span derivationState does not follow from its origin and derivation windows");
+    else {
+      if (span.confirmation !== null && !isConfirmationRecord(span.confirmation)) errors.push("distilled span confirmation must be null or { confirmedBy, confirmedAt, reviewChangeId? } with a named human and an ISO 8601 time");
+      if (span.derivationState === "USER_CONFIRMED" && !isConfirmationRecord(span.confirmation)) errors.push("USER_CONFIRMED requires a confirmation record naming who confirmed the link and when; a bare claim is not a human decision");
+      if (span.derivationState !== deriveDerivationState({ origin: span.origin, derivation: span.derivation, confirmation: span.confirmation })) errors.push("distilled span derivationState does not follow from its origin, derivation windows and confirmation");
+    }
     if (Array.isArray(span.derivation)) {
       span.derivation.forEach((w, i) => {
         if (!isObject(w) || !nonemptyString(w.parentSpanId) || !isInteger(w.start) || !isInteger(w.end) || w.start < 0 || w.end <= w.start) errors.push(`distilled span derivation[${i}] must be { parentSpanId, start, end } with 0 <= start < end`);
@@ -553,7 +581,7 @@ function checkCitedSpans(errors, ids, knownSpans, label) {
   const byId = new Map(knownSpans.map((s) => [s.id, s]));
   for (const id of ids) {
     const span = byId.get(id);
-    if (span && span.kind === "distilled" && !isDistilledSpanTrusted(span)) errors.push(`${label} cites distilled span ${id} whose parentage is ${span.derivationState}; it cannot support a claim until verified or confirmed by a human`);
+    if (span && span.kind === "distilled" && !isDistilledSpanTrusted(span)) errors.push(`${label} cites distilled span ${id} whose parentage is ${span.derivationState}; only VERIFIED or USER_CONFIRMED parentage can support a claim`);
     if (span && span.kind === "withheld") errors.push(`${label} cites withheld record ${id}, which carries no evidence`);
   }
 }
