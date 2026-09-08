@@ -20,6 +20,7 @@ import {
 
 // The check count is measured, not hand-incremented: every assertion executed is counted here.
 let checks = 0;
+const isObjectField = (v) => v && typeof v === "object" && "origin" in v;
 const assert = new Proxy(baseAssert, {
   apply(target, thisArg, args) { checks += 1; return target(...args); },
   get(target, key) {
@@ -34,7 +35,7 @@ const bad = (validation, pattern, label) => {
 };
 
 // --- versioning and vocabularies -----------------------------------------------------------------
-assert.equal(CONTRACT_VERSION, "1.0.3");
+assert.equal(CONTRACT_VERSION, "1.0.4");
 assert.equal(TEXT_NORMALISATION_VERSION, "ptn-1");
 assert.deepEqual(ORIGINS, ["SOURCE_VERBATIM", "DETERMINISTIC", "AI_ASSISTED", "USER_AUTHORED", "WITHHELD"]);
 assert.equal(Object.keys(CONTRACTS).length, 7, "exactly seven canonical contracts");
@@ -330,8 +331,8 @@ assert.equal(full.retrievedAt.origin, ORIGIN.DETERMINISTIC);
 const partial = createEvidenceWindow({ publishedAt: "2026-09-01T00:00:00+08:00", retrievedAt: "2026-09-08T03:00:00Z", postingCount: "27", sourceTimezone: "SGT", corpusRange: { from: "2026-09-08T00:00:00Z", to: "2026-08-01T00:00:00Z" } });
 ok(validateEvidenceWindow(partial), "partial window");
 assert.equal(partial.publishedAt.value, "2026-09-01T00:00:00+08:00");
-assert.deepEqual(partial.closingAt, { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD });
-assert.deepEqual(partial.analysedAt, { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD });
+assert.deepEqual(partial.closingAt, { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD, precision: null }); // 1.0.4: a withheld date field carries precision null
+assert.deepEqual(partial.analysedAt, { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD, precision: null }); // 1.0.4: a withheld date field carries precision null
 assert.equal(partial.postingCount.value, null, "a string count is not a count");
 assert.equal(partial.sourceTimezone.value, null, "an abbreviation is not an IANA zone");
 assert.equal(partial.corpusRange.value, null, "an inverted range is withheld");
@@ -342,6 +343,23 @@ bad(validateEvidenceWindow({ ...full, publishedAt: { value: "2026-09-01T00:00:00
 bad(validateEvidenceWindow({ ...full, closingAt: { value: null, origin: ORIGIN.SOURCE_VERBATIM, withheldReason: null } }), /null value must be origin WITHHELD/, "silent null");
 bad(validateEvidenceWindow({ ...full, freshness: { value: "recent", origin: ORIGIN.DETERMINISTIC, withheldReason: null } }), /unknown fields: freshness/, "generic freshness substitute");
 bad(validateEvidenceWindow({ ...full, postingCount: { value: 27, origin: ORIGIN.WITHHELD, withheldReason: null } }), /carries a value but claims origin WITHHELD/, "value with withheld origin");
+// 1.0.4 backward compatibility: a 1.0.3-shaped window (no precision keys at all) still validates and
+// means instant; a day-precision value validates with its marker; the two cannot be swapped.
+const legacyShaped = Object.fromEntries(Object.entries(full).map(([k, v]) => [k, isObjectField(v) ? { value: v.value, origin: v.origin, withheldReason: v.withheldReason } : v]));
+ok(validateEvidenceWindow({ ...legacyShaped, contractVersion: CONTRACT_VERSION }), "1.0.3-shaped window (no precision keys) still validates under 1.0.4");
+assert.equal(full.publishedAt.precision, "instant", "an ISO datetime records instant precision");
+const dayWindow = createEvidenceWindow({ publishedAt: "2026-08-26", closingAt: "2026-09-30", corpusRange: { from: "2026-08-01", to: "2026-08-26" } });
+ok(validateEvidenceWindow(dayWindow), "day-precision window validates");
+assert.equal(dayWindow.publishedAt.precision, "day", "a YYYY-MM-DD value records day precision");
+assert.equal(dayWindow.publishedAt.value, "2026-08-26", "the day value is kept as-is, no time invented");
+assert.equal(dayWindow.corpusRange.precision, "day", "a day-bounded range records day precision");
+assert.equal(dayWindow.retrievedAt.precision, null, "a withheld date field carries precision null");
+assert.equal(createEvidenceWindow({ publishedAt: "2026-02-30" }).publishedAt.value, null, "an impossible calendar date is withheld");
+assert.deepEqual(createEvidenceWindow({ corpusRange: { from: "2026-08-01", to: "2026-08-26T00:00:00Z" } }).corpusRange, { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.CONFLICTING_EVIDENCE, precision: null }, "mixed-precision range is withheld, never coerced through Date.parse");
+bad(validateEvidenceWindow({ ...dayWindow, publishedAt: { ...dayWindow.publishedAt, value: "2026-08-26T00:00:00Z" } }), /declares day precision but its value is a instant value/, "instant claiming day precision");
+bad(validateEvidenceWindow({ ...full, publishedAt: { ...full.publishedAt, value: "2026-08-26" } }), /declares instant precision but its value is a day value/, "day value claiming instant precision");
+bad(validateEvidenceWindow({ ...full, publishedAt: { ...full.publishedAt, precision: "month" } }), /precision must be instant, day or null/, "unknown precision");
+bad(validateEvidenceWindow({ ...full, postingCount: { ...full.postingCount, precision: "day" } }), /is not a date field and carries no precision/, "precision on a non-date field");
 
 // --- assertValid ------------------------------------------------------------------------------------------------------
 assert.equal(assertValid(validateEvidenceSource(source), "source"), true);

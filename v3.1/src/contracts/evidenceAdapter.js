@@ -9,10 +9,11 @@
 //      version), and withheld sets via createWithheldSpanSet. Legacy positional ids (s0..s13,
 //      q0..q7) survive ONLY as the explicit fallback for a result that has no single source
 //      posting, and every row carrying one says so.
-//   2. Completeness is never inferred. The api routes cap posting bodies (DESC_CAP 4000,
-//      RESP_CAP 2500) but do not expose the original length, so completeness is recorded as
-//      UNKNOWN (withheld) - a body of exactly the cap length is NOT called TRUNCATED. This is
-//      carried as a named residual risk until the route change lands.
+//   2. Completeness is never inferred from length. The api routes cap posting bodies (DESC_CAP
+//      4000, RESP_CAP 2500); since BLP-004 they also emit textProvenance with the cap and the
+//      pre-cap originalLength of the field Step 3 uses, so completeness is COMPLETE or TRUNCATED
+//      as a measured fact when that record is present, and UNKNOWN (withheld, with the residual
+//      risk named) when it is not. A body of exactly the cap length is never called TRUNCATED.
 //   3. Every distilled duty points at verbatim parents. When the normalised duty text occurs
 //      inside one canonical line, the parent is that line and the derivation is DETERMINISTIC
 //      (VERIFIED). When it occurs only across the whole body, the parent is the body span
@@ -183,7 +184,12 @@ export function buildPostingEvidence({ posting, duties, extractionVersion, retri
     return legacyBundle({ state: BUNDLE_STATE.INCOMPLETE_IDENTITY, posting, duties: dutyList, extractionVersion, identity, reason: "source identity incomplete; no degenerate id minted", withheld });
   }
 
-  // Completeness: UNKNOWN by design (rule 2). Neither `complete` nor `truncation` is passed.
+  // Completeness (rule 2): still never inferred from length. Since BLP-004 the routes emit
+  // textProvenance { cap, originalLength, truncated } for the field Step 3 uses as posting.text,
+  // so when that record is present completeness is a measured fact (COMPLETE or TRUNCATED with
+  // the real originalLength); when it is absent, UNKNOWN stays recorded as withheld.
+  const provenance = posting.textProvenance && posting.textField ? posting.textProvenance[posting.textField] : null;
+  const measured = provenance && Number.isInteger(provenance.originalLength) && Number.isInteger(provenance.cap);
   const source = createEvidenceSource({
     id: identity.id,
     kind: "posting",
@@ -192,9 +198,11 @@ export function buildPostingEvidence({ posting, duties, extractionVersion, retri
     rawText,
     retrievedAt: retrievedAt ?? posting.retrievedAt ?? undefined,
     label: label ?? str(posting.title) ?? undefined,
+    ...(measured && provenance.originalLength > provenance.cap ? { truncation: { limit: provenance.cap, originalLength: provenance.originalLength } } : {}),
+    ...(measured && provenance.originalLength <= provenance.cap ? { complete: true } : {}),
   });
   source.withheld.forEach((w) => withheld.push(w));
-  residualRisks.push(RESIDUAL_COMPLETENESS);
+  if (!measured) residualRisks.push(RESIDUAL_COMPLETENESS);
 
   const bodySpan = source.text.length ? createVerbatimSpan(source, 0, source.text.length, { role: "body" }) : null;
   const lineSpans = buildLineSpans(source);

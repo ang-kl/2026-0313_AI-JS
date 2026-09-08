@@ -30,9 +30,11 @@ const STOPWORDS = new Set([
 // ---- module-scope cache -------------------------------------------------------
 let _cache = null; // { data: Array, fetchedAt: number }
 
-async function getDump() {
+// Returns the snapshot { data, fetchedAt } so a caller can bind each normalised job's retrievedAt
+// to the dump it actually read, rather than to whatever the module cache holds later (BLP-004).
+async function getDumpSnapshot() {
   const now = Date.now();
-  if (_cache && now - _cache.fetchedAt < CACHE_TTL_MS) return _cache.data;
+  if (_cache && now - _cache.fetchedAt < CACHE_TTL_MS) return _cache;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
@@ -56,8 +58,9 @@ async function getDump() {
     throw err;
   }
   _cache = { data, fetchedAt: now };
-  return data;
+  return _cache;
 }
+async function getDump() { return (await getDumpSnapshot()).data; }
 
 // ---- HTML / text helpers (own copy; must not import from frozen mcf.js) -------
 
@@ -120,7 +123,7 @@ function makeCsgUuid(platform, jobId, postingNo) {
 // ---- normaliseCsgJob (CSG2 contract) -----------------------------------------
 // Maps one careers.gov.sg record into the exact field set normaliseJob() returns
 // in api/mcf.js, plus source:"careers.gov.sg".
-function normaliseCsgJob(r) {
+function normaliseCsgJob(r, fetchedAt) {
   if (!r || !r.jobId) return null;
   const platform   = r.platform   || "";
   const jobId      = String(r.jobId      || "");
@@ -133,10 +136,12 @@ function normaliseCsgJob(r) {
   const rawDesc = [r.jobDescription, r.jobResponsibilities, r.jobRequirements]
     .filter(Boolean)
     .join("\n\n");
-  const description = htmlToText(rawDesc).slice(0, DESC_CAP);
+  const descriptionFull = htmlToText(rawDesc);
+  const description = descriptionFull.slice(0, DESC_CAP);
 
   // responsibilitiesText: CSG gives duties verbatim - higher fidelity than regex extraction
-  const responsibilitiesText = htmlToText(r.jobResponsibilities || r.jobDescription || "").slice(0, RESP_CAP);
+  const responsibilitiesFull = htmlToText(r.jobResponsibilities || r.jobDescription || "");
+  const responsibilitiesText = responsibilitiesFull.slice(0, RESP_CAP);
 
   return {
     uuid:                makeCsgUuid(platform, jobId, postingNo),
@@ -149,6 +154,14 @@ function normaliseCsgJob(r) {
     employmentType:      r.employmentType || "",
     postedDate:          r.startDate ? new Date(r.startDate).toISOString() : "",
     expiryDate:          r.closingDate ? new Date(r.closingDate).toISOString() : "",
+    // BLP-004 evidence window: the source's own values, untouched, under the same names the
+    // MCF route uses. careers.gov.sg encodes a calendar date as an epoch-millisecond value at
+    // midnight UTC (every value in the dump is a multiple of 86,400,000); the evidence layer
+    // reads ONLY these and records the calendar date at day precision. The derived ISO
+    // postedDate/expiryDate above stay as Step 2 displays and sorts them; they are display
+    // values and must never be read as evidence.
+    postedDateRaw:       r.startDate ?? null,
+    expiryDateRaw:       r.closingDate ?? null,
     minimumYearsExperience: (typeof r.experienceYearsMin === "number") ? r.experienceYearsMin : null,
     positionLevels:      [],
     schemes:             [],
@@ -158,6 +171,15 @@ function normaliseCsgJob(r) {
     skills:              [],
     mcfUrl:              csgUrl(platform, jobId, postingNo),
     source:              "careers.gov.sg",
+    // BLP-004 evidence window (additive). retrievedAt is when this process last fetched the
+    // careers.gov.sg dump - the moment the source was observed - not when this response was
+    // built; the dump is cached for CACHE_TTL_MS. textProvenance records cap and pre-cap
+    // length per capped field; truncated is arithmetic on those, never inferred from the cap.
+    retrievedAt:         Number.isFinite(fetchedAt) ? new Date(fetchedAt).toISOString() : "",
+    textProvenance: {
+      description:          { cap: DESC_CAP, originalLength: descriptionFull.length,      truncated: descriptionFull.length > DESC_CAP },
+      responsibilitiesText: { cap: RESP_CAP, originalLength: responsibilitiesFull.length, truncated: responsibilitiesFull.length > RESP_CAP },
+    },
   };
 }
 
@@ -245,7 +267,8 @@ export default async function handler(req, res) {
     const queryRaw = company.trim();
     const queryTokens = Array.from(new Set(tokenise(queryRaw))).slice(0, 8);
     try {
-      const dump = await getDump();
+      const snap = await getDumpSnapshot();
+      const dump = snap.data;
       const scored = dump
         .map(function(r) {
           return { r, score: agencyMatchScore(r.agency || "", queryTokens, queryRaw) };
@@ -253,7 +276,7 @@ export default async function handler(req, res) {
         .filter(function(x) { return x.score > 0; })
         .sort(function(a, b) { return b.score - a.score || (b.r.startDate || 0) - (a.r.startDate || 0); });
       const total = scored.length;
-      const hits = scored.slice(0, cap).map(function(x) { return normaliseCsgJob(x.r); }).filter(Boolean);
+      const hits = scored.slice(0, cap).map(function(x) { return normaliseCsgJob(x.r, snap.fetchedAt); }).filter(Boolean);
       if (hits.length === 0) {
         return res.status(200).json({
           jobs: [], total: 0, source: "careers.gov.sg", fallback: true, code: "EMPTY",
@@ -285,7 +308,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Required: action="job", uuid=string' });
     }
     try {
-      const dump  = await getDump();
+      const snap  = await getDumpSnapshot();
+      const dump  = snap.data;
       // synthetic uuid: "csg:{platform}:{jobId}:{postingNo}"
       const parts = uid.split(":");
       // parts[0]="csg", [1]=platform, [2]=jobId, [3]=postingNo
@@ -296,7 +320,7 @@ export default async function handler(req, res) {
           String(r.postingNo || "") === String(postingNo || "") &&
           (r.platform || "")   === (platform || ""),
       );
-      const job = raw ? normaliseCsgJob(raw) : null;
+      const job = raw ? normaliseCsgJob(raw, snap.fetchedAt) : null;
       if (!job) {
         return res.status(200).json({
           job: null, fallback: true,
@@ -323,7 +347,8 @@ export default async function handler(req, res) {
   const tokens = Array.from(new Set(tokenise(title))).slice(0, 8);
 
   try {
-    const dump = await getDump();
+    const snap = await getDumpSnapshot();
+    const dump = snap.data;
 
     if (tokens.length === 0) {
       return res.status(200).json({ jobs: [], total: 0, source: "careers.gov.sg", fallback: true, code: "EMPTY",
@@ -336,7 +361,7 @@ export default async function handler(req, res) {
       .sort((a, b) => b.score - a.score || (b.r.startDate || 0) - (a.r.startDate || 0));
 
     const total = scored.length;
-    const hits  = scored.slice(0, cap).map((x) => normaliseCsgJob(x.r)).filter(Boolean);
+    const hits  = scored.slice(0, cap).map((x) => normaliseCsgJob(x.r, snap.fetchedAt)).filter(Boolean);
 
     if (hits.length === 0) {
       return res.status(200).json({

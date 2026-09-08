@@ -112,8 +112,13 @@ const RESP_STOP_RE  = /^[\s•\-*]*(requirement|qualification|who\s+(you\s+are|w
 // Heuristically extract the "responsibilities / duties" portion of a job
 // description. Falls back to the full text when no clear section is found.
 function extractResponsibilities(text) {
+  return extractResponsibilitiesWithLength(text).text;
+}
+// Same extraction, plus the pre-cap length of the section it chose, so the client can record
+// completeness as a fact (BLP-004 evidence window) instead of inferring it from the cap.
+function extractResponsibilitiesWithLength(text) {
   const clean = htmlToText(text);
-  if (!clean) return '';
+  if (!clean) return { text: '', originalLength: 0 };
   const lines = clean.split('\n');
   let startIdx = -1;
   for (let i = 0; i < lines.length; i++) {
@@ -122,7 +127,7 @@ function extractResponsibilities(text) {
     if (line.length <= 80 && RESP_START_RE.test(line)) { startIdx = i; break; }
   }
   if (startIdx === -1) {
-    return clean.slice(0, RESP_CAP);
+    return { text: clean.slice(0, RESP_CAP), originalLength: clean.length };
   }
   let endIdx = lines.length;
   for (let i = startIdx + 1; i < lines.length; i++) {
@@ -131,7 +136,20 @@ function extractResponsibilities(text) {
     if (line.length <= 80 && RESP_STOP_RE.test(line)) { endIdx = i; break; }
   }
   const section = lines.slice(startIdx, endIdx).join('\n').trim();
-  return (section || clean).slice(0, RESP_CAP);
+  const chosen = section || clean;
+  return { text: chosen.slice(0, RESP_CAP), originalLength: chosen.length };
+}
+
+// BLP-004 evidence window: the client cannot know when a posting was observed or whether a
+// body was capped, so the route says so. `retrievedAt` is the server clock at normalisation
+// (the moment this response's data was fetched from MyCareersFuture). `textProvenance`
+// records each capped field's cap and pre-cap length; `truncated` is arithmetic on those two
+// facts, never a guess from the capped length. Additive: no existing field changes shape.
+function textProvenance(descOriginalLength, respOriginalLength) {
+  return {
+    description: { cap: DESC_CAP, originalLength: descOriginalLength, truncated: descOriginalLength > DESC_CAP },
+    responsibilitiesText: { cap: RESP_CAP, originalLength: respOriginalLength, truncated: respOriginalLength > RESP_CAP },
+  };
 }
 
 // ---- Job normalisation ----------------------------------------------------
@@ -162,6 +180,7 @@ function normaliseJob(j) {
     ? j.schemes.map(s => (typeof s === 'string' ? s : s?.scheme?.scheme || s?.scheme || s?.scheme_name || '')).filter(Boolean)
     : [];
   const rawDesc = (j.description || '').toString();
+  const resp = extractResponsibilitiesWithLength(rawDesc);
   return {
     uuid: j.uuid,
     title: j.title || '',
@@ -178,6 +197,12 @@ function normaliseJob(j) {
       : '',
     postedDate: j.metadata?.originalPostingDate || j.metadata?.newPostingDate || '',
     expiryDate: j.metadata?.expiryDate || '',
+    // BLP-004 evidence window: the source's own date values, untouched, under one name on
+    // both routes. The evidence layer reads ONLY these; postedDate/expiryDate above stay
+    // exactly as Step 2 has always displayed and sorted them. MyCareersFuture supplies
+    // date-only strings ("2026-08-26"); null when the source supplies nothing.
+    postedDateRaw: j.metadata?.originalPostingDate ?? j.metadata?.newPostingDate ?? null,
+    expiryDateRaw: j.metadata?.expiryDate ?? null,
     // Public posting metric supplied by MyCareersFuture. Preserve zero as a real
     // value; omit the field when the source does not provide a finite count.
     applicationCount: Number.isFinite(j.metadata?.totalNumberJobApplication)
@@ -187,10 +212,12 @@ function normaliseJob(j) {
     positionLevels,
     schemes,
     description: rawDesc.slice(0, DESC_CAP),
-    responsibilitiesText: extractResponsibilities(rawDesc),
+    responsibilitiesText: resp.text,
     categories,
     skills,
     mcfUrl,
+    retrievedAt: new Date().toISOString(),
+    textProvenance: textProvenance(rawDesc.length, resp.originalLength),
   };
 }
 
@@ -217,8 +244,11 @@ function mergeDetail(normalised, detailRaw) {
   const merged = { ...normalised };
   const rawDesc = (detailRaw.description || '').toString();
   if (rawDesc && rawDesc.length > (normalised.description || '').length) {
+    const resp = extractResponsibilitiesWithLength(rawDesc);
     merged.description = rawDesc.slice(0, DESC_CAP);
-    merged.responsibilitiesText = extractResponsibilities(rawDesc);
+    merged.responsibilitiesText = resp.text;
+    merged.textProvenance = textProvenance(rawDesc.length, resp.originalLength);
+    merged.retrievedAt = new Date().toISOString();
   }
   if ((!merged.skills || !merged.skills.length) && Array.isArray(detailRaw.skills)) {
     merged.skills = detailRaw.skills.map(s => (typeof s === 'string' ? s : s?.skill || '')).filter(Boolean).slice(0, 12);
