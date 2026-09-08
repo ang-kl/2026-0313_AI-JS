@@ -274,7 +274,7 @@
       "symbol": "buildUniverse",
       "semanticAnchor": "GRAPH_DEFS.map",
       "anchorText": "GRAPH_DEFS.map",
-      "sourceLines": "197-291",
+      "sourceLines": "205-299",
       "featureIds": [
         "FEAT-STEP3-GRAPHS-001",
         "FEAT-STEP3-EVIDENCE-001"
@@ -291,7 +291,7 @@
       "symbol": "projectUniverse",
       "semanticAnchor": "anchor === \"org\"",
       "anchorText": "anchor === \"org\"",
-      "sourceLines": "327-408",
+      "sourceLines": "335-416",
       "featureIds": [
         "FEAT-STEP3-PROJECTION-001"
       ],
@@ -307,7 +307,7 @@
       "symbol": "WorkUniverseLanding",
       "semanticAnchor": "work-universe",
       "anchorText": "work-universe",
-      "sourceLines": "472-857",
+      "sourceLines": "480-865",
       "featureIds": [
         "FEAT-STEP3-SHELL-001",
         "FEAT-STEP3-RESPONSIVE-001"
@@ -324,7 +324,7 @@
       "symbol": "wu-job-ad-tabs",
       "semanticAnchor": "wu-lineage-panel",
       "anchorText": "wu-lineage-panel",
-      "sourceLines": "966-1110",
+      "sourceLines": "974-1118",
       "featureIds": [
         "FEAT-STEP3-EVIDENCE-001"
       ],
@@ -340,7 +340,7 @@
       "symbol": "wu-universeFrame",
       "semanticAnchor": "graph-${graph.key}",
       "anchorText": "graph-${graph.key}",
-      "sourceLines": "1140-1277",
+      "sourceLines": "1148-1285",
       "featureIds": [
         "FEAT-STEP3-GRAPHS-001",
         "FEAT-STEP3-ROLEGRAPH-001"
@@ -357,7 +357,7 @@
       "symbol": "wu-contents-tree",
       "semanticAnchor": "wu-quick-fab",
       "anchorText": "wu-quick-fab",
-      "sourceLines": "1281-1490",
+      "sourceLines": "1289-1498",
       "featureIds": [
         "FEAT-STEP3-ROUNDTRIP-001",
         "FEAT-STEP3-RESPONSIVE-001"

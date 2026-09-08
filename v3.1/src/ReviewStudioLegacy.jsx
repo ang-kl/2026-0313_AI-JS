@@ -9,6 +9,7 @@
 import { useState, useMemo, useEffect, useLayoutEffect, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
+import { buildResultEvidence, legacyRequirementRows, partitionDecisionLedger, mergeDecisionLedger, partitionLinks } from "./contracts/evidenceAdapter.js";
 // PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
@@ -210,31 +211,37 @@ function buildSuggestCandidates(dissection) {
 // Honesty contract (v3-blueprint.md:1042 "never silently convert missing exposure"): when the
 // engine does not classify a duty's exposure, the band is WITHHELD (null) - we do not guess one.
 function buildDissection(result, posting) {
-  const ja = result && result.jobAnatomy, rd = result && result.responsibilitiesData;
-  const raw = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
-  const spans = raw.slice(0, 14).map((d, i) => {
-    const text = typeof d === "string" ? d : d.text; if (!text) return null;
+  // BLP-003: identity comes from the evidence adapter, never from list position. The bundle is
+  // built once by App.jsx (result.evidence) or, when a caller passes a bare result, here.
+  const evidence = (result && result.evidence && result.evidence.adapterVersion) ? result.evidence : buildResultEvidence(result, posting);
+  const rd = result && result.responsibilitiesData;
+  const spans = evidence.dutyRows.map((row) => {
+    const d = row.raw; const text = row.text; if (!text) return null;
     const expo = (d && d.exposureNow) || null;
-    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo, sec: "duty" };
+    return { id: row.id, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo, sec: "duty",
+      evidenceKind: row.kind, derivationState: row.derivationState, trusted: !!row.trusted, parentSpanIds: row.parentSpanIds, identity: row.identity };
   }).filter(Boolean);
   // RS-SEC: Requirements/Benefits lines join the analysis as first-class spans. Exposure is
   // WITHHELD (the engine classifies duties only - honesty contract), but the personas,
   // Evidence Auditor weak-phrase check and the O-I-A dissect all read them now.
   // Posting-first (PR #306 trust-loop): when a specific ad was picked in Step 2, ITS text
   // is the subject - the sampled corpus jobs are only a fallback. (The reverse order made
-  // the manuscript/FAB show a different employer's ad once the corpus loaded.)
-  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
-  const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
-  let adText = (posting && posting.text) ? rsAdText({ description: posting.text }) : "";
-  if (!adText || adText.trim().length < 40) adText = rsAdText(srcJob || {});
-  let rq = 0;
-  rsAdSections(adText).filter((sec) => sec.canon === "Requirements" || sec.canon === "Benefits").forEach((sec) => {
-    sec.lines.forEach((ln) => {
-      if (rq >= 8 || ln.length < 12) return;
-      spans.push({ id: "q" + rq++, text: ln, band: null, lens: rsLens(ln), layer: sec.canon.toLowerCase(), exposure: null, sec: "req" });
-    });
+  // the manuscript/FAB show a different employer's ad once the corpus loaded.) With a real
+  // source the adapter has already located each line verbatim (offset-addressed id); the
+  // corpus fallback keeps positional ids and is marked WITHHELD_NO_SOURCE_ROWS.
+  let reqRows = evidence.requirementRows;
+  if (evidence.legacy) {
+    const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+    const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
+    let adText = (posting && posting.text) ? rsAdText({ description: posting.text }) : "";
+    if (!adText || adText.trim().length < 40) adText = rsAdText(srcJob || {});
+    reqRows = legacyRequirementRows(adText);
+  }
+  reqRows.forEach((row) => {
+    spans.push({ id: row.id, text: row.text, band: null, lens: rsLens(row.text), layer: row.layer, exposure: null, sec: "req",
+      evidenceKind: row.kind, derivationState: row.derivationState, trusted: !!row.trusted, parentSpanIds: [], identity: row.identity });
   });
-  return { spans, comments: rsComments(spans) };
+  return { spans, comments: rsComments(spans), evidence, evidenceState: evidence.state, sourceId: evidence.source ? evidence.source.id : null };
 }
 // Extract a salient noun-ish term from a duty so a suggested rewrite is genuinely derived from it.
 function rsKeyword(text) {
@@ -703,20 +710,44 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // AI-1 fix: a span tap must take the focus card over from an open skill card - the card
   // resolver prefers the skill, so clear it whenever a span becomes active (found live).
   useEffect(() => { if (activeSpan) setFocusSkill(null); }, [activeSpan]);
+  // BLP-003: the dissection (canonical evidence ids) is built before the ledgers so both the
+  // decision and link ledgers can be partitioned against the ids actually on screen.
+  const dissection = useMemo(() => buildDissection(result, posting), [result, posting]);
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
+  // BLP-003: decisions whose anchor is no longer on screen (pre-BLP-003 positional anchors, or
+  // a duty re-extracted under a new version) are preserved verbatim and surfaced as withheld -
+  // never re-anchored by guesswork. { stale, legacy } are written back unchanged on save.
+  const [withheldDecisions, setWithheldDecisions] = useState({ stale: {}, legacy: {}, withheldCount: 0 });
   // KV-1: review decisions persist per posting (cross-device via /api/state, localStorage
   // fallback). Keyed by the posting uuid so two ads never share decisions.
   const postingKey = (posting && posting.uuid) || (posting && posting.text ? "t" + String(posting.text.length) + String(title || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 40) : null);
+  // The raw persisted entry is held so it can be re-partitioned whenever the evidence set
+  // changes (a duty re-extracted under a new version goes stale, it is not dropped).
+  const reviewLedgerRef = useRef(null);
+  const applyReviewLedger = (entry) => {
+    const parts = partitionDecisionLedger(entry, dissection.comments);
+    setCommentStatus(parts.current);
+    setWithheldDecisions({ stale: parts.stale, legacy: parts.legacy, withheldCount: parts.withheldCount });
+  };
   useEffect(() => {
+    reviewLedgerRef.current = null;
     if (!postingKey) return;
-    loadState("review", (all) => { if (all && all[postingKey]) setCommentStatus(all[postingKey]); });
+    loadState("review", (all) => {
+      if (!(all && all[postingKey])) return;
+      reviewLedgerRef.current = all[postingKey];
+      applyReviewLedger(all[postingKey]);
+    });
   }, [postingKey]);
+  useEffect(() => { if (reviewLedgerRef.current) applyReviewLedger(reviewLedgerRef.current); }, [dissection]);
   useEffect(() => {
     if (!postingKey || !Object.keys(commentStatus).length) return;
     try {
       const raw = localStorage.getItem("v3.state.review");
       const all = raw ? JSON.parse(raw) : {};
-      all[postingKey] = commentStatus;
+      // Keyed comment@anchor; stale and legacy rows ride along untouched (append-only ledger).
+      const merged = mergeDecisionLedger(commentStatus, dissection.comments, withheldDecisions);
+      all[postingKey] = merged;
+      reviewLedgerRef.current = merged;
       const keys = Object.keys(all);
       if (keys.length > 40) delete all[keys[0]]; // cap the ledger; oldest key drops
       saveState("review", all);
@@ -731,21 +762,39 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // a TEXT-QUOTE { t:'phrase', block, quote, pre, suf } (re-resolved to a Range at draw
   // time, so it survives re-render without mutating the manuscript DOM).
   const [links, setLinks] = useState([]); // [{ id, from:<anchor>, to:<anchor>, locked }]
+  // BLP-003: links whose anchors are not on the current evidence set are preserved and shown
+  // as withheld (WITHHELD_STALE_EVIDENCE), never re-pointed. Written back unchanged.
+  const [withheldLinks, setWithheldLinks] = useState([]);
   const [linkMode, setLinkMode] = useState(false);
   const [linkDraft, setLinkDraft] = useState(null); // first-picked anchor, or null
   const [phraseSel, setPhraseSel] = useState(null); // { block, quote, pre, suf, x, y } - floating "link this phrase"
   const linkSeq = useRef(0);
+  const linksLedgerRef = useRef(null);
+  const applyLinksLedger = (stored) => {
+    const parts = partitionLinks(stored, dissection.spans.map((sp) => sp.id));
+    setLinks(parts.current);
+    setWithheldLinks(parts.withheld);
+  };
   useEffect(() => {
-    setLinks([]); setLinkDraft(null); setPhraseSel(null);
+    setLinks([]); setWithheldLinks([]); setLinkDraft(null); setPhraseSel(null);
+    linksLedgerRef.current = null;
     if (!postingKey) return;
-    loadState("links", (all) => { if (all && Array.isArray(all[postingKey])) setLinks(all[postingKey]); });
+    loadState("links", (all) => {
+      if (!(all && Array.isArray(all[postingKey]))) return;
+      linksLedgerRef.current = all[postingKey];
+      applyLinksLedger(all[postingKey]);
+    });
   }, [postingKey]);
+  useEffect(() => { if (linksLedgerRef.current) applyLinksLedger(linksLedgerRef.current); }, [dissection]);
   useEffect(() => {
     if (!postingKey) return;
     try {
       const raw = localStorage.getItem("v3.state.links");
       const all = raw ? JSON.parse(raw) : {};
-      if (links.length) all[postingKey] = links; else delete all[postingKey];
+      const preserved = withheldLinks.map((w) => w.link);
+      const stored = links.concat(preserved);
+      linksLedgerRef.current = stored.length ? stored : null;
+      if (stored.length) all[postingKey] = stored; else delete all[postingKey];
       const keys = Object.keys(all);
       if (keys.length > 40) delete all[keys[0]]; // cap the ledger; oldest key drops
       saveState("links", all);
@@ -930,7 +979,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  const dissection = useMemo(() => buildDissection(result, posting), [result, posting]);
   // RS-SEC: the parsed ad sections for the manuscript (same adText fallback as Critical Read).
   const adSections = useMemo(() => {
     // Posting-first (PR #306 trust-loop): the picked ad's own text leads; corpus fallback.
@@ -1250,8 +1298,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // Desk.jsx (ephemeral DOM geometry). This component supplies only the DATA the links
   // join on - ids that already exist in the engine's output - plus the stub activation
   // handler. No LLM authors a link; a tab with no real shared id derives zero links.
+  // BLP-003: the O-I-A side of the pair is the dissection's own (canonical) duty id, in the
+  // same jobAnatomy.duties order the AI-trace rows use - one derivation, not a second count.
   const traceIds = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties))
-    ? result.jobAnatomy.duties.slice(0, 14).map((_, i) => ({ oiaId: "s" + i, traceId: "t" + i }))
+    ? dissection.spans.filter((sp) => sp.sec === "duty").map((sp, i) => ({ oiaId: sp.id, traceId: "t" + i }))
     : [];
   const linkData = { comments: dissection.comments, activeSpan: activeSpan || previewSpan, focusSkill, traceIds };
   // Stub click "opens/activates the target window" (Part C.2 item 4): floated windows
@@ -1784,6 +1834,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {tab === "duties" && (
         <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#eef2ff", borderBottom: "1px solid #d7e0fb", overflowX: "auto" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#1e3fae", flex: "none" }}>LOCKED LINKS {String.fromCharCode(0x00b7)} {links.length}</span>
+          {(withheldLinks.length > 0 || withheldDecisions.withheldCount > 0) && (
+            <span data-testid="evidence-withheld-ledger" style={{ fontSize: "0.6875rem", color: "#9a6113", flex: "none" }}>
+              WITHHELD {String.fromCharCode(0x00b7)} {withheldLinks.length ? withheldLinks.length + " earlier link" + (withheldLinks.length === 1 ? "" : "s") : ""}{withheldLinks.length && withheldDecisions.withheldCount ? ", " : ""}{withheldDecisions.withheldCount ? withheldDecisions.withheldCount + " earlier decision" + (withheldDecisions.withheldCount === 1 ? "" : "s") : ""} kept but not re-anchored: the evidence identity changed. Re-affirm by hand.
+            </span>
+          )}
           {linkMode ? (
             <span style={{ fontSize: "0.75rem", color: "#1e3fae", flex: "none" }}>
               {linkDraft ? "Picked “" + String(linkDraft.quote || "").slice(0, 30) + "” - now pick another responsibility, card, or selected phrase to lock (Esc cancels)" : "Drag a 🔗 handle from a responsibility (left) onto an O-I-A card (right) to draw a blue link - or click one 🔗 then another, or select any phrase and confirm."}

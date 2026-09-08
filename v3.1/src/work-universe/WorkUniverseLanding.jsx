@@ -6,6 +6,7 @@ import OccupationVisualSelector from "./OccupationVisualSelector.jsx";
 import PersonEvidenceIngress from "./PersonEvidenceIngress.jsx";
 import GovernanceLedger from "./GovernanceLedger.jsx";
 import { jobAdText, jobAdSections } from "../review/job-ad-sections.js";
+import { buildResultEvidence } from "../contracts/evidenceAdapter.js";
 import { useDeviceProfile } from "../responsive/deviceProfile.js";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
@@ -147,18 +148,25 @@ function detectCoverage(evidence) {
   return dimensions.filter(([, re]) => re.test(joined)).map(([label]) => label);
 }
 function buildEvidence(result, posting) {
-  const anatomyDuties = arr(result && result.jobAnatomy && result.jobAnatomy.duties);
-  const rdDuties = arr(result && result.responsibilitiesData && result.responsibilitiesData.responsibilities);
-  const dutySource = anatomyDuties.length ? anatomyDuties : rdDuties;
-  const duties = dutySource.map((d, i) => ({
-    id: `D${i + 1}`,
-    workspaceId: `s${i}`,
-    kind: "duty",
-    text: textOf(d),
-    quote: clean(d && d.quote),
-    layer: dutyLayer(d),
-    exposure: dutyExposure(d),
-  })).filter((e) => e.text);
+  // BLP-003: the duty list, its order, its cap and every workspace id come from the evidence
+  // adapter (result.evidence, built once by App.jsx), so the Work Universe and the Review
+  // Studio address the same duty by the same canonical id. D1..Dn stays a display label.
+  const evidence = (result && result.evidence && result.evidence.adapterVersion) ? result.evidence : buildResultEvidence(result, posting);
+  const duties = evidence.dutyRows.map((row, i) => {
+    const d = row.raw;
+    return {
+      id: `D${i + 1}`,
+      workspaceId: row.id,
+      spanId: row.kind === "legacy" ? null : row.id,
+      identity: row.identity,
+      derivationState: row.derivationState,
+      kind: "duty",
+      text: textOf(d) || row.text,
+      quote: clean(d && d.quote),
+      layer: dutyLayer(d),
+      exposure: dutyExposure(d),
+    };
+  }).filter((e) => e.text);
 
   const postingSkills = uniq(arr(posting && posting.skills).map((s) => clean(s))).slice(0, 8);
   const reqs = postingSkills.map((s, i) => ({
@@ -1037,8 +1045,8 @@ export default function WorkUniverseLanding({
                   <div data-testid="wu-job-ad-responsibilities">
                     <div className="wu-jobAdSectionHead"><h3>Responsibilities</h3><span className="wu-jobAdCount">{roleDuties.length} DUTIES</span></div>
                     {roleDuties.map((e) => (
-                      <button key={e.id} data-testid="wu-evidence-row" className={`wu-evidenceRow ${selectedEvidence === e.id ? "selected" : ""}`} type="button" onClick={() => selectEvidence(e.id)}>
-                        <div className="wu-srcid">{e.id} · DUTY</div>
+                      <button key={e.id} data-testid="wu-evidence-row" data-evidence-id={e.workspaceId || ""} data-evidence-identity={e.identity || ""} className={`wu-evidenceRow ${selectedEvidence === e.id ? "selected" : ""}`} type="button" onClick={() => selectEvidence(e.id)}>
+                        <div className="wu-srcid">{e.id} · DUTY{e.identity && e.identity !== "OK" ? " · IDENTITY " + e.identity : ""}</div>
                         <div>{e.text} {e.quote && <span className="wu-quote">{e.quote}</span>}</div>
                         <div className="wu-kind">supports: {graphNames(e.graphs)}</div>
                       </button>

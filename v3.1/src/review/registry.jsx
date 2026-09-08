@@ -33,7 +33,7 @@ export const WINDOWS = [
   // both endpoints on-tab instead of degrading to a stub.
   { id: "manuscript", label: "Manuscript",             render: renderWinManuscript,
     placements: { ad: ["left", 0], duties: ["left", 0] },
-    anchors: { dutyLine: (id) => "#li-" + id } },
+    anchors: { dutyLine: (id) => '[id="li-' + String(id).replace(/"/g, '\\"') + '"]' } },
   { id: "comments",   label: "Comments",               render: renderWinComments,
     placements: { ad: ["right", 1] },
     anchors: { comment: (id) => '[data-comment-anchor="' + id + '"]' } },

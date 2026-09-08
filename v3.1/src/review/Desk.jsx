@@ -109,7 +109,9 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           if (!inFloat && (r.bottom < deskRect.top || r.top > deskRect.bottom)) return { offscreen: true, r };
           return { offscreen: false, r };
         }
-        const sel = t === "duty" ? ("#li-" + a.id) : ('[data-oia-anchor="' + String(a.id).replace(/"/g, '\\"') + '"]');
+        // Attribute selectors: canonical evidence ids carry ":" and "-" (BLP-003), which an
+        // "#id" selector cannot express without escaping. The id attribute value is unchanged.
+        const sel = t === "duty" ? ('[id="li-' + String(a.id).replace(/"/g, '\\"') + '"]') : ('[data-oia-anchor="' + String(a.id).replace(/"/g, '\\"') + '"]');
         return rectOf(sel);
       };
       const lines = [];
