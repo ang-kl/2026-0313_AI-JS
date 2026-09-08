@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Detailed onboarding and delivery guide for completing the 30-requirement V3.1 blueprint.">
-  <meta name="guide-source-sha256" content="7914e4ac6cd5ac3774861d4664976506d265df927641b75befdf22997e9e542f">
+  <meta name="guide-source-sha256" content="53faaf4e67e17e89a45a27c4af30df706f333b23f6b23c0a9a28c0e09c7db3eb">
   <title>V3.1 Blueprint Completion: Onboarding and Delivery Guide</title>
   <style>
     :root {
@@ -186,7 +186,7 @@
   </header>
   <main id="main-content">
 <h1 id="section-v3-1-blueprint-completion-onboarding-and-delivery-guide">V3.1 Blueprint Completion: Onboarding and Delivery Guide</h1>
-<p><strong>Document ID:</strong> <code>GUIDE-V3-BLUEPRINT-COMPLETION-001</code><br><strong>Version:</strong> 1.0.2<br><strong>Prepared:</strong> 2026-09-08 (SGT)<br><strong>Repository:</strong> <a href="https://github.com/ang-kl/2026-0313_AI-JS" target="_blank" rel="noreferrer"><code>ang-kl/2026-0313_AI-JS</code></a><br><strong>Product surface:</strong> <a href="https://v3.takearoundabout.com" target="_blank" rel="noreferrer"><code>https://v3.takearoundabout.com</code></a><br><strong>Canonical baseline:</strong> <code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code> (<code>origin/main</code>)<br><strong>Current main observed:</strong> <code>ad69d8b48d5686a08fea5d968e695a1362430702</code><br><strong>Completion programme:</strong> <code>V3-BLUEPRINT-COMPLETION-REGISTER-001</code><br><strong>Register snapshot SHA-256:</strong> <code>4db88e6144dccdc70569770d43f6d0dd49031c702b8a2199cfb51dda140dd594</code><br><strong>Audience:</strong> a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.</p>
+<p><strong>Document ID:</strong> <code>GUIDE-V3-BLUEPRINT-COMPLETION-001</code><br><strong>Version:</strong> 1.0.3<br><strong>Prepared:</strong> 2026-09-08 (SGT)<br><strong>Repository:</strong> <a href="https://github.com/ang-kl/2026-0313_AI-JS" target="_blank" rel="noreferrer"><code>ang-kl/2026-0313_AI-JS</code></a><br><strong>Product surface:</strong> <a href="https://v3.takearoundabout.com" target="_blank" rel="noreferrer"><code>https://v3.takearoundabout.com</code></a><br><strong>Canonical baseline:</strong> <code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code> (<code>origin/main</code>)<br><strong>Current main observed:</strong> <code>f6b3728a97c412f43ab742e190c8fb5d931f21fc</code><br><strong>Completion programme:</strong> <code>V3-BLUEPRINT-COMPLETION-REGISTER-001</code><br><strong>Register snapshot SHA-256:</strong> <code>b33dde03fddde6c792d99301e85227ef2c365c7a7cfcfd6dbc35c106a1b01ca9</code><br><strong>Audience:</strong> a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.</p>
 <blockquote>
 <p>This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains <a href="./V3-Blueprint-Completion-Instructions.md">V3-Blueprint-Completion-Instructions.md</a> and the machine-readable <a href="./v3-blueprint-completion-register.json">completion register</a>.</p>
 </blockquote>
@@ -228,11 +228,12 @@
 <p>However, the full blueprint is <strong>not complete</strong>. The completion programme intentionally starts from a stricter definition than &quot;the screen exists.&quot; A requirement becomes complete only when its contracts, implementation, positive and negative tests, provenance, responsive behaviour, and Blueprint Supervisor approval are all recorded. The canonical register currently contains:</p>
 <ul>
 <li><code>1</code> requirement approved as <code>COMPLETE</code>: <code>BLP-001</code>.</li>
-<li><code>29</code> requirements <code>NOT_STARTED</code>: <code>BLP-002</code> through <code>BLP-030</code>.</li>
-<li><code>0</code> requirements <code>IN_PROGRESS</code>, <code>IMPLEMENTED_UNVERIFIED</code>, <code>BLOCKED</code> or <code>WITHHELD</code>.</li>
+<li><code>1</code> requirement <code>IMPLEMENTED_UNVERIFIED</code>: <code>BLP-002</code>.</li>
+<li><code>28</code> requirements <code>NOT_STARTED</code>: <code>BLP-003</code> through <code>BLP-030</code>.</li>
+<li><code>0</code> requirements <code>IN_PROGRESS</code>, <code>BLOCKED</code> or <code>WITHHELD</code>.</li>
 </ul>
 <p>This does not erase completed product work. It means the existing work must be reconciled against the new canonical contracts and evidence gates before it can satisfy a <code>BLP-*</code> completion claim.</p>
-<p>The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved <code>BLP-001</code> as <code>COMPLETE</code>; the approval evidence is recorded in the register. The immediate next action is to start <code>BLP-002</code>, the shared evidence contracts, on a fresh branch from the then-current <code>main</code>.</p>
+<p>The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved <code>BLP-001</code> as <code>COMPLETE</code>; the approval evidence is recorded in the register. <code>BLP-002</code>, the shared evidence contracts, is implemented on the working branch and under Blueprint Supervisor verification; <code>BLP-003</code> follows once it is verified.</p>
 <h2 id="section-2-what-this-product-is">2. What this product is</h2>
 <h3 id="section-2-1-core-thesis">2.1 Core thesis</h3>
 <p>The product treats a job advertisement as evidence about a work system, not merely as a vacancy. A posting may disclose duties, capability demand, process friction, governance needs, role boundaries, and organisational signals. Those signals must remain traceable to the text or structured source that produced them.</p>
@@ -358,14 +359,14 @@
 <td><code>BLP-001</code></td>
 </tr>
 <tr>
-<td><code>NOT_STARTED</code></td>
-<td>29</td>
-<td><code>BLP-002</code> through <code>BLP-030</code></td>
+<td><code>IMPLEMENTED_UNVERIFIED</code></td>
+<td>1</td>
+<td><code>BLP-002</code></td>
 </tr>
 <tr>
-<td><code>IMPLEMENTED_UNVERIFIED</code></td>
-<td>0</td>
-<td>None</td>
+<td><code>NOT_STARTED</code></td>
+<td>28</td>
+<td><code>BLP-003</code> through <code>BLP-030</code></td>
 </tr>
 </tbody></table></div>
 <p>The authoritative current values are in <a href="./v3-blueprint-completion-register.json"><code>v3-blueprint-completion-register.json</code></a>, not this narrative snapshot.</p>
@@ -572,7 +573,7 @@
 <tr>
 <td><code>BLP-002</code></td>
 <td>P0</td>
-<td><code>NOT_STARTED</code></td>
+<td><code>IMPLEMENTED_UNVERIFIED</code></td>
 <td>Define canonical <code>EvidenceSource</code>, <code>EvidenceSpan</code>, <code>ProofRecord</code>, <code>ReviewChange</code>, <code>OutputBlock</code>, <code>VisualProfile</code>, and <code>EvidenceWindow</code> contracts.</td>
 <td><code>BLP-001</code></td>
 </tr>
@@ -1327,7 +1328,7 @@ node tests/audit-integrity-contract.mjs
 <h3 id="section-20-2-immediate-next-action">20.2 Immediate next action</h3>
 <ol>
 <li>Run the completion contract, strict Feature Map contract, integrity contract, and build against the reconciled register.</li>
-<li>Start <code>BLP-002</code> on a new branch from the then-current <code>main</code>. It is no longer gated, because <code>BLP-001</code> is approved.</li>
+<li><code>BLP-002</code> is implemented on the working branch (contracts module, contract test, CI wiring) and awaits Blueprint Supervisor verification for <code>AUTOMATED_VERIFIED</code>; <code>COMPLETE</code> follows its merge. <code>BLP-003</code> starts after that verification.</li>
 </ol>
 <h3 id="section-20-3-tooling-note">20.3 Tooling note</h3>
 <p>The local Vercel CLI observed during this work is <code>51.2.1</code>, while <code>59.11.7</code> is available. This is maintenance work, not a blueprint completion blocker and not permission to change deployment configuration. Upgrade separately with <code>npm i -g vercel@latest</code> or <code>pnpm add -g vercel@latest</code> before future Vercel administration.</p>
