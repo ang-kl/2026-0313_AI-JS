@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReviewStudioLegacy from "./ReviewStudioLegacy.jsx";
 import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
-import { applyEvidenceToLedger, createEmptyLedger, reconcileLinks, catalogueKey } from "./work-universe/candidateProofLedgerData.js";
+import { applyEvidenceToLedger, createEmptyLedger, reconcileLinks, catalogueKey, guardLedgerStep } from "./work-universe/candidateProofLedgerData.js";
 import { buildResultEvidence } from "./contracts/evidenceAdapter.js";
 
 // Preserve the named helper contract consumed by App.jsx. The Step 3 wrapper
@@ -42,25 +42,26 @@ export default function ReviewStudio(props) {
   const bundleKey = useMemo(() => catalogueKey(proofBundle), [proofBundle]);
   // A reconcile that cannot produce a valid ledger THROWS by design (it never hands back stored link
   // state as current). There is no error boundary in this tree, so the throw is caught at this
-  // boundary and turned into a warm, withheld state the panel says in words (conformance-auditor
-  // W-new-5, D7): the ledger is kept as it was, and the panel withholds its link state until a
-  // later fold or reconcile validates again.
-  const [proofLedgerFault, setProofLedgerFault] = useState(null);
-  const guarded = (ledger, step) => { try { const next = step(ledger); setProofLedgerFault(null); return next; } catch (error) { setProofLedgerFault(error && error.message ? error.message : String(error)); return ledger; } };
+  // boundary as a PURE VALUE (guardLedgerStep): the fault is recorded on the kept ledger, governed by
+  // validateLedger, and the panel derives its withheld sentence from that ledger and nothing else. No
+  // state setter runs inside an updater: React may run an updater more than once and discard a pass,
+  // and words about a ledger that was never kept must never be committed or cleared from one
+  // (Supervisor finding on ff4c7c0, the same class as the BLP-008 notice finding). The clock is read
+  // once at the boundary, never inside the updater.
   const handlePersonEvidenceChange = (evidence) => {
     // The clock is read once, at this boundary, never inside the updater (React may run an
     // updater more than once); the fold itself is pure.
     const at = new Date().toISOString();
     setPersonEvidenceOverride(evidence);
-    setProofLedger((ledger) => guarded(ledger, (l) => applyEvidenceToLedger(l, evidence, at, { bundle: proofBundle })));
+    setProofLedger((ledger) => guardLedgerStep(ledger, (l) => applyEvidenceToLedger(l, evidence, at, { bundle: proofBundle }), at));
   };
   // When the posting evidence changes, every link is re-judged by the system against it.
   useEffect(() => {
     const at = new Date().toISOString();
-    setProofLedger((ledger) => (ledger.records.some((r) => (r.links || []).length) ? guarded(ledger, (l) => reconcileLinks(l, proofBundle, at)) : ledger));
+    setProofLedger((ledger) => (ledger.records.some((r) => (r.links || []).length) ? guardLedgerStep(ledger, (l) => reconcileLinks(l, proofBundle, at), at) : ledger));
   }, [bundleKey]); // eslint-disable-line react-hooks/exhaustive-deps
   // The panel hands back an UPDATER so its choices always run against the live ledger.
-  const handleProofLedgerChange = (updater) => setProofLedger((ledger) => (typeof updater === "function" ? guarded(ledger, updater) : ledger));
+  const handleProofLedgerChange = (updater) => { const at = new Date().toISOString(); setProofLedger((ledger) => (typeof updater === "function" ? guardLedgerStep(ledger, updater, at) : ledger)); };
   const [governanceReviewState, setGovernanceReviewState] = useState({});
   const governanceSubjectKey = props.posting?.uuid || `${props.title || ""}::${props.employer || ""}::${props.source || ""}`;
   useEffect(() => setGovernanceReviewState({}), [governanceSubjectKey]);
@@ -98,7 +99,6 @@ export default function ReviewStudio(props) {
           onPersonEvidenceChange={handlePersonEvidenceChange}
           proofLedger={proofLedger}
           proofBundle={proofBundle}
-          proofLedgerFault={proofLedgerFault}
           onProofLedgerChange={handleProofLedgerChange}
           onGovernanceDecisionChange={(key, status) => setGovernanceReviewState((current) => ({ ...current, [key]: status }))}
         />

@@ -479,7 +479,56 @@ export function validateLedgerEvent(event) {
 // Ledger
 // ---------------------------------------------------------------------------------------------
 export function createEmptyLedger() {
-  return { ledgerVersion: LEDGER_VERSION, contractVersion: CONTRACT_VERSION, records: [], events: [], refusals: [] };
+  return { ledgerVersion: LEDGER_VERSION, contractVersion: CONTRACT_VERSION, records: [], events: [], refusals: [], faults: [] };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Faults (Supervisor finding on BLP-009 at ff4c7c0). A reconcile that cannot produce a valid ledger
+// THROWS (W-a: it never hands back stored VALID links as current). The boundary that catches it
+// must not run a side effect inside a React updater (the BLP-008 lesson: a discarded render pass
+// can commit, or clear, words about a ledger that was never kept), so the catch is a PURE value:
+// the fault is recorded ON the previous ledger, governed by validateLedger, and the panel derives
+// its withheld sentence from the faults the kept ledger carries. A later step that succeeds
+// resolves the open faults with its instant; the record of the fault stays.
+// ---------------------------------------------------------------------------------------------
+export function createLedgerFault({ at, detail } = {}) {
+  return { ledgerVersion: LEDGER_VERSION, at: isIso(at) ? at : null, detail: nonempty(detail) ? detail : null, actor: LEDGER_ACTOR.SYSTEM, resolvedAt: null };
+}
+export function validateLedgerFault(fault) {
+  const errors = [];
+  if (!isObject(fault)) return { ok: false, errors: ["LedgerFault must be an object"] };
+  if (fault.ledgerVersion !== LEDGER_VERSION) errors.push(`LedgerFault.ledgerVersion must be ${LEDGER_VERSION}`);
+  if (!isIso(fault.at)) errors.push("LedgerFault.at must be an ISO 8601 instant");
+  if (!nonempty(fault.detail)) errors.push("LedgerFault.detail must say what the ledger could not do");
+  if (fault.actor !== LEDGER_ACTOR.SYSTEM) errors.push("a fault is the system's, never a human's");
+  if (fault.resolvedAt !== null && (!isIso(fault.resolvedAt) || instant(fault.resolvedAt) < instant(fault.at))) errors.push("LedgerFault.resolvedAt must be null or an instant no earlier than at");
+  return { ok: errors.length === 0, errors };
+}
+/** The fault the kept ledger is under, or null; the panel's withheld sentence comes from this and nothing else. */
+export function activeLedgerFault(ledger) {
+  return (Array.isArray(ledger?.faults) ? ledger.faults : []).find((f) => f.resolvedAt === null) || null;
+}
+export function ledgerFaultText(ledger) {
+  const fault = activeLedgerFault(ledger);
+  return fault ? `The ledger could not be re-checked at ${fault.at} and its link state is withheld: ${fault.detail}. Nothing here is shown as current until a later fold or reconcile validates; the records and their history stay readable.` : null;
+}
+/**
+ * Run one ledger step at a boundary. Pure: returns the step's ledger with any open faults resolved
+ * at `at`, or, if the step throws, the PREVIOUS ledger with the fault recorded on it. No side effect,
+ * so a React updater may call it and a discarded pass produces nothing that outlives it.
+ */
+export function guardLedgerStep(ledger, step, at) {
+  if (!isIso(at)) throw new Error("guardLedgerStep needs an ISO instant");
+  const base = isObject(ledger) && Array.isArray(ledger.records) ? { faults: [], ...ledger } : createEmptyLedger();
+  try {
+    const next = step(base);
+    const faults = (Array.isArray(next.faults) ? next.faults : []).map((f) => (f.resolvedAt === null ? { ...f, resolvedAt: at } : f));
+    return { ...next, faults };
+  } catch (error) {
+    const fault = createLedgerFault({ at, detail: error && error.message ? error.message : String(error) });
+    if (!validateLedgerFault(fault).ok) throw new Error("a fault needs an ISO instant and a message");
+    return { ...base, faults: [...base.faults, fault] };
+  }
 }
 
 export function createLedgerRefusal({ at, reason, detail } = {}) {
@@ -557,7 +606,7 @@ function recordFromPayloadProof(payload, proof, at) {
  * ledger; `previousLedger` is not mutated; `at` is the caller's clock.
  */
 export function applyEvidenceToLedger(previousLedger, payload, at, { bundle } = {}) {
-  const base = isObject(previousLedger) && Array.isArray(previousLedger.records) ? { refusals: [], ...previousLedger } : createEmptyLedger();
+  const base = isObject(previousLedger) && Array.isArray(previousLedger.records) ? { refusals: [], faults: [], ...previousLedger } : createEmptyLedger();
   if (!isIso(at)) throw new Error("applyEvidenceToLedger needs an ISO instant");
   // A payload that is not manual person evidence, or whose proof views disagree with their own
   // source, is REFUSED: the ledger is returned unchanged with a refusal on the record, attributed
@@ -873,6 +922,8 @@ export function validateLedger(ledger) {
     }
   }
   ledger.refusals.forEach((refusal, i) => { const v = validateLedgerRefusal(refusal); if (!v.ok) errors.push(`refusals[${i}]: ${v.errors[0]}`); });
+  if (!Array.isArray(ledger.faults)) errors.push("faults must be an array");
+  else ledger.faults.forEach((fault, i) => { const v = validateLedgerFault(fault); if (!v.ok) errors.push(`faults[${i}]: ${v.errors[0]}`); });
   ledger.events.forEach((event, i) => {
     const verdict = validateLedgerEvent(event);
     if (!verdict.ok) errors.push(`events[${i}]: ${verdict.errors[0]}`);
