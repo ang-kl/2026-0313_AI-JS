@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T11:02:45+08:00"
+      "updatedAt": "2026-09-08T11:15:30+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -127,7 +127,7 @@
               "label": "Exact merge commit"
             }
           ],
-          "note": "PR #486 merged the provenance-only update to main; Blueprint Supervisor completion approval remains pending."
+          "note": "PR #486 merged the provenance-only update to main as ffc9dea8c6aaa5945fdd06778571e8cca8923097."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -208,7 +208,7 @@
         {
           "from": "IMPLEMENTED_UNVERIFIED",
           "to": "COMPLETE",
-          "changedAt": "2026-09-08T11:02:45+08:00",
+          "changedAt": "2026-09-08T11:15:30+08:00",
           "reason": "Blueprint Supervisor verified implementation commit bf6c2ab against the four declared affectedFiles, confirmed the PR #486 squash merge ffc9dea is content-identical by blob SHA over the same base 990a83a, confirmed no change under v3.1/src, v3.1/api, v3/ or Railway configuration, and confirmed the completion contract passes at exit 0. BLP-001 requires no automated-runtime, deployment or physical-runtime evidence under its completionPolicy.",
           "approvedBy": "blueprint-supervisor",
           "evidenceLinks": [
@@ -238,7 +238,7 @@
       "supervisorApproval": {
         "approvedStatus": "COMPLETE",
         "approvedBy": "blueprint-supervisor",
-        "approvedAt": "2026-09-08T11:02:45+08:00",
+        "approvedAt": "2026-09-08T11:15:30+08:00",
         "evidenceLinks": [
           {
             "kind": "COMMIT",

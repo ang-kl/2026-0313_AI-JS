@@ -334,8 +334,12 @@ function assertStatusProvenanceConsistency(item, records, scope) {
     assert(implementationRecorded, `${scope} ${item.status} requires a recorded implementation`);
   }
   if (item.status === "AUTOMATED_VERIFIED") assert(automatedPassed, `${scope} AUTOMATED_VERIFIED requires passed automated runtime evidence`);
-  const tookDirectCompletion = (item.statusHistory || []).some((entry) => (entry.fromStatus ?? entry.from) === "IMPLEMENTED_UNVERIFIED" && (entry.toStatus ?? entry.to) === "COMPLETE");
-  if (tookDirectCompletion) assert(recordState(records.automatedRuntime) === "NOT_RUN", `${scope} took the direct IMPLEMENTED_UNVERIFIED -> COMPLETE edge and must keep automated runtime evidence at NOT_RUN`);
+  // Scoped to the record's current resting status: only a record that is COMPLETE right now by way of the direct
+  // edge is held to NOT_RUN. A record reopened and later corrected under an authorised policy change is not trapped
+  // by an earlier event in its append-only history.
+  const lastEvent = (item.statusHistory || []).at(-1);
+  const restsOnDirectCompletion = item.status === "COMPLETE" && !!lastEvent && (lastEvent.fromStatus ?? lastEvent.from) === "IMPLEMENTED_UNVERIFIED" && (lastEvent.toStatus ?? lastEvent.to) === "COMPLETE";
+  if (restsOnDirectCompletion) assert(recordState(records.automatedRuntime) === "NOT_RUN", `${scope} rests at COMPLETE by the direct IMPLEMENTED_UNVERIFIED -> COMPLETE edge and must keep automated runtime evidence at NOT_RUN`);
   if (["DEPLOYED_VERIFIED", "PHYSICAL_VERIFIED"].includes(item.status)) {
     assert(mergeRecorded && deploymentPassed && automatedPassed, `${scope} ${item.status} requires merge, deployment and automated runtime evidence`);
   }

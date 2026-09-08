@@ -8,7 +8,7 @@
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
 **Current main observed:** `ad69d8b48d5686a08fea5d968e695a1362430702`  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `3eca549e8f105e6177551175e9509e7c6b5ae22062e4c23de82afa1fcc1b24c6`  
+**Register snapshot SHA-256:** `4db88e6144dccdc70569770d43f6d0dd49031c702b8a2199cfb51dda140dd594`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
@@ -816,7 +816,7 @@ For the full programme, completion additionally requires all 30 canonical record
 
 ### 20.1 Current approval gate
 
-PR [#486](https://github.com/ang-kl/2026-0313_AI-JS/pull/486) merged the provenance-only implementation commit `bf6c2ab7b8f97151370e9a822406988a1d4b04c0` into `main` as `ffc9dea8c6aaa5945fdd06778571e8cca8923097` on 2026-09-07. On 2026-09-08 the Blueprint Supervisor verified the implementation commit against its four declared files, confirmed the squash merge is content-identical by blob SHA over the same base, confirmed no protected path changed, and approved `BLP-001` as `COMPLETE` at 11:02 SGT. The approval, its evidence links and its policy justification are recorded in the register's `statusHistory` and `supervisorApproval` for `BLP-001`.
+PR [#486](https://github.com/ang-kl/2026-0313_AI-JS/pull/486) merged the provenance-only implementation commit `bf6c2ab7b8f97151370e9a822406988a1d4b04c0` into `main` as `ffc9dea8c6aaa5945fdd06778571e8cca8923097` on 2026-09-07. On 2026-09-08 the Blueprint Supervisor verified the implementation commit against its four declared files, confirmed the squash merge is content-identical by blob SHA over the same base, confirmed no protected path changed, and approved `BLP-001` as `COMPLETE` at 11:15 SGT. The approval, its evidence links and its policy justification are recorded in the register's `statusHistory` and `supervisorApproval` for `BLP-001`.
 
 ### 20.2 Immediate next action
 
