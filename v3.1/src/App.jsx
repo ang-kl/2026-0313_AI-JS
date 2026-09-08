@@ -1478,6 +1478,7 @@ import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
 import { buildResultEvidence } from "./contracts/evidenceAdapter.js";
 import { buildEvidenceWindow, isoWithOffset } from "./contracts/evidenceWindowAdapter.js";
+import { EVIDENCE_STATE, classifyRoutePayload, failureText, emptyText } from "./contracts/evidenceAdapter.js";
 
 // BLP-004 (conformance-auditor W4): a posting object now carries the route's own retrievedAt, so a
 // single-posting export must not stamp the export click under the same name. Pass the route's
@@ -15608,7 +15609,7 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
 const _autoCompanyRequestCache = new Map();
 
 function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount, autoOpenAiMoments = false, deviceProfile, seedPosting = null }) {
-  const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
+  const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, pagesFailed: 0, fallback: false, code: "", message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
   const [csgState, setCsgState] = useState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
@@ -15668,8 +15669,8 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   useEffect(() => {
     if (!companyQuery) return;
     let cancelled = false;
-    setState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
-    setCsgState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
+    setState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, pagesFailed: 0, fallback: false, code: "", message: "", error: null });
+    setCsgState({ loading: true, jobs: [], total: 0, fallback: false, code: "", message: "" });
     setCsgRetrievedAt(null);
     setChosenKey(null);
     setAgentsView("off");
@@ -15717,18 +15718,22 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           var data = mcfResult.value;
           setState({
             loading: false,
-            matches: Array.isArray(data.matches) ? data.matches.map(function(match) { return { ...match, dutiesEnriched: autoOpenAiMoments || !!data.dutiesEnriched }; }) : [],
+            // BLP-005: a partial poll (pagesFailed > 0) is carried onto every job it produced, so the evidence
+            // layer records the incompleteness on the bundle (residual risk POLL_PARTIAL) even before any surface discloses it.
+            matches: Array.isArray(data.matches) ? data.matches.map(function(match) { return { ...match, dutiesEnriched: autoOpenAiMoments || !!data.dutiesEnriched, jobs: Array.isArray(match.jobs) ? match.jobs.map(function(j) { return (data.pagesFailed || 0) > 0 ? { ...j, pollPartial: true } : j; }) : match.jobs }; }) : [],
             query: data.query || companyQuery,
             queryKey: data.queryKey || "",
             ambiguous: !!data.ambiguous,
             totalPostings: data.totalPostings || 0,
             pagesPolled: data.pagesPolled || 0,
+            pagesFailed: data.pagesFailed || 0,
             fallback: !!data.fallback,
+            code: String(data.code || ""),
             message: data.message || "",
             error: null,
           });
         } else {
-          setState({ loading: false, matches: [], query: companyQuery, queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: true, message: "Could not reach MyCareersFuture. Please try again in a moment.", error: String(mcfResult.reason && mcfResult.reason.message) });
+          setState({ loading: false, matches: [], query: companyQuery, queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: true, code: "NETWORK", message: "Could not reach MyCareersFuture. Please try again in a moment.", error: String(mcfResult.reason && mcfResult.reason.message) });
         }
 
         if (csgResult.status === "fulfilled") {
@@ -15746,6 +15751,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             jobs: seededJobs,
             total: cData.total || 0,
             fallback: !!cData.fallback,
+            code: String(cData.code || ""),
             message: cData.message || "",
           });
           try {
@@ -15760,7 +15766,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             }
           }
         } else {
-          setCsgState({ loading: false, jobs: [], total: 0, fallback: true, message: "Could not reach careers.gov.sg data. Please try again." });
+          setCsgState({ loading: false, jobs: [], total: 0, fallback: true, code: "NETWORK", message: "Could not reach careers.gov.sg data. Please try again." });
         }
       });
     }
@@ -16036,7 +16042,13 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   // Only show the careers.gov.sg column when it is loading or actually has roles.
   // For a private / MCF employer (e.g. DBS) there are none - so drop the redundant
   // "no roles" panel and let the MyCareersFuture results take the full width.
-  const showCsg = csgState.loading || (!csgState.fallback && csgState.jobs.length > 0);
+  // BLP-005 (conformance-auditor C2, W9): a FAILED read of either source is shown as a failure in
+  // that source's own column, never hidden because the other column has results, and never folded
+  // into the column simply disappearing. States come from the one definition in evidenceAdapter.js.
+  const mcfEvState = classifyRoutePayload({ fallback: state.fallback, code: state.code, matches: state.matches });
+  const csgEvState = csgState.loading ? null : classifyRoutePayload({ fallback: csgState.fallback, code: csgState.code, jobs: csgState.jobs });
+  const csgFailed = csgEvState === EVIDENCE_STATE.FAILURE;
+  const showCsg = csgState.loading || (!csgState.fallback && csgState.jobs.length > 0) || csgFailed;
 
 
   return (
@@ -16102,16 +16114,29 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           )}
         </div>
 
-        {(state.fallback || state.matches.length === 0) && !(activeMatch && activeMatch.source === "careers.gov.sg") ? (
-          <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "20px 18px" }}>
+        {(state.fallback || state.matches.length === 0) && (mcfEvState === EVIDENCE_STATE.FAILURE || !(activeMatch && activeMatch.source === "careers.gov.sg")) ? (() => {
+          // BLP-005 criterion 3: a FAILED read and a genuine EMPTY answer are distinct states, in words
+          // and in a machine-checkable attribute, never by colour. api/mcf.js answers 200 with
+          // fallback:true for a timeout, an upstream error and a genuine miss alike, distinguished only
+          // by code; the box used to merge them into one sentence. The words come from ONE definition
+          // (evidenceAdapter failureText / emptyText) so the surface and the tests cannot drift.
+          const evState = mcfEvState;
+          const failed = evState === EVIDENCE_STATE.FAILURE;
+          return (
+          <div role="status" aria-live="polite" data-testid="company-results-state" data-state={evState} data-source="MyCareersFuture" data-source-code={state.code || ""}
+            style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "20px 18px" }}>
             <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
-              {state.message || "No live MyCareersFuture postings found for that company."}
+              <strong>{failed ? "Source failed" : "No match"}</strong>{" "}{String.fromCharCode(0x00b7)}{" "}
+              {failed ? failureText("MyCareersFuture", state.code) : emptyText("MyCareersFuture", state.query || companyQuery)}
             </p>
             <p style={{ margin: "8px 0 0", fontSize: "0.75rem", color: C.muted }}>
-              Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+              {failed
+                ? "Nothing was read from MyCareersFuture in this attempt, so no claim about this employer's postings is made either way."
+                : "MyCareersFuture answered; " + state.pagesPolled + " page(s) were read. A fuzzy poll may miss postings filed under a differently-spelled employer name."}
             </p>
           </div>
-        ) : (
+          );
+        })() : (
           <>
             <div className="company-identity-card" style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
               {activeMatch ? (
@@ -16460,6 +16485,20 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             <span style={{ fontSize: 11.5, color: C.muted }}>({csgState.total} posting{csgState.total === 1 ? "" : "s"})</span>
           )}
         </div>
+        {/* The careers.gov.sg box renders ONLY the failure state, so data-state is the literal FAILURE.
+            careers.gov.sg CAN answer a genuine EMPTY (code EMPTY, fallback true, jobs []); that case is
+            shown by omitting the column, the pre-existing design for private employers ("drop the
+            redundant no-roles panel"), so the EMPTY state has no box here. Recorded as a known
+            omission on BLP-005 for the Human Lead's decision. */}
+        {csgFailed && (
+          <div role="status" aria-live="polite" data-testid="csg-results-state" data-state={EVIDENCE_STATE.FAILURE} data-source="careers.gov.sg" data-source-code={csgState.code || ""}
+            style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
+              <strong>Source failed</strong>{" "}{String.fromCharCode(0x00b7)}{" "}{failureText("careers.gov.sg", csgState.code)}
+            </p>
+            <p style={{ margin: "8px 0 0", fontSize: "0.75rem", color: C.muted }}>Nothing was read from careers.gov.sg in this attempt, so no claim about public-sector postings for this employer is made either way.</p>
+          </div>
+        )}
 
         {csgState.loading ? (
           <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
@@ -17663,6 +17702,7 @@ export default function App({ initialSearchMode } = {}) {
         // dates, the observation time and the text provenance of the field used as `text`.
         // The evidence layer reads only these (never postedDate/expiryDate, the display values).
         postedDateRaw: job.postedDateRaw ?? null,
+        pollPartial: job.pollPartial === true,
         expiryDateRaw: job.expiryDateRaw ?? null,
         retrievedAt: job.retrievedAt || "",
         textProvenance: job.textProvenance || null,

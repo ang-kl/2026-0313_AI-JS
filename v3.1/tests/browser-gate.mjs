@@ -571,9 +571,16 @@ await page.getByTestId('wu-source-anchor').click();
 const firstEvidence = page.getByTestId('wu-evidence-row').first();
 if (await firstEvidence.count()) {
   await requireVisible(firstEvidence, 'Source evidence row exists but is not visible');
-  await firstEvidence.click();
+  // BLP-005 (discharging BLP-003's carried omission): the workspace testid is composed from the
+  // row's own canonical id, read from data-evidence-id; a positional literal is not an identity.
+  // Requirement rows carry no workspace id, so wait for a duty row (canonical duty: id) and use it.
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('[data-testid="wu-evidence-row"]')).some((el) => (el.dataset.evidenceId || '').startsWith('duty:')), null, { timeout: 30000 });
+  const dutyRow = page.locator('[data-testid="wu-evidence-row"][data-evidence-id^="duty:"]').first();
+  const firstEvidenceId = await dutyRow.getAttribute('data-evidence-id');
+  if (!firstEvidenceId) throw new Error('Source evidence row carries no data-evidence-id');
+  await dutyRow.click();
   await page.getByTestId('open-evidence-workspace').click();
-  await requireVisible(page.getByTestId('v31-workspace-evidence-s0'), 'Evidence span intent did not reach the existing workspace');
+  await requireVisible(page.getByTestId(`v31-workspace-evidence-${firstEvidenceId}`), `Evidence span intent did not reach the existing workspace (id ${firstEvidenceId})`);
   await requireVisible(page.locator('[aria-label="Evidence / Explanation"]'), 'Evidence intent did not open the evidence drawer');
   if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('Evidence-workspace FAB did not honour its click-outside close contract');
   await page.getByTestId('return-work-universe').click();
