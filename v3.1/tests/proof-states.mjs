@@ -32,7 +32,7 @@ const t = (n) => `2026-09-08T13:${String(n).padStart(2, "0")}:00.000Z`;
 // Part A
 // ---------------------------------------------------------------------------------------------
 // A1 one definition of the words (ruling Q6); the adapter moved 1.1.0 -> 1.2.0 additively (Q7)
-eq(ADAPTER_VERSION, "1.2.0", "the adapter is 1.2.0 (fails if the bump was not made or was made to a different number)");
+eq(ADAPTER_VERSION, "1.3.0", "the adapter is 1.3.0 (1.2.0 at BLP-010; moved additively again at BLP-011 for the destination words, so this line is the reopen test for that bump)");
 eq(CONTRACT_VERSION, "1.1.0", "the contract stays 1.1.0: the adapter bump touches no contract record (fails if the two constants were coupled)");
 for (const s of PROOF_STATE) ok(proofStateText(s).length > 40 && !/unrecognised/.test(proofStateText(s)), `${s} has a defined sentence`);
 eq(proofStateText("STALE"), staleText("proof"), "STALE reuses staleText('proof') verbatim (fails if a second stale sentence exists)");
@@ -60,7 +60,7 @@ const l0 = applyEvidenceToLedger(createEmptyLedger(), pay(src.text, two, 1), t(1
 const [A, B] = l0.records.map((r) => r.id);
 const rec = (l, id) => l.records.find((r) => r.id === id);
 const forgeLinks = (l, id, mut) => ({ ...l, records: l.records.map((r) => (r.id === id ? { ...r, links: r.links.map(mut), record: { ...r.record, targets: [] } } : r)) });
-eq(LEDGER_VERSION, "1.2.0", "the ledger stamp moved to 1.2.0 with the state vocabulary (surfaced for Rule V-1)");
+eq(LEDGER_VERSION, "1.3.0", "the ledger stamp moved to 1.2.0 with the state vocabulary and to 1.3.0 with the destination vocabulary at BLP-011 (surfaced for Rule V-1)");
 ok(l0.records.every((r) => Array.isArray(r.staleCauses) && r.staleCauses.length === 0 && r.withheldCause === null && r.declaration === null && r.conflict === null), "a new record carries no stale cause, withheld cause, declaration or conflict");
 ok(l0.events.every((e, i) => e.seq === i), "every committed event carries seq equal to its position (fails if seq is unassigned or drifts)");
 

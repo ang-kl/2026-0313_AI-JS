@@ -47,7 +47,7 @@ import {
 } from "./evidenceContracts.js";
 import { jobAdText, jobAdSections } from "../review/job-ad-sections.js";
 
-export const ADAPTER_VERSION = "1.2.0"; // 1.1.0 (BLP-005): evidence-state text, one definition of the words a surface shows per state; 1.2.0 (BLP-010): proof-state text, additive
+export const ADAPTER_VERSION = "1.3.0"; // 1.1.0 (BLP-005): evidence-state text, one definition of the words a surface shows per state; 1.2.0 (BLP-010): proof-state text, additive; 1.3.0 (BLP-011): destination words, additive
 
 // Extraction versions are declared here so a prompt or pipeline change bumps the number and
 // every duty id changes with it (name-N per the contract; the verbatim parents do not move).
@@ -486,6 +486,32 @@ const PROOF_STATE_TEXT = Object.freeze({
 /** The sentence a surface shows for a proof state; unknown states are named, never guessed. */
 export function proofStateText(state) {
   return PROOF_STATE_TEXT[state] || `unrecognised proof state (${String(state)})`;
+}
+
+// One definition of the words for the five proof destinations and their three states (BLP-011,
+// Supervisor ruling Q6). The destination NAMES are the register requirement's own ("resume, cover
+// letter, interview, portfolio, and work sample"); the state prose is builder-written and says the
+// act and what it licenses, never the evidence's worth. A surface renders these strings, never the
+// contract keys, and the suite asserts the rendered string equals the adapter's.
+const DESTINATION_TEXT = Object.freeze({
+  resume: "resume",
+  coverLetter: "cover letter",
+  interview: "interview",
+  portfolio: "portfolio",
+  workSample: "work sample",
+});
+/** The words for a destination key; an unknown key is named, never guessed. */
+export function destinationText(key) {
+  return DESTINATION_TEXT[key] || `unrecognised destination (${String(key)})`;
+}
+const DESTINATION_STATE_TEXT = Object.freeze({
+  UNSET: "not approved: you have not approved this proof for this destination, or an earlier approval lapsed when the record left its accepted state; nothing carries it there",
+  ALLOWED: "approved: you approved this proof for this destination while the record was demonstrated or certified; it may be carried there until you revoke it or the record leaves its accepted state",
+  REVOKED: "revoked: you withdrew an earlier approval for this destination; nothing carries it there until you approve it again",
+});
+/** The sentence a surface shows for a destination state; unknown states are named, never guessed. */
+export function destinationStateText(state) {
+  return DESTINATION_STATE_TEXT[state] || `unrecognised destination state (${String(state)})`;
 }
 
 const FAILURE_TEXT = Object.freeze({
