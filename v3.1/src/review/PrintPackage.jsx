@@ -1,6 +1,7 @@
-import { useEffect, Fragment } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { buildGovernanceLedgerData } from "../work-universe/governanceLedgerData.js";
+import { ledgerRows, ACCEPTED_STATES, linkStanding, ledgerFaultText } from "../work-universe/candidateProofLedgerData.js";
 
 const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
 const list = (value) => Array.isArray(value) ? value : [];
@@ -14,8 +15,8 @@ function personSkillsOf(result) {
   return list(person && (person.skills || person.capabilities || person.skillEvidence)).map(skillName).filter(Boolean);
 }
 
-function Withheld({ children }) {
-  return <p className="v31-print-withheld"><b>WITHHELD</b> · {children}</p>;
+function Withheld({ children, ...rest }) {
+  return <p className="v31-print-withheld" {...rest}><b>WITHHELD</b> · {children}</p>;
 }
 
 // BLP-004: the print package carries the same seven evidence-window fields as the screen, each
@@ -43,10 +44,28 @@ function Section({ number, title, children, pageBreak }) {
   );
 }
 
+// BLP-011: the section that carries the candidate proof approved for each destination. The print
+// package is given the ledger and, by decision (Supervisor ruling Q7), NOT the posting-evidence
+// bundle: a durable artefact states what the ledger recorded, so link standing is read as last
+// recorded and is NOT re-checked at print time; the section states its instant and says so per
+// record, never presenting stored state as current. Nothing not approved is carried: a record
+// outside DEMONSTRATED or CERTIFIED cannot hold an approval (contract), and a revoked or lapsed
+// approval is excluded by its state and never named as a place to carry the proof. The section is a
+// register of approvals across the five destinations, not an export for any one of them.
+function proofDestinationRows(proofLedger) {
+  const rows = ledgerRows(proofLedger);
+  const carried = rows.filter((row) => ACCEPTED_STATES.includes(row.state) && row.destinations.some((d) => d.state === "ALLOWED"));
+  return { total: rows.length, carried: carried.map((row) => {
+    const record = proofLedger.records.find((r) => r.id === row.id);
+    const standing = linkStanding(record);
+    return { id: row.id, excerptText: row.excerptText, state: row.state, stateText: row.stateText, declaredAt: row.declaration ? row.declaration.at : null, proofTypeLabel: row.proofTypeLabel, approved: row.destinations.filter((d) => d.state === "ALLOWED"), links: standing, lastEventAt: row.lastEventAt };
+  }) };
+}
+
 export default function PrintPackage({
   open, variant, setVariant, onClose, result, title, employer, source,
   confidence,
-  windowRows, dissection, comments, decisions, critical,
+  windowRows, dissection, comments, decisions, critical, proofLedger,
 }) {
   useEffect(() => {
     if (!open) return undefined;
@@ -54,6 +73,19 @@ export default function PrintPackage({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+  // The instant the package was assembled, committed in an effect (never read during render), and
+  // re-stamped at the print command so the printed sheet carries the print instant (Q7; conformance-
+  // auditor W-4 on the render-phase clock read).
+  const [assembledAt, setAssembledAt] = useState(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    setAssembledAt(new Date().toISOString());
+    const onBeforePrint = () => setAssembledAt(new Date().toISOString());
+    window.addEventListener("beforeprint", onBeforePrint);
+    return () => window.removeEventListener("beforeprint", onBeforePrint);
+  }, [open]);
+  const proofs = useMemo(() => (proofLedger && Array.isArray(proofLedger.records) ? proofDestinationRows(proofLedger) : null), [proofLedger]);
+  const proofFault = proofLedger ? ledgerFaultText(proofLedger) : null;
 
   if (!open) return null;
 
@@ -185,6 +217,28 @@ export default function PrintPackage({
                 <p className="v31-print-withheld">Boundary · absence from the supplied profile is not proof that the person lacks a skill.</p>
               </>
             ) : <Withheld>No person or CV evidence was supplied. Role requirements cannot be presented as personal strengths or gaps.</Withheld>}
+          </Section>
+
+          <Section number={variant === "review" ? "08" : "05"} title="Candidate proof destinations">
+            <div data-testid="print-proof-destinations" data-carried={proofs ? proofs.carried.length : 0} data-records={proofs ? proofs.total : 0}>
+              <p className="v31-print-meta" data-testid="print-proof-destinations-instant">Package assembled at {assembledAt || "an instant not yet committed"}, re-stamped at the print command · destination approvals as the ledger last recorded them · link standing was not re-checked at print time (last judged by the ledger at each record's own instant, never current) · a register of approvals across the five destinations, not an export for any one of them</p>
+              {!proofs ? <Withheld>No candidate proof ledger reached this print package, so no proof is carried to any destination.</Withheld>
+                : proofFault ? <Withheld data-testid="print-proof-destinations-fault">{proofFault} No approval is carried while the ledger's integrity is in question.</Withheld>
+                : !proofs.carried.length ? <Withheld>No proof is approved for any destination{proofs.total ? ` (${proofs.total} record${proofs.total === 1 ? "" : "s"} on the ledger, none demonstrated or certified with an approval that stands)` : " (no proof records on the ledger)"}. Claimed only, stale, withheld, conflicting and unconfirmed proof, and revoked or lapsed approvals, are not carried.</Withheld>
+                : (
+                  <>
+                    <table className="v31-print-ledger"><thead><tr><th>Excerpt (what the document says)</th><th>Proof state</th><th>Approved destinations</th><th>Link standing as last recorded</th></tr></thead><tbody>{proofs.carried.map((row) => (
+                      <tr key={row.id} data-testid="print-proof-destination-row" data-proof-id={row.id} data-state={row.state}>
+                        <td>{row.excerptText.length > 240 ? `${row.excerptText.slice(0, 240)}…` : row.excerptText}<br /><small>proof type: {row.proofTypeLabel}</small></td>
+                        <td>{row.state} · {row.stateText}{row.declaredAt ? ` Declared by you at ${row.declaredAt}.` : ""}</td>
+                        <td data-testid="print-proof-destination-approved">{row.approved.map((d) => `destination: ${d.name} (${d.text})`).join("; ")}</td>
+                        <td>{row.links.total ? row.links.caveat : "no link recorded"}</td>
+                      </tr>
+                    ))}</tbody></table>
+                    {proofs.total > proofs.carried.length && <p className="v31-print-standing">Not carried: {proofs.total - proofs.carried.length} record{proofs.total - proofs.carried.length === 1 ? "" : "s"} with no approval that stands (claimed only, stale, withheld, conflicting, or every approval revoked or lapsed).</p>}
+                  </>
+                )}
+            </div>
           </Section>
 
           <p className="v31-print-standing">AI-assisted · human decides · generated from the evidence and decisions visible at print time</p>
