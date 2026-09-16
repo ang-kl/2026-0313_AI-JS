@@ -192,7 +192,7 @@ async function runViewport({ name, width, height, phone }) {
   await page.getByRole("tab", { name: "The Ad" }).click();
   await page.getByRole("tablist", { name: "right panel windows" }).getByRole("tab", { name: "Comments" }).click();
   await page.locator("[data-comment-anchor]").first().waitFor({ state: "visible", timeout: 15000 });
-  const badges = await page.locator("[data-comment-anchor] [data-speaker-kind]").evaluateAll((els) => els.map((el) => ({ kind: el.dataset.speakerKind, id: el.dataset.reviewerId || null, text: el.textContent.trim(), label: el.closest("[data-comment-anchor]").getAttribute("aria-label") })));
+  const badges = await page.locator("[data-comment-anchor] [data-speaker-kind]").evaluateAll((els) => els.map((el) => ({ kind: el.dataset.speakerKind, id: el.dataset.reviewerId || null, text: el.textContent.trim(), label: el.closest("[data-comment-anchor]").getAttribute("aria-label"), anchor: el.closest("[data-comment-anchor]").dataset.commentAnchor })));
   ok(badges.length >= 3, `${tag}: the Comments window renders reviewer comments (${badges.length})`);
   ok(badges.every((b) => b.kind === "reviewer" && activeIds.has(b.id)), `${tag}: every comment badge carries an ACTIVE roster id (${badges.map((b) => b.id).join(", ")})`);
   ok(badges.every((b) => b.text === reviewerDisplayName(b.id)), `${tag}: every badge shows the roster display name for its id`);
@@ -203,6 +203,9 @@ async function runViewport({ name, width, height, phone }) {
   eq(chips.length, badges.length, `${tag}: every comment shows its type chip carrying the canonical verb`);
   ok(chips.every((c) => c.text.length > 0 && ["comment", "insert", "delete", "replace", "split", "merge", "relabel", "escalate", "withhold"].includes(c.verb)), `${tag}: type chips are non-empty and each verb is canonical (${chips.map((c) => c.text + "=" + c.verb).join(", ")})`);
   ok(chips.some((c) => c.verb === "replace"), `${tag}: the suggested rewrite is a replace proposal`);
+  const evidenceRows = await page.getByTestId("review-comment-evidence").evaluateAll((els) => els.map((el) => ({ id: el.dataset.evidenceId, text: el.textContent.trim() })));
+  eq(evidenceRows.length, badges.length, `${tag}: every visible comment discloses one evidence identity`);
+  ok(evidenceRows.every((row) => row.id && row.text === `Evidence ${row.id}` && badges.some((badge) => badge.anchor === row.id)), `${tag}: every evidence identity equals the comment's stable anchor`);
   const rewrite = await page.locator("[data-comment-anchor]").filter({ hasText: "suggested rewrite" }).first().innerText();
   ok(/\u2192/.test(rewrite), `${tag}: the suggested rewrite body (original -> suggestion) renders`);
   // The Ad toolbar's "Comments" markup mode still shows the comment-only voices (conformance-auditor C1a).
@@ -221,6 +224,26 @@ async function runViewport({ name, width, height, phone }) {
   ok(/decided by you/.test(decidedText) && /identity not recorded/.test(decidedText) && !/reviewer:/.test(decidedText), `${tag}: the decision text says who decided and that identity is withheld, not invented (${decidedText})`);
   const decidedLabel = await page.locator("[data-comment-anchor]").first().getAttribute("aria-label");
   ok(/Decision: accepted by you/.test(decidedLabel), `${tag}: the accessible label carries the human decision (${decidedLabel})`);
+  // Shared filters act on the same decision state used by the manuscript, header and print input.
+  // Filtering never clears the selected anchor or the accepted decision.
+  const chosenCard = page.locator("[data-comment-anchor]").first();
+  const chosen = await chosenCard.evaluate((element) => ({ anchor: element.dataset.commentAnchor, reviewer: element.dataset.reviewerId, verb: element.dataset.reviewVerb }));
+  await chosenCard.click();
+  await page.getByTestId("review-filter-reviewer").selectOption(chosen.reviewer);
+  await page.getByTestId("review-filter-verb").selectOption(chosen.verb);
+  await page.getByTestId("review-filter-status").selectOption("accepted");
+  await page.waitForFunction(({ reviewer, verb }) => {
+    const cards = [...document.querySelectorAll("[data-comment-anchor]")];
+    return cards.length > 0 && cards.every((card) => card.dataset.reviewerId === reviewer && card.dataset.reviewVerb === verb && card.dataset.reviewStatus === "accepted");
+  }, chosen, { timeout: 5000 });
+  const filteredCards = page.locator("[data-comment-anchor]");
+  ok(await filteredCards.count() >= 1, `${tag}: combined reviewer, verb and accepted-status filters keep a matching result`);
+  ok((await filteredCards.evaluateAll((cards) => cards.every((card) => card.dataset.selected === "true" && card.dataset.reviewStatus === "accepted"))), `${tag}: filtering preserves the selected anchor and accepted decision`);
+  await page.getByTestId("review-filter-reviewer").selectOption("all");
+  await page.getByTestId("review-filter-verb").selectOption("all");
+  await page.getByTestId("review-filter-status").selectOption("all");
+  await page.waitForFunction((anchor) => [...document.querySelectorAll("[data-comment-anchor]")].some((card) => card.dataset.commentAnchor === anchor && card.dataset.reviewStatus === "accepted" && card.dataset.selected === "true"), chosen.anchor, { timeout: 5000 });
+  ok(true, `${tag}: clearing filters restores the full view without losing selection or decision state`);
   // Analysis views: lens cards are lenses, advisory cards carry the advisory voice, nothing off roster.
   await page.getByRole("tab", { name: "Critical Read" }).click();
   await page.locator('[data-speaker-kind="lens"]').first().waitFor({ state: "visible", timeout: 15000 });

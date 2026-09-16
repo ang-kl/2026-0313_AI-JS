@@ -30,6 +30,13 @@ export const OCCUPATION_VISUALS = [
   { id: "org", label: "Org", question: "What reports up to what?" },
   { id: "workflow", label: "Workflow", question: "Who acts when?" },
   { id: "stream", label: "Value stream", question: "Where does time go?" },
+  { id: "architecture", label: "Architecture", question: "What depends on what?" },
+  { id: "concept", label: "Concept map", question: "What themes and gaps recur?" },
+  { id: "trace", label: "AI trace", question: "How was exposure derived?" },
+  { id: "funnel", label: "Hiring funnel", question: "Where does selection narrow?" },
+  { id: "portfolio", label: "Portfolio", question: "What work can be inspected?" },
+  { id: "site", label: "Site map", question: "Where does work happen?" },
+  { id: "control", label: "Control map", question: "Where does accountability sit?" },
 ];
 
 const VISUAL_ALIASES = new Map([
@@ -54,6 +61,21 @@ const VISUAL_ALIASES = new Map([
   ["stream", "stream"],
   ["value stream", "stream"],
   ["value stream map", "stream"],
+  ["system architecture", "architecture"],
+  ["architecture diagram", "architecture"],
+  ["dependency map", "architecture"],
+  ["concept map", "concept"],
+  ["content concept map", "concept"],
+  ["infranodus-style concept graph", "concept"],
+  ["aioe trace", "trace"],
+  ["ai exposure trace", "trace"],
+  ["hiring funnel", "funnel"],
+  ["campaign funnel", "funnel"],
+  ["portfolio board", "portfolio"],
+  ["site map", "site"],
+  ["control map", "control"],
+  ["risk register", "control"],
+  ["evidence chain", "control"],
 ]);
 
 function normaliseVisual(value) {

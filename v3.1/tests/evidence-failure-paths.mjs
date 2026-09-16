@@ -21,6 +21,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { GENERIC_FRESHNESS_PHRASES, ABSENCE_PHRASES } from "./support/surface-phrases.mjs";
+import { BLP028_VIEWPORTS, assertMatrixSurface } from "./support/blp028-matrix.mjs";
 import {
   ADAPTER_VERSION, BUNDLE_STATE, EVIDENCE_STATE, buildResultEvidence, resolvePostingIdentity, decisionKey, mergeDecisionLedger,
   partitionDecisionLedger, partitionLinks, validateAgainstBundle, withholdingText, staleText, failureText, emptyText, classifyRoutePayload,
@@ -108,6 +109,14 @@ eq(classifyRoutePayload(mcfCases.upstreamError.body), EVIDENCE_STATE.FAILURE, "u
 eq(classifyRoutePayload(mcfCases.genuineEmpty.body), EVIDENCE_STATE.EMPTY, "a genuine empty answer classifies as EMPTY, never as a failure");
 eq(classifyRoutePayload({ matches: [{ key: "x" }] }), EVIDENCE_STATE.OK); eq(classifyRoutePayload(null), EVIDENCE_STATE.FAILURE, "no payload at all is a failure");
 eq(classifyRoutePayload({ fallback: true, matches: [] }), EVIDENCE_STATE.FAILURE, "a fallback with no code is a failure, not an absence");
+async function mcfRoleWith(behave) { stubFetch([[isMcf, behave]]); const r = fakeRes(); await mcf({ method: "POST", body: { action: "jobs", title: "Operations Analyst", limit: 5 } }, r); return r.out; }
+const roleFailure = await mcfRoleWith(() => { throw new Error("role search offline"); });
+const roleEmpty = await mcfRoleWith(() => okJson({ results: [], total: 0 }));
+eq(roleFailure.statusCode, 200, "role search source failure is returned as a readable governed payload");
+eq(roleFailure.body.code, "SERVER", "role search preserves the upstream failure cause instead of folding it into EMPTY");
+eq(classifyRoutePayload(roleFailure.body), EVIDENCE_STATE.FAILURE, "role search source failure classifies as FAILURE");
+eq(roleEmpty.body.code, "EMPTY", "a successful role search with no rows remains EMPTY");
+eq(classifyRoutePayload(roleEmpty.body), EVIDENCE_STATE.EMPTY, "role search EMPTY remains distinct from FAILURE");
 let res = fakeRes(); await mcf({ method: "POST", body: { action: "job" } }, res);
 eq(res.out.statusCode, 400, "a job request without a uuid is refused (400), not answered with an invented posting");
 res = fakeRes(); await mcf({ method: "GET", body: {} }, res); eq(res.out.statusCode, 405, "a GET is refused");
@@ -262,6 +271,7 @@ const emptyPayload = (company) => ({ matches: [], query: company, queryKey: comp
 const respFx = JSON.stringify({ summary: "Runs operational monitoring.", responsibilities: duties.map((text, i) => ({ n: i + 1, text, cat: "Delivery & Execution", freq: "Core", sk: [] })) });
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
 const errors = [];
+const matrixEvidence = [];
 async function newPage(viewport) {
   const page = await browser.newPage({ viewport, ...(viewport.width < 600 ? { isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" } : {}) });
   page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
@@ -313,11 +323,14 @@ async function runViewport({ name, width, height, phone }) {
   await page.getByRole("button", { name: "Search by employer" }).click();
   // B1. Positive: the grid renders.
   await search(page, job.employer);
-  await page.getByTestId("company-opportunity-grid").waitFor({ state: "visible", timeout: 15000 });
+  const positiveGrid = page.getByTestId("company-opportunity-grid");
+  await positiveGrid.waitFor({ state: "visible", timeout: 15000 });
+  await assertMatrixSurface(positiveGrid, `${name} positive`);
   eq(await page.getByTestId("company-results-state").count(), 0, `${tag}: a positive answer renders no failure or empty state`);
   // B2. Hard route failure: the prior result is NOT kept, the state names the source and is never an absence.
   await search(page, "FAILING CO", { phone });
   const failure = await readState(page);
+  await assertMatrixSurface(page.getByTestId("company-results-state"), `${name} error`);
   await page.waitForFunction(() => document.querySelectorAll('[data-testid="company-opportunity-grid"]').length === 0, null, { timeout: 10000 });
   // At desktop this is the in-page assertion the Supervisor required: the prior grid was on screen and
   // is gone. At phone width the second search is reached by reload (no "Back to new search" control
@@ -352,6 +365,7 @@ async function runViewport({ name, width, height, phone }) {
   // B3. Genuine empty answer: a distinct state with distinct words.
   await search(page, "EMPTY CO", { phone });
   const empty = await readState(page);
+  await assertMatrixSurface(page.getByTestId("company-results-state"), `${name} empty`);
   eq(empty.state, EVIDENCE_STATE.EMPTY, `${tag}: an EMPTY fallback renders as the EMPTY state, not as a failure`);
   eq(empty.code, "EMPTY", `${tag}: the EMPTY code survives`);
   ok(/No match/.test(empty.text) && /MyCareersFuture answered and no live postings matched/.test(empty.text), `${tag}: the empty state says the source answered (${empty.text})`);
@@ -369,15 +383,17 @@ async function runViewport({ name, width, height, phone }) {
   await page.getByTestId("open-evidence-workspace").click();
   await page.locator('[data-testid^="v31-workspace-evidence-"]').waitFor({ state: "visible", timeout: 15000 });
   const withheld = await page.locator('[data-testid="evidence-window"] [data-window-state="withheld"]').evaluateAll((els) => els.map((el) => el.textContent.replace(/\s+/g, " ").trim()));
+  await assertMatrixSurface(page.locator('[data-testid="evidence-window"] [data-window-state="withheld"]').first(), `${name} withheld`);
   ok(withheld.length >= 1 && withheld.every((t) => /withheld \(/.test(t)), `${tag}: the withheld state renders in words on the footer (${withheld[0]})`);
   ok(!withheld.some((t) => /failed|returned an error|answered/.test(t)), `${tag}: a withholding is neither a failure nor an empty answer in its words`);
   ok(new Set([failure.state, empty.state, "withheld"]).size === 3, `${tag}: failure, empty and withheld are three distinct machine-checkable states`);
+  matrixEvidence.push({ viewport: name, width, height, states: ["positive", "error", "empty", "withheld"] });
   await page.screenshot({ path: `test-results/evidence-failure-paths/${name}.png`, fullPage: true });
   await page.close();
 }
 try {
-  await runViewport({ name: "desktop-1440x1000", width: 1440, height: 1000, phone: false });
-  await runViewport({ name: "phone-430x932", width: 430, height: 932, phone: true });
+  for (const viewport of BLP028_VIEWPORTS) await runViewport(viewport);
 } finally { await browser.close(); }
 ok(errors.length === 0, `no page or console errors: ${errors.join(" | ")}`);
-console.log(`Part B (browser, desktop 1440x1000 and phone 430x932): PASS, ${checks} checks total`);
+fs.writeFileSync("test-results/evidence-failure-paths/blp028-state-matrix.json", JSON.stringify(matrixEvidence, null, 2));
+console.log(`Part B (browser, BLP-028 four-width positive/error/empty/withheld matrix): PASS, ${checks} checks total`);

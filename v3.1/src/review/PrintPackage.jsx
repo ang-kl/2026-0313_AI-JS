@@ -146,10 +146,11 @@ export default function PrintPackage({
             <button type="button" className={variant === "clean" ? "on" : ""} aria-pressed={variant === "clean"} onClick={() => setVariant("clean")}>Clean package</button>
             <button type="button" className={variant === "review" ? "on" : ""} aria-pressed={variant === "review"} onClick={() => setVariant("review")}>Full review</button>
           </div>
-          <button data-testid="print-package-action" type="button" className="primary" onClick={() => window.print()}>Print / save PDF</button>
+          <button data-testid="print-package-action" type="button" className="primary" disabled={Boolean(proofFault)} aria-describedby={proofFault ? "print-package-blocked" : undefined} onClick={() => { if (!proofFault) window.print(); }}>Print / save PDF</button>
           <button type="button" className="close" onClick={onClose}>Close</button>
         </div>
       </header>
+      {proofFault && <p id="print-package-blocked" className="v31-print-withheld" data-testid="print-package-blocked">Print and PDF actions are blocked while the candidate-proof ledger has an integrity fault: {proofFault}</p>}
       <div className="v31-print-scroll">
         <article className="v31-print-package" data-testid="print-package-preview" data-variant={variant}>
           <p className="v31-print-kicker">V3 · reviewable work intelligence</p>

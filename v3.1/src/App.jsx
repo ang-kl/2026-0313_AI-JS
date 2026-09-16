@@ -13943,7 +13943,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
 function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus, freshGrad }) {
-  const [state, setState] = useState({ loading: true, jobs: [], csgJobs: [], seenInfo: {}, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
+  const [state, setState] = useState({ loading: true, jobs: [], csgJobs: [], seenInfo: {}, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null, mcfCode: "", mcfFallback: false, csgCode: "", csgFallback: false });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const [recencyFilter, setRecencyFilter] = useState(null); // null (all) | "new" | "seen"
@@ -13980,11 +13980,12 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       // CSG fan-out: one source failing must never blank the other.
       const [mcfSettled, csgSettled] = await Promise.allSettled([
         mcfFetch,
-        fetchCsgJobs(sel?.title || "", 50),
+        fetchCsgJobsResult(sel?.title || "", 50),
       ]);
       if (cancelled) return;
-      const data    = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [], tier: 0 };
-      const csgJobs = csgSettled.status === "fulfilled" ? csgSettled.value : [];
+      const data = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [], tier: 0, fallback: true, code: "NETWORK" };
+      const csgData = csgSettled.status === "fulfilled" ? csgSettled.value : { jobs: [], fallback: true, code: "NETWORK" };
+      const csgJobs = csgData.jobs;
       // Two-column browse: keep the two sources SEPARATE (MCF left, careers.gov.sg
       // right). Tag source so McfJobCard labels it. The role-analyse corpus still
       // MERGES both (getJobsForRole) - two columns is a browse-list concern only.
@@ -14005,13 +14006,17 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         approximate: !!data.approximate,
         fallback: !!data.fallback && sortedCsg.length === 0,
         capped: !!data.capped,
+        mcfCode: data.code || "",
+        mcfFallback: !!data.fallback,
+        csgCode: csgData.code || "",
+        csgFallback: !!csgData.fallback,
         error: null,
       });
       track("v3_mcf_loaded", { tier: data.tier || 0, count: sortedJobs.length, csg: sortedCsg.length, fallback: !!data.fallback });
     }
     doFetch().catch((err) => {
       if (cancelled) return;
-      setState({ loading: false, jobs: [], csgJobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
+      setState({ loading: false, jobs: [], csgJobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message, mcfCode: "NETWORK", mcfFallback: true, csgCode: "NETWORK", csgFallback: true });
       track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
     });
     return () => { cancelled = true; };
@@ -14093,6 +14098,13 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const mcfMatchCounts = countJobSearchBuckets(state.jobs);
   const csgMatchCounts = countJobSearchBuckets(state.csgJobs);
   const totalPostings = state.jobs.length + state.csgJobs.length;
+  const mcfEvidenceState = classifyRoutePayload({ jobs: state.jobs, fallback: state.mcfFallback, code: state.mcfCode });
+  const csgEvidenceState = classifyRoutePayload({ jobs: state.csgJobs, fallback: state.csgFallback, code: state.csgCode });
+  const sourceState = (source, evidenceState, code, testId) => (
+    <div role="status" aria-live="polite" data-testid={testId} data-state={evidenceState} data-source-code={code || ""} style={{ background: evidenceState === EVIDENCE_STATE.FAILURE ? "#fff7ed" : C.amberBg, border: `1px solid ${evidenceState === EVIDENCE_STATE.FAILURE ? "#fdba74" : C.amberBdr}`, borderRadius: 10, padding: "14px 16px", color: "#78350f", fontSize: "0.8125rem", lineHeight: 1.6 }}>
+      <strong>{evidenceState === EVIDENCE_STATE.FAILURE ? "Source failed" : "No match"}</strong>{" · "}{evidenceState === EVIDENCE_STATE.FAILURE ? failureText(source, code) : emptyText(source, sel?.title || "")}
+    </div>
+  );
   const jumpTo = id => {
     const el = typeof document !== "undefined" ? document.getElementById(id) : null;
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -14208,10 +14220,9 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       )}
 
       {!state.loading && state.jobs.length === 0 && state.csgJobs.length === 0 && (
-        <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "20px 18px" }}>
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
-            {state.message || "No live postings matched this role today. Postings refresh daily on MyCareersFuture - check back tomorrow."}
-          </p>
+        <div style={{ display: "grid", gap: 10 }}>
+          {sourceState("MyCareersFuture", mcfEvidenceState, state.mcfCode, "role-mcf-results-state")}
+          {sourceState("careers.gov.sg", csgEvidenceState, state.csgCode, "role-csg-results-state")}
           <p style={{ margin: "10px 0 0", fontSize: "0.75rem" }}>
             <a href={`https://www.mycareersfuture.gov.sg/search?search=${encodeURIComponent(sel?.title || "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>
               Search MyCareersFuture directly →
@@ -14256,7 +14267,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           <div id="mcf-jobs" style={{ scrollMarginTop: 90 }}>
             <h3 style={{ margin: "0 0 8px", fontSize: "0.9375rem", fontWeight: 800, color: C.text, display: "flex", alignItems: "center", gap: 5 }}><span aria-hidden="true">&#127480;&#127468;</span> MyCareersFuture ({state.jobs.length})</h3>
             {state.jobs.length === 0 ? (
-              <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, fontStyle: "italic" }}>No MyCareersFuture postings matched this role today.</p>
+              sourceState("MyCareersFuture", mcfEvidenceState, state.mcfCode, "role-mcf-results-state")
             ) : (
         <>
           {archGroups.length >= 2 && (
@@ -14350,7 +14361,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           <div id="csg-jobs" style={{ scrollMarginTop: 90 }}>
             <h3 style={{ margin: "0 0 8px", fontSize: "0.9375rem", fontWeight: 800, color: C.text, display: "flex", alignItems: "center", gap: 5 }}><span aria-hidden="true">&#127963;</span> careers.gov.sg ({state.csgJobs.length})</h3>
             {state.csgJobs.length === 0 ? (
-              <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>No public-service postings for this title on careers.gov.sg - it lists Singapore government roles only.</p>
+              sourceState("careers.gov.sg", csgEvidenceState, state.csgCode, "role-csg-results-state")
             ) : (
               <>
                 {renderJobCards(state.csgJobs.slice(0, 20), "csg", false)}

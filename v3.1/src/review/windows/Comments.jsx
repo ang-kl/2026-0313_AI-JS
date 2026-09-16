@@ -6,15 +6,37 @@ import { RS_DOT } from "../rs-rules.js";
 import { activeReviewerDisplayName, LOCAL_HUMAN_ACTOR } from "../reviewerContract.js";
 
 export function renderWinComments(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, setPreviewSpan } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, reviewViewComments, reviewFilters, setReviewFilters, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, setPreviewSpan } = ctx;
   const dutySpansC = dissection.spans.filter((x) => x.sec !== "req");
   const nDone = marginComments.filter((c) => commentStatus[c.id]).length;
+  const reviewers = [...new Set(reviewViewComments.map((comment) => comment.reviewerId))];
+  const verbs = [...new Set(reviewViewComments.map((comment) => comment.verb))];
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".13em", color: "#6b6357" }}>REVIEWER COMMENTS</span>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{nDone}/{marginComments.length} decided</span>
       </div>
+      <fieldset data-testid="review-filters" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(132px,1fr))", gap: 7, margin: "0 0 12px", padding: 9, border: "1px solid #d9d6cd", borderRadius: 8 }}>
+        <legend style={{ padding: "0 5px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>FILTER REVIEW ITEMS</legend>
+        <label style={{ display: "grid", gap: 3, fontSize: "0.6875rem", color: "#52607a" }}>Action
+          <select data-testid="review-filter-verb" value={reviewFilters.verb} onChange={(event) => setReviewFilters((current) => ({ ...current, verb: event.target.value }))} style={{ minHeight: 44 }}>
+            <option value="all">All actions</option>
+            {verbs.map((verb) => <option key={verb} value={verb}>{verb}</option>)}
+          </select>
+        </label>
+        <label style={{ display: "grid", gap: 3, fontSize: "0.6875rem", color: "#52607a" }}>Reviewer
+          <select data-testid="review-filter-reviewer" value={reviewFilters.reviewer} onChange={(event) => setReviewFilters((current) => ({ ...current, reviewer: event.target.value }))} style={{ minHeight: 44 }}>
+            <option value="all">All reviewers</option>
+            {reviewers.map((reviewerId) => <option key={reviewerId} value={reviewerId}>{activeReviewerDisplayName(reviewerId) || UNROSTERED_LABEL}</option>)}
+          </select>
+        </label>
+        <label style={{ display: "grid", gap: 3, fontSize: "0.6875rem", color: "#52607a" }}>Status
+          <select data-testid="review-filter-status" value={reviewFilters.status} onChange={(event) => setReviewFilters((current) => ({ ...current, status: event.target.value }))} style={{ minHeight: 44 }}>
+            <option value="all">All statuses</option><option value="open">Open</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+          </select>
+        </label>
+      </fieldset>
       {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#586474" }}>No comments for this analysis yet.</p>}
 
 
@@ -26,7 +48,7 @@ export function renderWinComments(ctx) {
               const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
               const dutyNo = dutySpansC.findIndex((s) => s.id === c.anchor) + 1; // 0 = not a duty line
               return (
-                <div key={c.id} data-comment-anchor={c.anchor} role="button" tabIndex={0}
+                <div key={c.id} data-comment-anchor={c.anchor} data-reviewer-id={c.reviewerId} data-review-verb={c.verb} data-review-status={st || "open"} data-selected={active ? "true" : "false"} role="button" tabIndex={0}
                   aria-label={who + "'s " + c.type + " comment" + (dutyNo > 0 ? ", linked to highlighted duty " + dutyNo : "") + (st ? ". Decision: " + st + " by " + LOCAL_HUMAN_ACTOR.displayName + "." : ". Pending decision.")}
                   onClick={() => setActiveSpan(c.anchor)}
                   onMouseEnter={() => setPreviewSpan && setPreviewSpan(c.anchor)}
@@ -42,6 +64,7 @@ export function renderWinComments(ctx) {
                   </div>
                   {cb && <div style={{ marginBottom: 7 }}><span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: cb.ink, background: cb.bg, border: "1px solid " + cb.border, borderRadius: 5, padding: "1px 6px" }}>{cb.label}</span></div>}
                   {anchorText && <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#52607a", borderLeft: "2px solid #d9d6cd", paddingLeft: 9, margin: "0 0 8px", lineHeight: 1.4 }}>{String.fromCharCode(0x201c)}{anchorText}{String.fromCharCode(0x201d)}</p>}
+                  <div data-testid="review-comment-evidence" data-evidence-id={c.anchor} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", wordBreak: "break-all", marginBottom: 6 }}>Evidence {c.anchor}</div>
                   <p style={{ fontSize: "0.8rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{c.reason}</p>
                   {c.type === "suggested rewrite" && (
                     <div style={{ background: "#f6fbf7", border: "1px solid #d8ecdd", borderRadius: 8, padding: "8px 9px", marginBottom: 8 }}>

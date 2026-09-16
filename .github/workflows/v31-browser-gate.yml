@@ -79,12 +79,21 @@ jobs:
           node tests/evidence-round-trip.mjs
           node tests/evidence-window.mjs
           node tests/reviewer-contract.mjs
-          node tests/evidence-failure-paths.mjs
+          node tests/review-state-contract.mjs
+          node tests/resume-claim-workbench.mjs
+          node tests/generation-service-contract.mjs
+          node tests/cover-letter-workbench.mjs
+          node tests/output-release-policy.mjs
+          node tests/generation-adversarial.mjs
+          node tests/visual-workspaces-positive.mjs
+          node tests/organisation-synthesis-contract.mjs
+          node tests/role-sensitive-visual-contract.mjs
+          node tests/blueprint-trace-contract.mjs
           node tests/person-evidence-excerpts.mjs
           node tests/candidate-proof-ledger.mjs
-          node tests/proof-links.mjs
           node tests/proof-states.mjs
           node tests/proof-destinations.mjs
+          node tests/blp028-responsive-matrix.mjs
 
       - name: Enforce blueprint-register construction scope
         if: startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-')

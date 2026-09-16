@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReviewStudioLegacy from "./ReviewStudioLegacy.jsx";
 import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
 import { applyEvidenceToLedger, createEmptyLedger, reconcileLinks, catalogueKey, guardLedgerStep } from "./work-universe/candidateProofLedgerData.js";
@@ -28,6 +28,11 @@ export default function ReviewStudio(props) {
   const [surface, setSurface] = useState("universe");
   const [workspaceMounted, setWorkspaceMounted] = useState(false);
   const [workspaceIntent, setWorkspaceIntent] = useState(null);
+  // The Work Universe stays mounted while the evidence workspace is open, so retain the exact
+  // control that initiated the round trip. Returning restores keyboard focus without moving the
+  // originating rail or ledger scroll position.
+  const workspaceOriginRef = useRef(null);
+  const restoreWorkspaceOriginRef = useRef(false);
   const [personEvidenceOverride, setPersonEvidenceOverride] = useState(undefined);
   // BLP-008: the candidate-proof ledger remembers records across edits, so it lives beside the
   // payload (a cleared payload is null) in this session-only state; nothing reaches browser storage.
@@ -73,10 +78,25 @@ export default function ReviewStudio(props) {
     governanceReviewState,
   }), [props.result, personEvidenceOverride, governanceReviewState]);
 
+  useEffect(() => {
+    if (surface !== "universe" || !restoreWorkspaceOriginRef.current) return undefined;
+    restoreWorkspaceOriginRef.current = false;
+    const origin = workspaceOriginRef.current;
+    if (!origin || !origin.isConnected || typeof origin.focus !== "function") return undefined;
+    const frame = requestAnimationFrame(() => origin.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [surface]);
+
   const openWorkspace = (intent) => {
+    workspaceOriginRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setWorkspaceIntent(intent || { kind: "evidence" });
     setWorkspaceMounted(true);
     setSurface("workspace");
+  };
+
+  const returnToUniverse = () => {
+    restoreWorkspaceOriginRef.current = true;
+    setSurface("universe");
   };
 
   return (
@@ -115,7 +135,7 @@ export default function ReviewStudio(props) {
           <button
             data-testid="return-work-universe"
             type="button"
-            onClick={() => setSurface("universe")}
+            onClick={returnToUniverse}
             aria-label="Return to the Work Universe"
             style={{
               // BLP-003 phone-width round trip: the sticky site header is taller than 72px at

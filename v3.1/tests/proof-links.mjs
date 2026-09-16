@@ -15,6 +15,7 @@
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { BLP028_VIEWPORTS, assertMatrixSurface } from "./support/blp028-matrix.mjs";
 import {
   LINKABLE_TARGET_KINDS, TARGET_KIND_AVAILABILITY, LEDGER_ACTOR, LINK_STATE,
   createEmptyLedger, applyEvidenceToLedger, linkProof, unlinkProof, relinkProof, reconcileLinks, bundleTargets, judgeLink, catalogueKey, availabilityOf,
@@ -325,6 +326,7 @@ const CV = `I monitored operational data daily and investigated every payments e
 const WANTED = `I monitored operational data daily and investigated every payments exception ${MARKER}.`;
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
 const errors = [];
+const matrixEvidence = [];
 async function newPage(viewport) {
   const page = await browser.newPage({ viewport, ...(viewport.width < 600 ? { isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" } : {}) });
   page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
@@ -414,16 +416,25 @@ async function runViewport({ name, width, height, phone }) {
   ok(/linked to 2 targets/.test(await page.locator('[data-testid="cpl-uses"]').first().innerText()), `${tag}: downstream uses count two valid links`);
   eq(await page.getByTestId("cpl-link-select").first().locator("option").count(), options.length - 2, `${tag}: linked targets leave the pick list`);
 
-  // 2. Jump to the target in the evidence workspace: the target is opened where BLP-003 renders it.
-  await page.getByTestId("cpl-link-open").first().click();
+  // 2. Keyboard round trip: the exact link target opens under its canonical id, and returning by
+  // keyboard restores focus to the same proof-link control without losing the ledger or its links.
+  const originOpen = page.getByTestId("cpl-link-open").first();
+  const originLinkId = await originOpen.locator("xpath=ancestor::*[@data-testid='cpl-link']").getAttribute("data-link-id");
+  await originOpen.focus();
+  await page.keyboard.press("Enter");
   const workspaceRow = page.locator(`[data-testid="v31-workspace-evidence-${rows[0].targetId}"]`);
   await workspaceRow.waitFor({ state: "visible", timeout: 15000 });
   ok(await workspaceRow.isVisible(), `${tag}: the linked duty is opened in the evidence workspace by its canonical id (fails if the jump invents or loses the id)`);
-  // Return to the person lens the way BLP-003's round trip does (the workspace keeps the Landing mounted).
-  await page.getByTestId("return-work-universe").click();
+  const returnButton = page.getByTestId("return-work-universe");
+  await returnButton.focus();
+  await page.keyboard.press("Enter");
   await page.getByTestId("candidate-proof-ledger").waitFor({ state: "visible", timeout: 15000 });
+  await page.waitForFunction((linkId) => document.activeElement?.closest?.('[data-testid="cpl-link"]')?.dataset.linkId === linkId && document.activeElement?.dataset.testid === "cpl-link-open", originLinkId, { timeout: 5000 });
+  eq(await page.evaluate(() => document.activeElement?.closest?.('[data-testid="cpl-link"]')?.dataset.linkId || null), originLinkId, `${tag}: return restores focus to the exact proof-link control that opened the workspace`);
   rows = await links(page);
   eq(rows.length, 2, `${tag}: the links survive the workspace round trip (the ledger lives in session state)`);
+  eq(rows[0].id, originLinkId, `${tag}: the originating link remains the same record after the round trip`);
+  eq(rows[0].targetId, dutyOpt.value.split("|")[1], `${tag}: the round trip returns to the exact originating canonical target`);
 
   // 3. The candidate side goes stale: links invalidate with the reason in words and no text changes.
   await textarea.fill(`${CV}\nAppended line.`);
@@ -434,6 +445,8 @@ async function runViewport({ name, width, height, phone }) {
   const noticeBeforeStale = await noticeText(page);
   await page.getByTestId("person-evidence-apply").click();
   await page.waitForFunction(() => [...document.querySelectorAll('[data-testid="cpl-link"]')].some((el) => el.dataset.state === "INVALID"), null, { timeout: 5000 });
+  await assertMatrixSurface(page.locator('[data-testid="cpl-record"][data-state="STALE"]').first(), `${name} stale`);
+  matrixEvidence.push({ viewport: name, width, height, states: ["stale"] });
   rows = await links(page);
   ok(rows.filter((r) => r.reason === "CANDIDATE_SOURCE_CHANGED").length === 2, `${tag}: both links are INVALID with reason CANDIDATE_SOURCE_CHANGED when the proof record goes stale`);
   ok(rows.every((r) => r.text && r.text.length > 20), `${tag}: invalid links keep their target snapshot for inspection`);
@@ -483,8 +496,8 @@ async function runViewport({ name, width, height, phone }) {
   await page.close();
 }
 try {
-  await runViewport({ name: "desktop-1440x1000", width: 1440, height: 1000, phone: false });
-  await runViewport({ name: "phone-430x932", width: 430, height: 932, phone: true });
+  for (const viewport of BLP028_VIEWPORTS) await runViewport(viewport);
 } finally { await browser.close(); }
 ok(errors.length === 0, `no page or console errors: ${errors.join(" | ")}`);
-console.log(`Part B (browser, desktop 1440x1000 and phone 430x932): PASS, ${checks} checks total`);
+fs.writeFileSync("test-results/proof-links/blp028-state-matrix.json", JSON.stringify(matrixEvidence, null, 2));
+console.log(`Part B (browser, BLP-028 four-width stale matrix): PASS, ${checks} checks total`);
