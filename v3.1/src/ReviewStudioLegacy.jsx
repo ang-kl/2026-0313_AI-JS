@@ -748,6 +748,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // decision and link ledgers can be partitioned against the ids actually on screen.
   const dissection = useMemo(() => buildDissection(result, posting), [result, posting]);
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
+  const [reviewFilters, setReviewFilters] = useState({ verb: "all", reviewer: "all", status: "all" });
   // BLP-003: decisions whose anchor is no longer on screen (pre-BLP-003 positional anchors, or
   // a duty re-extracted under a new version) are preserved verbatim and surfaced as withheld -
   // never re-anchored by guesswork. { stale, legacy } are written back unchanged on save.
@@ -1155,7 +1156,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const showCritical = tab === "critical";
   // Inspector (right) is persistent on every tab; the comments LIST joins it on The Ad tab.
   const showMargin = true;
-  const marginComments = markup === "comments" ? dissection.comments.filter((c) => c.type === "comment" || c.type === "withhold claim") : dissection.comments;
+  const reviewViewComments = markup === "comments" ? dissection.comments.filter((c) => c.type === "comment" || c.type === "withhold claim") : dissection.comments;
+  const marginComments = reviewViewComments.filter((comment) => {
+    const status = commentStatus[comment.id] || "open";
+    return (reviewFilters.verb === "all" || comment.verb === reviewFilters.verb)
+      && (reviewFilters.reviewer === "all" || comment.reviewerId === reviewFilters.reviewer)
+      && (reviewFilters.status === "all" || status === reviewFilters.status);
+  });
 
   const ja = result && result.jobAnatomy;
   const rd = result && result.responsibilitiesData;
@@ -1508,7 +1515,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag, rsTermSpans, focusTerm, setFocusTerm, manuTab, setManuTab };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, reviewViewComments, reviewFilters, setReviewFilters, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag, rsTermSpans, focusTerm, setFocusTerm, manuTab, setManuTab };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};

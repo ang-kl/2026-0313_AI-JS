@@ -300,20 +300,25 @@ function scoreJob(job, tokens, broaderConcept) {
   return score;
 }
 
-// Single MCF search call. Returns array of normalised jobs (or [] on failure).
-// MCF v2 search uses ?search=<term>&limit=&offset=. Quoted phrases allowed.
-async function mcfSearch(query, { limit = PAGE_SIZE } = {}) {
-  if (!query || !query.trim()) return [];
+// Single MCF search call. The result-shaped form keeps a failed source distinct
+// from a successful empty answer; the array wrapper remains for best-effort
+// consumers such as the non-authoritative live-demand hint.
+async function mcfSearchResult(query, { limit = PAGE_SIZE } = {}) {
+  if (!query || !query.trim()) return { jobs: [], failure: null };
   const url = `${MCF_BASE}?search=${encodeURIComponent(query)}&limit=${limit}&offset=0`;
   try {
     const res = await fetchWithTimeout(url, MCF_TIMEOUT_MS);
-    if (!res.ok) return [];
+    if (!res.ok) return { jobs: [], failure: res.status === 429 || res.status === 503 ? 'BUSY' : 'SERVER' };
     const data = await res.json();
     const results = data?.results || [];
-    return results.map(normaliseJob).filter(Boolean);
+    return { jobs: results.map(normaliseJob).filter(Boolean), failure: null };
   } catch (err) {
-    return [];
+    return { jobs: [], failure: err && err.name === 'AbortError' ? 'TIMEOUT' : 'SERVER' };
   }
+}
+
+async function mcfSearch(query, options) {
+  return (await mcfSearchResult(query, options)).jobs;
 }
 
 // ---- action: "company" helpers -----------------------------------------------
@@ -599,11 +604,19 @@ export default async function handler(req, res) {
   const skillList = Array.isArray(skills) ? skills : [];
 
   let outboundCalls = 0;
-  const callIfBudget = async (fn) => {
+  let failedCalls = 0;
+  let firstFailure = null;
+  const searchIfBudget = async (query, options) => {
     if (outboundCalls >= MAX_OUTBOUND_CALLS) return [];
     outboundCalls += 1;
-    return fn();
+    const result = await mcfSearchResult(query, options);
+    if (result.failure) {
+      failedCalls += 1;
+      if (!firstFailure) firstFailure = result.failure;
+    }
+    return result.jobs;
   };
+  const searchMeta = () => failedCalls ? { partial: true, failedCalls, code: firstFailure } : {};
 
   // After the cascade picks a result set, optionally enrich the top jobs with
   // their detail pages (run in parallel, fully graceful on failure).
@@ -636,7 +649,7 @@ export default async function handler(req, res) {
     let tier1Hits = [];
     for (const q of tier1Queries) {
       if (outboundCalls >= MAX_OUTBOUND_CALLS) break;
-      const hits = await callIfBudget(() => mcfSearch(`"${q}"`, { limit: PAGE_SIZE }));
+      const hits = await searchIfBudget(`"${q}"`, { limit: PAGE_SIZE });
       tier1Hits = dedupe(tier1Hits.concat(hits));
       if (tier1Hits.length >= TIER_THRESHOLD) break;
     }
@@ -644,7 +657,7 @@ export default async function handler(req, res) {
       const jobs = await enrich(tier1Hits.slice(0, cap));
       return res.status(200).json({
         jobs, tier: 1, total: tier1Hits.length, capped: tier1Hits.length > cap, detail: wantDetail,
-        source: 'MyCareersFuture Singapore',
+        source: 'MyCareersFuture Singapore', ...searchMeta(),
       });
     }
 
@@ -653,7 +666,7 @@ export default async function handler(req, res) {
     const topSkills = skillList.filter(s => s && s.isEssential !== false).slice(0, 3);
     for (const s of topSkills) {
       if (outboundCalls >= MAX_OUTBOUND_CALLS) break;
-      const hits = await callIfBudget(() => mcfSearch(s.skill || '', { limit: PAGE_SIZE }));
+      const hits = await searchIfBudget(s.skill || '', { limit: PAGE_SIZE });
       tier2Hits = dedupe(tier2Hits.concat(hits));
       if (tier2Hits.length >= TIER_THRESHOLD) break;
     }
@@ -661,7 +674,7 @@ export default async function handler(req, res) {
       const jobs = await enrich(tier2Hits.slice(0, cap));
       return res.status(200).json({
         jobs, tier: 2, total: tier2Hits.length, capped: tier2Hits.length > cap, detail: wantDetail,
-        source: 'MyCareersFuture Singapore',
+        source: 'MyCareersFuture Singapore', ...searchMeta(),
       });
     }
 
@@ -673,7 +686,7 @@ export default async function handler(req, res) {
       ])).slice(0, 6);
       if (tokens.length) {
         const broadQuery = tokens.slice(0, 3).join(' ');
-        const broadHits = await callIfBudget(() => mcfSearch(broadQuery, { limit: PAGE_SIZE * 2 }));
+        const broadHits = await searchIfBudget(broadQuery, { limit: PAGE_SIZE * 2 });
         const broaderConcept =
           (skillList.find(s => s?.broaderConcept)?.broaderConcept) || '';
         const scoredAll = broadHits
@@ -685,7 +698,7 @@ export default async function handler(req, res) {
           const jobs = await enrich(scored);
           return res.status(200).json({
             jobs, tier: 3, approximate: true, total: scoredAll.length, capped: scoredAll.length > cap, detail: wantDetail,
-            source: 'MyCareersFuture Singapore',
+            source: 'MyCareersFuture Singapore', ...searchMeta(),
           });
         }
       }
@@ -698,6 +711,14 @@ export default async function handler(req, res) {
       const jobs = await enrich(merged.slice(0, cap));
       return res.status(200).json({
         jobs, tier: 2, approximate: true, total: merged.length, capped: merged.length > cap, detail: wantDetail,
+        source: 'MyCareersFuture Singapore', ...searchMeta(),
+      });
+    }
+    if (firstFailure) {
+      const cause = firstFailure === 'TIMEOUT' ? WARM_ERRORS.timeout : firstFailure === 'BUSY' ? WARM_ERRORS.busy : WARM_ERRORS.server;
+      return res.status(200).json({
+        jobs: [], tier: 0, total: 0, fallback: true, failedCalls,
+        ...cause,
         source: 'MyCareersFuture Singapore',
       });
     }

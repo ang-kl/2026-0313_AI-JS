@@ -27,6 +27,8 @@ import {
 } from "./candidateProofLedgerData.js";
 import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
 import { proofStateText, destinationText, destinationStateText } from "../contracts/evidenceAdapter.js";
+import ResumeClaimWorkbench from "../review/ResumeClaimWorkbench.jsx";
+import CoverLetterWorkbench from "../review/CoverLetterWorkbench.jsx";
 
 // BLP-008 candidate-proof ledger panel. Renders only what the ledger holds: one row per proof
 // record with the exact excerpt under its own label ("what the document says"), the human's own
@@ -387,6 +389,8 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
           ))}
         </ul>
       )}
+      <ResumeClaimWorkbench ledger={ledger} bundle={bundle} />
+      <CoverLetterWorkbench ledger={ledger} bundle={bundle} />
     </section>
   );
 }

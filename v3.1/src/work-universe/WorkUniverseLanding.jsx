@@ -3,13 +3,15 @@ import OrganisationMap from "./OrganisationMap.jsx";
 import WorkflowMap from "./WorkflowMap.jsx";
 import ValueStreamMap from "./ValueStreamMap.jsx";
 import OccupationVisualSelector from "./OccupationVisualSelector.jsx";
+import VisualWorkspaceFrame from "./VisualWorkspaceFrame.jsx";
+import RoleSensitiveVisual from "./RoleSensitiveVisual.jsx";
+import { ROLE_VISUAL_CONTRACTS } from "./roleSensitiveVisualData.js";
 import PersonEvidenceIngress from "./PersonEvidenceIngress.jsx";
 import CandidateProofLedger from "./CandidateProofLedger.jsx";
 import GovernanceLedger from "./GovernanceLedger.jsx";
 import { jobAdText, jobAdSections } from "../review/job-ad-sections.js";
 import { buildResultEvidence } from "../contracts/evidenceAdapter.js";
 import { useDeviceProfile } from "../responsive/deviceProfile.js";
-
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
 const C = {
@@ -490,8 +492,10 @@ export default function WorkUniverseLanding({
   const [anchor, setAnchor] = useState("role");
   const [mode, setMode] = useState("universe");
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [visualLayouts, setVisualLayouts] = useState({ organisation: "docked", workflow: "docked", stream: "docked" });
   const [roleGraphMounted, setRoleGraphMounted] = useState(false);
   const [organisationMapOpen, setOrganisationMapOpen] = useState(false);
+  const [activeRoleVisual, setActiveRoleVisual] = useState(null);
   const [governanceView, setGovernanceView] = useState("ledger");
   const [sourceTab, setSourceTab] = useState("job-ad");
   const [jobAdTab, setJobAdTab] = useState("overview");
@@ -509,7 +513,7 @@ export default function WorkUniverseLanding({
   const [geo, setGeo] = useState({ node: 230, nodeSm: 212, anchor: 205 });
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hasWebgl, setHasWebgl] = useState(false);
-  const isPhone = deviceProfile?.formFactor === "phone";
+  const isPhone = deviceProfile?.formFactor === "phone", rootTestId = "work-universe";
   const isPortraitTablet = deviceProfile?.formFactor === "tablet" && deviceProfile?.orientation === "portrait";
   const usesPanelNavigator = isPhone || isPortraitTablet;
   const phoneOrientation = isPhone ? (deviceProfile?.orientation || "portrait") : "none";
@@ -806,6 +810,18 @@ export default function WorkUniverseLanding({
     else if (visual === "org") showOrganisationMap();
     else if (visual === "workflow") showWorkflowMap();
     else if (visual === "stream") showValueStreamMap();
+    else if (ROLE_VISUAL_CONTRACTS[visual]) {
+      setMode("role-sensitive-visual");
+      setOrganisationMapOpen(false);
+      setActiveRoleVisual(visual);
+      setSelectedGraph(null);
+      setSelectedSignal(null);
+      setSelectedEvidence(null);
+      setSelectedInterpretation(null);
+      setDetail({ kind: "roleSensitiveVisual", visual });
+      setTocActive(`visual-${visual}`);
+      setFooter({ label: ROLE_VISUAL_CONTRACTS[visual].label, detail: `supplied-data contract ${ROLE_VISUAL_CONTRACTS[visual].version}` });
+    }
   };
   const openAiMoments = () => {
     setAnchor("org");
@@ -856,19 +872,23 @@ export default function WorkUniverseLanding({
       ? "workflow"
       : mode === "value-stream-map"
         ? "stream"
-        : mode === "rolegraph"
+      : mode === "rolegraph"
           ? "graph"
-          : null;
+          : mode === "role-sensitive-visual"
+            ? activeRoleVisual
+            : null;
+  const visualLayout = (id) => visualLayouts[id] || "docked";
+  const setVisualLayout = (id, layout) => setVisualLayouts((current) => ({ ...current, [id]: layout }));
 
   return (
     <div
       ref={rootRef}
-      data-testid="work-universe"
+      data-testid={rootTestId}
       data-wu-form-factor={deviceProfile?.formFactor || "unclassified"}
       data-wu-size-tier={deviceProfile?.sizeTier || "unclassified"}
       data-wu-orientation={deviceProfile?.orientation || "unclassified"}
       data-wu-aspect-tier={deviceProfile?.aspectTier || "unclassified"}
-      className={`wu-root ${isPhone ? "wu-phone" : ""} ${isPortraitTablet ? "wu-tablet-portrait" : ""} ${isPhone && phoneOrientation === "landscape" ? "wu-phone-landscape" : ""} wu-mobilePanel-${mobilePanel} ${(mode === "rolegraph" || mode === "ai-moments") ? "wu-centreFocus" : ""} ${mode === "ai-moments" ? "wu-aiMomentsMode" : ""} ${!mapExpanded && mode !== "rolegraph" ? "wu-guided" : ""} ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map" || mode === "governance-ledger") ? "wu-dedicatedMap" : ""} ${organisationMapOpen ? "wu-organisationMap" : ""}`}
+      className={`wu-root ${isPhone ? "wu-phone" : ""} ${isPortraitTablet ? "wu-tablet-portrait" : ""} ${isPhone && phoneOrientation === "landscape" ? "wu-phone-landscape" : ""} wu-mobilePanel-${mobilePanel} ${(mode === "rolegraph" || mode === "ai-moments") ? "wu-centreFocus" : ""} ${mode === "ai-moments" ? "wu-aiMomentsMode" : ""} ${!mapExpanded && mode !== "rolegraph" ? "wu-guided" : ""} ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map" || mode === "role-sensitive-visual" || mode === "governance-ledger") ? "wu-dedicatedMap" : ""} ${organisationMapOpen ? "wu-organisationMap" : ""}`}
     >
       <style>{`
         .wu-root{box-sizing:border-box;height:var(--wu-available-height,calc(100dvh - 64px));min-height:0;padding:0;overflow:hidden;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
@@ -1014,7 +1034,7 @@ export default function WorkUniverseLanding({
             </div>
             <section className="wu-sourceBody">
               {sourceTab === "job-ad" && <div>
-                <div className="wu-jobAdTabs" role="tablist" aria-label="Job advertisement sections" data-testid="wu-job-ad-tabs">
+                <div className="wu-jobAdTabs" role="tablist" aria-label="Job advertisement sections" data-testid="wu-job-ad-tabs" data-related-panel="wu-lineage-panel">
                   {jobAdTabs.map((tab) => (
                     <button
                       key={tab.key}
@@ -1136,7 +1156,7 @@ export default function WorkUniverseLanding({
 
           <section className="wu-centrePane" aria-label="Work Universe">
             <div className="wu-centreHead">
-              <div><span className="wu-eyebrow">Workspace</span> <span className="wu-railTitle">{mode === "governance-ledger" ? "Governance Ledger" : mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : mode === "ai-moments" ? "AI Moments · Cards | Business cube" : organisationMapOpen ? "Organisation Map" : mode === "rolegraph" ? "Role Graph" : "Work Universe"}</span></div>
+              <div><span className="wu-eyebrow">Workspace</span> <span className="wu-railTitle">{mode === "governance-ledger" ? "Governance Ledger" : mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : mode === "role-sensitive-visual" ? ROLE_VISUAL_CONTRACTS[activeRoleVisual]?.label : mode === "ai-moments" ? "AI Moments · Cards | Business cube" : organisationMapOpen ? "Organisation Map" : mode === "rolegraph" ? "Role Graph" : "Work Universe"}</span></div>
               <div className="wu-centreControls">
                 <div className="wu-panelSwitch" role="tablist" aria-label="Centre workspace view">
                   <button data-testid="wu-centre-universe" type="button" role="tab" aria-selected={mode !== "rolegraph"} className={mode !== "rolegraph" ? "on" : ""} onClick={resetUniverse}>Work Universe</button>
@@ -1154,7 +1174,7 @@ export default function WorkUniverseLanding({
               onSelect={selectVisual}
               onEvidenceSelect={selectEvidence}
             />}
-            <div className="wu-universeFrame" ref={frameRef}>
+            <div className="wu-universeFrame" ref={frameRef} data-graph-card-pattern="graph-${graph.key}">
               {mode === "universe" && !mapExpanded && !organisationMapOpen && (
                 <section className="wu-startHere" data-testid="wu-start-here">
                   <div className="wu-startEyebrow">Start here</div>
@@ -1201,31 +1221,41 @@ export default function WorkUniverseLanding({
                   onDecisionChange={onGovernanceDecisionChange}
                 />
               ) : organisationMapOpen ? (
-                <OrganisationMap
-                  result={result}
-                  roleTitle={roleTitle}
-                  organisationName={orgName}
-                  onBack={() => showGraph(2)}
-                  onEvidenceSelect={selectEvidence}
-                  onOpenCompanyEvidence={openEvidenceWorkspace}
-                  onOpenAiMoments={openAiMoments}
-                />
+                <VisualWorkspaceFrame id="organisation" label="Organisation Map" layout={visualLayout("organisation")} onLayoutChange={(layout) => setVisualLayout("organisation", layout)} linear={usesPanelNavigator}>
+                  <OrganisationMap
+                    result={result}
+                    roleTitle={roleTitle}
+                    organisationName={orgName}
+                    onBack={() => showGraph(2)}
+                    onEvidenceSelect={selectEvidence}
+                    onOpenCompanyEvidence={openEvidenceWorkspace}
+                    onOpenAiMoments={openAiMoments}
+                  />
+                </VisualWorkspaceFrame>
               ) : mode === "workflow-map" ? (
-                <WorkflowMap
-                  result={result}
-                  roleTitle={roleTitle}
-                  organisationName={orgName}
-                  onBack={() => showGraph(2)}
-                  onEvidenceSelect={selectEvidence}
-                />
+                <VisualWorkspaceFrame id="workflow" label="Workflow Map" layout={visualLayout("workflow")} onLayoutChange={(layout) => setVisualLayout("workflow", layout)} linear={usesPanelNavigator}>
+                  <WorkflowMap
+                    result={result}
+                    roleTitle={roleTitle}
+                    organisationName={orgName}
+                    onBack={() => showGraph(2)}
+                    onEvidenceSelect={selectEvidence}
+                  />
+                </VisualWorkspaceFrame>
               ) : mode === "value-stream-map" ? (
-                <ValueStreamMap
-                  result={result}
-                  roleTitle={roleTitle}
-                  organisationName={orgName}
-                  onBack={() => showGraph(2)}
-                  onEvidenceSelect={selectEvidence}
-                />
+                <VisualWorkspaceFrame id="stream" label="Value Stream Map" layout={visualLayout("stream")} onLayoutChange={(layout) => setVisualLayout("stream", layout)} linear={usesPanelNavigator}>
+                  <ValueStreamMap
+                    result={result}
+                    roleTitle={roleTitle}
+                    organisationName={orgName}
+                    onBack={() => showGraph(2)}
+                    onEvidenceSelect={selectEvidence}
+                  />
+                </VisualWorkspaceFrame>
+              ) : mode === "role-sensitive-visual" && activeRoleVisual ? (
+                <VisualWorkspaceFrame id={activeRoleVisual} label={ROLE_VISUAL_CONTRACTS[activeRoleVisual].label} layout={visualLayout(activeRoleVisual)} onLayoutChange={(layout) => setVisualLayout(activeRoleVisual, layout)} linear={usesPanelNavigator}>
+                  <RoleSensitiveVisual result={result} familyId={activeRoleVisual} roleTitle={roleTitle} onBack={resetUniverse} onEvidenceSelect={selectEvidence} />
+                </VisualWorkspaceFrame>
               ) : (
                 <>
                   <div className="wu-canvasHead">
@@ -1295,7 +1325,7 @@ export default function WorkUniverseLanding({
           <aside ref={contentsRef} tabIndex={-1} className="wu-rightRail" aria-label="Work Universe contents and drilldown">
             <section className="wu-outlinePane">
               <div className="wu-rightHead"><div><div className="wu-eyebrow">Contents</div><div className="wu-railTitle">Role Work Universe</div></div><div className="wu-meta">live</div></div>
-              <div className="wu-outlineList" data-testid="wu-contents-tree">
+              <div className="wu-outlineList" data-testid="wu-contents-tree" data-companion-control="wu-quick-fab">
                 <nav aria-label="Work Universe site tree">
                   <ul className="wu-tree" role="tree">
                     <li role="treeitem" aria-expanded={treeOpen.universe}>

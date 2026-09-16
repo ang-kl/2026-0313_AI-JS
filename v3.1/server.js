@@ -11,6 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import claude from "./api/claude.js";
+import generation from "./api/generation.js";
 import esco from "./api/esco.js";
 import mcf from "./api/mcf.js";
 import careers from "./api/careers.js";
@@ -33,6 +34,7 @@ import adminTgVerify from "./api/admin/tg-verify.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.join(__dirname, "dist");
 const PORT = process.env.PORT || 8080;
+const DEPLOYED_COMMIT = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.VERCEL_GIT_COMMIT_SHA || process.env.SOURCE_VERSION || process.env.COMMIT_SHA || null;
 
 const app = express();
 app.disable("x-powered-by");
@@ -57,7 +59,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/health", (req, res) => res.status(200).json({ ok: true }));
+app.get("/health", (req, res) => res.status(200).json({ ok: true, commit: DEPLOYED_COMMIT }));
 
 // --- API routes: same paths as the old /api/*.js Vercel functions. ---
 const api = express.Router();
@@ -68,6 +70,7 @@ const api = express.Router();
 api.use(express.json({ limit: "2mb" }));
 
 api.all("/claude", claude);
+api.all("/generation", generation);
 api.all("/esco", esco);
 api.all("/mcf", mcf);
 api.all("/careers", careers);

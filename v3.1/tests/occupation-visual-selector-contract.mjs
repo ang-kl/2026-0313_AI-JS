@@ -6,6 +6,13 @@ assert.deepEqual(OCCUPATION_VISUALS.map(({ id, question }) => [id, question]), [
   ["org", "What reports up to what?"],
   ["workflow", "Who acts when?"],
   ["stream", "Where does time go?"],
+  ["architecture", "What depends on what?"],
+  ["concept", "What themes and gaps recur?"],
+  ["trace", "How was exposure derived?"],
+  ["funnel", "Where does selection narrow?"],
+  ["portfolio", "What work can be inspected?"],
+  ["site", "Where does work happen?"],
+  ["control", "Where does accountability sit?"],
 ]);
 
 const titleOnly = buildOccupationVisualProfile({ title: "Data Engineer", jobAnatomy: { duties: [{ text: "Build data pipelines" }] } });
@@ -40,18 +47,18 @@ assert.equal(supported.recommendation, "workflow");
 assert.equal(supported.primary.id, "workflow");
 assert.equal(supported.linkedReasons[0].evidenceId, "D2");
 assert.equal(supported.escoOccupation.id, "esco:2529");
-assert.deepEqual(supported.secondary.map((visual) => visual.id), ["graph", null]);
-assert.deepEqual(supported.unsupported.map((visual) => visual.supplied), ["system architecture"]);
+assert.deepEqual(supported.secondary.map((visual) => visual.id), ["graph", "architecture"]);
+assert.deepEqual(supported.unsupported.map((visual) => visual.supplied), []);
 
 const unsupportedPrimary = buildOccupationVisualProfile({
   occupation_visual_profile: {
-    primary_visual: "site map",
-    why_this_visual: [{ source_span: "D1", reason: "The supplied profile requests a site map." }],
+    primary_visual: "routing map",
+    why_this_visual: [{ source_span: "D1", reason: "The supplied profile requests a routing map." }],
   },
 });
 assert.equal(unsupportedPrimary.status, "withheld");
 assert.equal(unsupportedPrimary.recommendation, null);
-assert.deepEqual(unsupportedPrimary.unsupported.map((visual) => visual.supplied), ["site map"]);
+assert.deepEqual(unsupportedPrimary.unsupported.map((visual) => visual.supplied), ["routing map"]);
 assert.match(unsupportedPrimary.boundary, /unavailable in this build/i);
 
 console.log("Occupation visual selector payload contract: PASS");
