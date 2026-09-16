@@ -353,6 +353,14 @@ async function runViewport({ name, width, height, phone }) {
   eq(await section.getAttribute("data-carried"), "0", `${tag}: the print package carries nothing before an approval`);
   ok(/WITHHELD/.test(await section.innerText()) && /No proof is approved for any destination \(2 records on the ledger/.test(await section.innerText()), `${tag}: the print section withholds in words, with the record count, rather than inventing a carried proof`);
   ok(/Package assembled at 20\d\d-\d\d-\d\dT[^ ]+, re-stamped at the print command/.test(await section.locator('[data-testid="print-proof-destinations-instant"]').innerText()) && /link standing was not re-checked at print time/.test(await section.locator('[data-testid="print-proof-destinations-instant"]').innerText()) && /a register of approvals across the five destinations, not an export for any one of them/.test(await section.locator('[data-testid="print-proof-destinations-instant"]').innerText()), `${tag}: the section states its instant (committed, re-stamped at the print command), that link standing was not re-checked at print time, and what the section is`);
+  await first.page.waitForTimeout(20);
+  const printStamps = await first.page.evaluate(() => {
+    const read = () => document.querySelector('[data-testid="print-proof-destinations-instant"]')?.textContent.match(/Package assembled at ([^,]+)/)?.[1] || "";
+    const before = read();
+    window.dispatchEvent(new Event("beforeprint"));
+    return { before, after: read() };
+  });
+  ok(Date.parse(printStamps.after) > Date.parse(printStamps.before), `${tag}: beforeprint commits a newer package timestamp synchronously before its handler returns (${printStamps.before} -> ${printStamps.after})`);
   await first.page.close();
 
   // 1. Two excerpts confirmed. Nothing approved: the controls are withheld with the contract's rule, in words.
@@ -466,18 +474,31 @@ async function runViewport({ name, width, height, phone }) {
   ok(printGeometry.scroll <= printGeometry.viewport + 1, `${tag}: the print package does not overflow the viewport`);
   await page.screenshot({ path: `test-results/proof-destinations/${name}-print.png`, fullPage: true });
 
-  // 8. Back on the universe: a lapse with no other headline is its own headline (conformance-auditor
-  // W-1). The claimed-only record's link is removed first so no link batch follows the clearing.
+  // 8. Back on the universe: a multi-record lapse is grouped by proof id, so the fallback headline
+  // cannot attribute one proof's destinations to another. The claimed-only record's link is removed
+  // first so no link batch follows the clearing; it is then certified and approved independently.
   await closePrint(page);
   before = await noticeText(page);
   await page.getByTestId("cpl-unlink").first().click();
   await noticeChanged(page, before);
   ok(/Link removed at/.test(await noticeText(page)), `${tag}: premise, the claimed-only record's link is removed`);
   before = await noticeText(page);
+  await record(page, 0).getByTestId("cpl-declare-certified").click();
+  await noticeChanged(page, before);
+  await waitState(page, 0, "CERTIFIED");
+  before = await noticeText(page);
+  await destRow(page, 0, "interview").locator('[data-testid="cpl-dest-approve"]').click();
+  await noticeChanged(page, before);
+  await waitDest(page, 0, "interview", "ALLOWED");
+  const proofIds = await page.locator('[data-testid="cpl-record"]').evaluateAll((els) => els.map((el) => el.dataset.proofId));
+  before = await noticeText(page);
   await page.getByTestId("person-evidence-clear").click();
   await noticeChanged(page, before);
+  await waitState(page, 0, "WITHHELD");
   await waitState(page, 1, "WITHHELD");
-  ok(/^Record proof:.* left its accepted state at 20\d\d-.* \(WITHHELD: EVIDENCE_CLEARED\); 1 approved destination lapsed \(cover letter: EVIDENCE_CLEARED\)/.test(await noticeText(page)), `${tag}: clearing the evidence under a certified approval is announced as the lapse it is, not dropped (${await noticeText(page)})`);
+  const multiLapseNotice = await noticeText(page);
+  ok(multiLapseNotice.includes("approved destinations lapsed for 2 proof records") && multiLapseNotice.includes(`${proofIds[0]}: 1 approved destination lapsed (interview: EVIDENCE_CLEARED)`) && multiLapseNotice.includes(`${proofIds[1]}: 1 approved destination lapsed (cover letter: EVIDENCE_CLEARED)`), `${tag}: a shared-instant lapse groups each destination under its own proof id and attributes neither record's approval to the other (${multiLapseNotice})`);
+  ok(/lapsed at 20\d\d-.* because you cleared the evidence/.test(await destRow(page, 0, "interview").locator('[data-testid="cpl-dest-history"]').innerText()), `${tag}: the first record names the clearing as the cause`);
   ok(/lapsed at 20\d\d-.* because you cleared the evidence/.test(await destRow(page, 1, "coverLetter").locator('[data-testid="cpl-dest-history"]').innerText()), `${tag}: the row names the clearing as the cause`);
   await page.close();
 }

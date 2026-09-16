@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { buildGovernanceLedgerData } from "../work-universe/governanceLedgerData.js";
 import { ledgerRows, ACCEPTED_STATES, linkStanding, ledgerFaultText } from "../work-universe/candidateProofLedgerData.js";
 
@@ -80,7 +80,11 @@ export default function PrintPackage({
   useEffect(() => {
     if (!open) return undefined;
     setAssembledAt(new Date().toISOString());
-    const onBeforePrint = () => setAssembledAt(new Date().toISOString());
+    // beforeprint is a native browser event. React may otherwise batch this update until after
+    // the browser has captured the print snapshot, leaving the package with its dialog-open time.
+    // Commit the print-command instant before the handler returns so the printed DOM and the
+    // visible DOM carry the same timestamp.
+    const onBeforePrint = () => flushSync(() => setAssembledAt(new Date().toISOString()));
     window.addEventListener("beforeprint", onBeforePrint);
     return () => window.removeEventListener("beforeprint", onBeforePrint);
   }, [open]);
