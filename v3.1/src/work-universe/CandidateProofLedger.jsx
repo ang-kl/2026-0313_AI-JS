@@ -290,7 +290,18 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
       // Approvals that lapsed at the same instant as the act or detection announced are said after it,
       // never dropped and never in its place (BLP-011): the lapse events precede the state event.
       const lapses = events.slice(before.events).filter((e) => e.at === last.at && e.kind === "DESTINATION_LAPSED");
-      const lapseTail = lapses.length ? `; ${lapses.length} approved destination${lapses.length === 1 ? "" : "s"} lapsed (${lapses.map((e) => destinationText(e.destination)).join(", ")}: ${[...new Set(lapses.map((e) => e.reason))].join(", ")})` : "";
+      const lapseGroups = new Map();
+      for (const lapse of lapses) {
+        const group = lapseGroups.get(lapse.proofId) || [];
+        group.push(lapse);
+        lapseGroups.set(lapse.proofId, group);
+      }
+      const lapseWords = (group) => `${group.length} approved destination${group.length === 1 ? "" : "s"} lapsed (${group.map((e) => destinationText(e.destination)).join(", ")}: ${[...new Set(group.map((e) => e.reason))].join(", ")})`;
+      const lapseTail = lapseGroups.size === 1
+        ? `; ${lapseWords([...lapseGroups.values()][0])}`
+        : lapseGroups.size > 1
+          ? `; approved destinations lapsed for ${lapseGroups.size} proof records (${[...lapseGroups.entries()].map(([proofId, group]) => `${proofId}: ${lapseWords(group)}`).join("; ")})`
+          : "";
       const setNotice = (n) => setNoticeRaw(lapseTail ? { ...n, text: `${n.text}${lapseTail}` } : n);
       if (last.kind === "PROOF_TYPE_SET") setNotice({ kind: "applied", text: `Proof type recorded at ${last.at}` });
       else if (last.kind === "CLAIM_SET") setNotice({ kind: "applied", text: `Claim recorded at ${last.at}` });
