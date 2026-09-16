@@ -131,7 +131,7 @@ export default function ReviewStudio(props) {
           >
             ← Work Universe
           </button>
-          <ReviewStudioLegacy {...props} result={effectiveResult} initialIntent={workspaceIntent} />
+          <ReviewStudioLegacy {...props} result={effectiveResult} initialIntent={workspaceIntent} proofLedger={proofLedger} />
         </div>
       )}
     </>

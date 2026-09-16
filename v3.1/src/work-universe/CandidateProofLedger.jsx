@@ -23,9 +23,10 @@ import {
   conflictCandidates,
   linkStanding,
   ledgerFaultText,
+  setDestination,
 } from "./candidateProofLedgerData.js";
 import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
-import { proofStateText } from "../contracts/evidenceAdapter.js";
+import { proofStateText, destinationText, destinationStateText } from "../contracts/evidenceAdapter.js";
 
 // BLP-008 candidate-proof ledger panel. Renders only what the ledger holds: one row per proof
 // record with the exact excerpt under its own label ("what the document says"), the human's own
@@ -45,6 +46,7 @@ const CLAIM_MAX = 400;
 
 /** The words for a human state act (BLP-010), read from the event the ledger kept; null for any other event. */
 function stateActText(e) {
+  if (e.kind === "DESTINATION_SET") return `Destination ${destinationText(e.destination)} ${e.to === "ALLOWED" ? "approved" : "revoked"} at ${e.at} (${e.detail})`;
   if (e.kind === "STATE_SET") return `Declared ${e.to} at ${e.at} (${e.detail})`;
   if (e.kind === "CONFLICT_DECLARED") return `Conflict declared at ${e.at} for both records (${e.detail})`;
   if (e.kind === "CONFLICT_RESOLVED") return `Conflict resolved at ${e.at} for both records (${e.detail})`;
@@ -131,6 +133,37 @@ function StateControls({ row, ledger, bundle, disabled, onDeclare, onWithdraw, o
         </div>
       )}
       {row.state === "WITHHELD" && <p className="cpl-meta" id={`cpl-state-withheld-note-${row.id}`} data-testid="cpl-state-withheld-note" data-cause={row.withheldCause}>Withheld: {row.withheldCauseText}; it resumes as claimed only.</p>}
+    </div>
+  );
+}
+
+/**
+ * The human's control over each of the five destinations (BLP-011). Approve is offered only when the
+ * data layer's own gate holds (row.destinationApproval, judged live against the bundle), and the
+ * reason it is withheld is said once per record; revoke is offered on an approved destination only.
+ * Each destination is rendered as "destination: <name>" so the destination named work sample and
+ * the proof type named work sample are told apart in text (Supervisor ruling Q8). Every row says
+ * its history in words: a lapsed approval is never shown as merely not approved.
+ */
+function DestinationControls({ row, disabled, onSet }) {
+  const gate = row.destinationApproval;
+  const whyId = `cpl-dest-why-${row.id}`;
+  return (
+    <div className="cpl-dest" data-testid="cpl-destinations" data-approval={gate.ok ? "offered" : "withheld"}>
+      <span className="cpl-label" id={`cpl-dest-label-${row.id}`}>Destinations (your approvals)</span>
+      {!gate.ok && <p className="cpl-meta" id={whyId} data-testid="cpl-dest-why">Approval is not offered: {gate.error}.</p>}
+      <ul aria-labelledby={`cpl-dest-label-${row.id}`} data-testid="cpl-dest-list">
+        {row.destinations.map((d) => (
+          <li key={d.destination} className="cpl-destRow" data-testid="cpl-dest" data-destination={d.destination} data-dest-state={d.state}>
+            <div className="cpl-state"><span data-testid="cpl-dest-name">destination: {d.name}</span> · {d.state} · <span data-testid="cpl-dest-state-text">{d.stateText}</span></div>
+            <div className="cpl-meta" data-testid="cpl-dest-history">{d.text}</div>
+            <div className="cpl-linkRow">
+              <button type="button" data-testid="cpl-dest-approve" disabled={disabled || d.state === "ALLOWED" || !gate.ok} aria-describedby={gate.ok ? undefined : whyId} aria-label={`Approve proof ${row.id} for the destination ${d.name}`} onClick={() => onSet(row.id, d.destination, "ALLOWED")}>{d.state === "REVOKED" ? "Approve again" : "Approve"}</button>
+              <button type="button" data-testid="cpl-dest-revoke" disabled={disabled || d.state !== "ALLOWED"} aria-label={`Revoke the approval of proof ${row.id} for the destination ${d.name}`} onClick={() => onSet(row.id, d.destination, "REVOKED")}>Revoke</button>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -239,7 +272,7 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
   // discarding choices (D7).
   const readOnly = typeof onLedgerChange !== "function";
   const seen = useRef({ refusals: refusals.length, events: events.length });
-  const [notice, setNotice] = useState(null);
+  const [notice, setNoticeRaw] = useState(null);
   useEffect(() => {
     const before = seen.current;
     seen.current = { refusals: refusals.length, events: events.length };
@@ -249,11 +282,16 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
       const batch = events.slice(before.events).filter((e) => e.at === last.at && (e.kind === "LINK_INVALID" || e.kind === "LINK_RESUMED"));
       const n = (kind) => batch.filter((e) => e.kind === kind).length;
       const tail = batch.length ? `; the system ${[n("LINK_INVALID") ? `invalidated ${n("LINK_INVALID")} link${n("LINK_INVALID") === 1 ? "" : "s"}` : null, n("LINK_RESUMED") ? `resumed ${n("LINK_RESUMED")} link${n("LINK_RESUMED") === 1 ? "" : "s"}` : null].filter(Boolean).join(" and ")}` : "";
-      setNotice({ kind: "refused", text: `Refused: ${last.detail}${tail}` });
+      setNoticeRaw({ kind: "refused", text: `Refused: ${last.detail}${tail}` });
       return;
     }
     if (events.length > before.events) {
       const last = events[events.length - 1];
+      // Approvals that lapsed at the same instant as the act or detection announced are said after it,
+      // never dropped and never in its place (BLP-011): the lapse events precede the state event.
+      const lapses = events.slice(before.events).filter((e) => e.at === last.at && e.kind === "DESTINATION_LAPSED");
+      const lapseTail = lapses.length ? `; ${lapses.length} approved destination${lapses.length === 1 ? "" : "s"} lapsed (${lapses.map((e) => destinationText(e.destination)).join(", ")}: ${[...new Set(lapses.map((e) => e.reason))].join(", ")})` : "";
+      const setNotice = (n) => setNoticeRaw(lapseTail ? { ...n, text: `${n.text}${lapseTail}` } : n);
       if (last.kind === "PROOF_TYPE_SET") setNotice({ kind: "applied", text: `Proof type recorded at ${last.at}` });
       else if (last.kind === "CLAIM_SET") setNotice({ kind: "applied", text: `Claim recorded at ${last.at}` });
       else if (stateActText(last)) setNotice({ kind: "applied", text: stateActText(last) });
@@ -276,6 +314,9 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
         const act = events.filter((e) => e.at === last.at).map(stateActText).find(Boolean);
         setNotice({ kind: invalid.length && !act ? "refused" : "applied", text: `${act ? `${act}; the system ` : "The system "}${parts.join(" and ")}${act ? "" : ` at ${last.at}`}${clamp ? ` (${clamp})` : ""}` });
       }
+      // A lapse with no other headline (a certified record withheld by clearing or removing, with no
+      // link batch after it) is its own headline; never dropped (conformance-auditor W-1 on BLP-011).
+      else if (lapseTail) setNoticeRaw({ kind: "refused", text: `Record ${last.proofId} left its accepted state at ${last.at} (${last.kind}: ${last.reason})${lapseTail}` });
     }
   }, [refusals.length, events.length, refusals, events]);
   const choose = (mutate) => {
@@ -285,11 +326,11 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
   return (
     <section className="cpl-root" data-testid="candidate-proof-ledger" aria-label="Candidate proof ledger" data-record-count={rows.length} data-stale-count={staleCount}>
       <style>{`
-        .cpl-root{margin:0 clamp(14px,1.05vw,28px) 12px;border:1px solid #dfe5ec;border-radius:9px;background:#fff;padding:11px 12px;color:#1a202c}.cpl-root *{box-sizing:border-box;min-width:0}.cpl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.cpl-head b{display:block;margin-top:2px;font-size:12px}.cpl-counts{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.cpl-counts>span{border:1px solid #cbd5e1;border-radius:999px;padding:2px 7px;font-size:7px;font-weight:900;color:#475569}.cpl-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.cpl-note{margin:7px 0 0;color:#475569;font-size:8px;line-height:1.4}.cpl-note[data-kind="stale"]{border-left:3px solid #64748b;padding-left:7px;color:#1a202c;font-weight:900}.cpl-empty{margin-top:8px;border:1px dashed #b7c3d2;border-radius:8px;padding:10px;color:#475569;font-size:9px;line-height:1.4}.cpl-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.cpl-row{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:8px 9px;display:grid;gap:6px}.cpl-row[data-state="STALE"]{border-style:dashed;border-left-color:#64748b}.cpl-row[data-state="WITHHELD"]{border-left-color:#92400e;border-style:dotted}.cpl-id{font:7px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#475569;word-break:break-all}.cpl-state{font-size:8px;font-weight:900;color:#1a202c}.cpl-label{display:block;font-size:8px;font-weight:900;color:#475569}.cpl-row blockquote{margin:2px 0 0;padding:0 0 0 6px;border-left:2px solid #e2e8f0;font-size:9px;line-height:1.35;white-space:pre-wrap;max-height:96px;overflow:auto}.cpl-claim label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:3px}.cpl-claim textarea{width:100%;min-height:44px;border:1px solid #cbd5e1;border-radius:7px;padding:6px 8px;font:9px/1.4 Inter,Arial,sans-serif;resize:vertical}.cpl-claimRow{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:4px;font-size:8px;color:#475569}.cpl-claimRow span{min-width:0;overflow:hidden;text-overflow:ellipsis}.cpl-claimRow button{flex-shrink:0;min-width:44px}.cpl-root button,.cpl-root select{min-height:44px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:5px 8px;font-size:8px;font-weight:900;cursor:pointer;color:#1a202c}.cpl-root button:disabled{cursor:not-allowed;opacity:.48}.cpl-type{display:grid;gap:3px}.cpl-type select{width:100%}.cpl-type small{font-size:7px;color:#475569}.cpl-list ul{margin:2px 0 0;padding-left:14px;font-size:8px;line-height:1.4;color:#1a202c}.cpl-meta{font-size:8px;color:#475569;line-height:1.4}.cpl-root textarea:focus-visible,.cpl-root button:focus-visible,.cpl-root select:focus-visible,.cpl-root summary:focus-visible{outline:3px solid #1a56db;outline-offset:2px}.cpl-links ul{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px}.cpl-link{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:6px 7px;display:grid;gap:4px}.cpl-link[data-state="INVALID"]{border-style:dashed;border-left-color:#64748b}.cpl-linkRow{display:flex;flex-wrap:wrap;gap:6px}.cpl-linkRow button{flex:1 1 140px}.cpl-linkPick{display:grid;gap:4px;margin-top:6px}.cpl-stateCtl{display:grid;gap:4px;border-top:1px dashed #e2e8f0;padding-top:6px}.cpl-linkPick select{width:100%}.cpl-events{font-size:8px;color:#475569}.cpl-events summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:900}.cpl-events ol{margin:2px 0 0;padding-left:14px;line-height:1.4}
+        .cpl-root{margin:0 clamp(14px,1.05vw,28px) 12px;border:1px solid #dfe5ec;border-radius:9px;background:#fff;padding:11px 12px;color:#1a202c}.cpl-root *{box-sizing:border-box;min-width:0}.cpl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.cpl-head b{display:block;margin-top:2px;font-size:12px}.cpl-counts{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.cpl-counts>span{border:1px solid #cbd5e1;border-radius:999px;padding:2px 7px;font-size:7px;font-weight:900;color:#475569}.cpl-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.cpl-note{margin:7px 0 0;color:#475569;font-size:8px;line-height:1.4}.cpl-note[data-kind="stale"]{border-left:3px solid #64748b;padding-left:7px;color:#1a202c;font-weight:900}.cpl-empty{margin-top:8px;border:1px dashed #b7c3d2;border-radius:8px;padding:10px;color:#475569;font-size:9px;line-height:1.4}.cpl-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.cpl-row{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:8px 9px;display:grid;gap:6px}.cpl-row[data-state="STALE"]{border-style:dashed;border-left-color:#64748b}.cpl-row[data-state="WITHHELD"]{border-left-color:#92400e;border-style:dotted}.cpl-id{font:7px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#475569;word-break:break-all}.cpl-state{font-size:8px;font-weight:900;color:#1a202c}.cpl-label{display:block;font-size:8px;font-weight:900;color:#475569}.cpl-row blockquote{margin:2px 0 0;padding:0 0 0 6px;border-left:2px solid #e2e8f0;font-size:9px;line-height:1.35;white-space:pre-wrap;max-height:96px;overflow:auto}.cpl-claim label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:3px}.cpl-claim textarea{width:100%;min-height:44px;border:1px solid #cbd5e1;border-radius:7px;padding:6px 8px;font:9px/1.4 Inter,Arial,sans-serif;resize:vertical}.cpl-claimRow{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:4px;font-size:8px;color:#475569}.cpl-claimRow span{min-width:0;overflow:hidden;text-overflow:ellipsis}.cpl-claimRow button{flex-shrink:0;min-width:44px}.cpl-root button,.cpl-root select{min-height:44px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:5px 8px;font-size:8px;font-weight:900;cursor:pointer;color:#1a202c}.cpl-root button:disabled{cursor:not-allowed;opacity:.48}.cpl-type{display:grid;gap:3px}.cpl-type select{width:100%}.cpl-type small{font-size:7px;color:#475569}.cpl-list ul{margin:2px 0 0;padding-left:14px;font-size:8px;line-height:1.4;color:#1a202c}.cpl-meta{font-size:8px;color:#475569;line-height:1.4}.cpl-root textarea:focus-visible,.cpl-root button:focus-visible,.cpl-root select:focus-visible,.cpl-root summary:focus-visible{outline:3px solid #1a56db;outline-offset:2px}.cpl-links ul{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px}.cpl-link{border:1px solid #cbd5e1;border-left:3px solid #1a56db;border-radius:8px;padding:6px 7px;display:grid;gap:4px}.cpl-link[data-state="INVALID"]{border-style:dashed;border-left-color:#64748b}.cpl-linkRow{display:flex;flex-wrap:wrap;gap:6px}.cpl-linkRow button{flex:1 1 140px}.cpl-linkPick{display:grid;gap:4px;margin-top:6px}.cpl-stateCtl{display:grid;gap:4px;border-top:1px dashed #e2e8f0;padding-top:6px}.cpl-dest{display:grid;gap:4px;border-top:1px dashed #e2e8f0;padding-top:6px}.cpl-dest ul{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:5px}.cpl-destRow{border:1px solid #cbd5e1;border-left:3px solid #475569;border-radius:8px;padding:6px 7px;display:grid;gap:4px}.cpl-destRow[data-dest-state="ALLOWED"]{border-left-style:double;border-left-width:6px}.cpl-destRow[data-dest-state="REVOKED"]{border-style:dotted}.cpl-linkPick select{width:100%}.cpl-events{font-size:8px;color:#475569}.cpl-events summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:900}.cpl-events ol{margin:2px 0 0;padding-left:14px;line-height:1.4}
       `}</style>
       <div className="cpl-head"><div><div className="wu-srcid">CANDIDATE PROOF LEDGER · SESSION ONLY</div><b>Proof records</b></div><span className="cpl-state" data-testid="cpl-total">{rows.length} record{rows.length === 1 ? "" : "s"}</span></div>
       <div className="cpl-counts" data-testid="cpl-counts">{["CLAIMED_ONLY", "STALE", "WITHHELD", "DEMONSTRATED", "CERTIFIED", "CONFLICTING"].filter((s) => counts[s]).map((s) => <span key={s} data-state={s}>{counts[s]} {s}<span className="cpl-sr">: {proofStateText(s)}</span></span>)}</div>
-      <p className="cpl-note">Each record is one exact excerpt you confirmed, kept with its source and span ids. Nothing here is stored beyond this session, and nothing is inferred about what an excerpt proves: the claim is yours to state, the proof type is yours to choose, the links to the posting's duties and requirements are yours to draw, and destinations arrive with a later requirement.</p>
+      <p className="cpl-note">Each record is one exact excerpt you confirmed, kept with its source and span ids. Nothing here is stored beyond this session, and nothing is inferred about what an excerpt proves: the claim is yours to state, the proof type is yours to choose, the links to the posting's duties and requirements are yours to draw, and the destinations each proof may be carried to (resume, cover letter, interview, portfolio, work sample) are yours to approve or revoke while the record is demonstrated or certified.</p>
       <p className="cpl-note" data-testid="cpl-link-availability">Links can target {TARGET_KIND_AVAILABILITY.duty.text} and {TARGET_KIND_AVAILABILITY.requirement.text}. Not yet linkable: skills ({TARGET_KIND_AVAILABILITY.skill.text}; {TARGET_KIND_AVAILABILITY.skill.owner}); competencies ({TARGET_KIND_AVAILABILITY.competency.text}; {TARGET_KIND_AVAILABILITY.competency.owner}); accepted review observations ({TARGET_KIND_AVAILABILITY["review-observation"].text}; owner {TARGET_KIND_AVAILABILITY["review-observation"].owner}).{untrustedCount ? ` ${untrustedCount} duty ${untrustedCount === 1 ? "row is" : "rows are"} not linkable because ${untrustedCount === 1 ? "its" : "their"} parentage is neither verified nor confirmed by you.` : ""}{catalogue.unlinkable.some((u) => u.reason === "BUNDLE_NOT_OK" || u.reason === "NO_BUNDLE") ? ` ${catalogue.unlinkable[0].text}.` : ""}</p>
       {/* The three link notes below are plain visible text, reached in reading order; the one live
           carrier for a reconcile batch is the notice, which counts the batch (a11y-honesty-reviewer:
@@ -298,6 +339,7 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
       {notJudged > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-links-unjudged-note">The posting evidence could not be read, so {notJudged} link{notJudged === 1 ? " was" : "s were"} not judged: {notJudged === 1 ? "it is" : "they are"} unknown, not confirmed, and count as no target until the evidence can be read again. Nothing is known to have changed.</p>}
       {reextracted > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-links-reextracted-note">{reextracted} link{reextracted === 1 ? "" : "s"} point{reextracted === 1 ? "s" : ""} at a target id that was re-extracted: the exact text is still in the posting evidence under a new id. Where exactly one current row carries that text, a re-link is offered for you to make; where more than one does, none is offered.</p>}
       {fault && <p className="cpl-note" data-kind="stale" data-testid="cpl-fault" role="status" aria-live="polite">{fault}</p>}
+      <p className="cpl-note" data-testid="cpl-dest-note">Destinations: the proof type is not a gate on any destination: a proof of any type may be approved for any destination, and the destination named work sample takes proof of any type. An approval lapses by the system when the record leaves its accepted state, and is not restored by a later declaration; approve again. A demonstrated record is approved only while its declared link stands under a live judgement; a certified record needs no such judgement.</p>
       {readOnly && <p className="cpl-note" data-testid="cpl-readonly">This ledger is read-only here: no change handler is connected, so proof types and claims cannot be recorded on this surface.</p>}
       {staleCount > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-stale-note" role="status" aria-live="polite">{staleOnEarlier > 0 ? `The pasted text changed, so every record cut from the earlier text is stale together (${staleOnEarlier}); the app did not examine proofs one by one. Mark the excerpts again on the current text, or restore the earlier text to resume them.` : ""}{staleOnCurrent > 0 ? ` ${staleOnCurrent} stale record${staleOnCurrent === 1 ? " is" : "s are"} cut from the text now in the box but no longer marked on it; mark ${staleOnCurrent === 1 ? "that excerpt" : "those excerpts"} again to resume.` : ""}</p>}
       <div className="cpl-note" data-testid="cpl-notice" data-kind={notice?.kind || ""} role="status" aria-live="polite">{notice ? notice.text : ""}</div>
@@ -324,6 +366,10 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
               <div className="cpl-meta" data-testid="cpl-confirmation">Confirmed by {row.confirmation.confirmedByDisplayName || LOCAL_HUMAN_ACTOR.displayName} at {row.confirmation.confirmedAt} · recorded {row.recordedAt}</div>
               <div><span className="cpl-label" id={`cpl-missing-label-${row.id}`}>Missing evidence</span><ul data-testid="cpl-missing" aria-labelledby={`cpl-missing-label-${row.id}`}>{row.missingEvidence.map((item) => <li key={item}>{item}</li>)}</ul></div>
               {fault ? <p className="cpl-meta" data-testid="cpl-links-withheld">Links withheld while the ledger's integrity is in question (see the notice above).</p> : <LinkControls row={row} catalogue={catalogue} bundle={bundle} disabled={readOnly} onLink={(id, target) => choose((current, at) => linkProof(current, id, target, bundle, at))} onUnlink={(id, linkId) => choose((current, at) => unlinkProof(current, id, linkId, at))} onRelink={(id, linkId) => choose((current, at) => relinkProof(current, id, linkId, bundle, at))} onOpenEvidence={onOpenEvidence} />}
+              {/* Under a ledger fault the destination rows stay readable but their controls are disabled: each
+                  destination's state follows from the kept history, which the fault does not question, while a new
+                  approval would need the live judgement the fault withholds (conformance-auditor S-3). */}
+              <DestinationControls row={row} disabled={readOnly || Boolean(fault)} onSet={(id, destination, to) => choose((current, at) => setDestination(current, id, destination, to, at, { bundle }))} />
               <div><span className="cpl-label" id={`cpl-uses-label-${row.id}`}>Downstream uses</span><ul data-testid="cpl-uses" aria-labelledby={`cpl-uses-label-${row.id}`}>{row.downstreamUses.text.map((item) => <li key={item}>{item}</li>)}</ul></div>
               <details className="cpl-events"><summary>History · {row.events.length} event{row.events.length === 1 ? "" : "s"}</summary><ol data-testid="cpl-events">{row.events.map((event, i) => <li key={`${event.at}-${i}`}>{event.at} · {event.kind}{event.from !== null || event.to !== null ? ` (${event.from ?? "none"} to ${event.to ?? "none"})` : ""} · {event.reason} · {event.actor === LOCAL_HUMAN_ACTOR.id ? LOCAL_HUMAN_ACTOR.displayName : event.actor}{event.detail ? ` · ${event.detail}` : ""}</li>)}</ol></details>
             </li>

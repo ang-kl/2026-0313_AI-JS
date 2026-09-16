@@ -33,6 +33,7 @@
 import {
   CONTRACT_VERSION,
   PROOF_DESTINATION,
+  DESTINATION_STATE,
   PROOF_STATE,
   PROOF_TARGET_KIND,
   SOURCE_COMPLETENESS,
@@ -42,7 +43,7 @@ import {
 } from "../contracts/evidenceContracts.js";
 import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
 import { isManualPersonEvidence } from "./personEvidenceData.js";
-import { proofStateText } from "../contracts/evidenceAdapter.js";
+import { proofStateText, destinationText, destinationStateText } from "../contracts/evidenceAdapter.js";
 
 // 1.1.0 under BLP-009: the link shape, four event kinds, the link reasons and two refusals joined the
 // vocabulary that validateLedger checks per record and per link, so the stamp moved with it
@@ -51,7 +52,10 @@ import { proofStateText } from "../contracts/evidenceAdapter.js";
 // 1.2.0 under BLP-010: the six proof states become reachable through human declarations and system
 // detection (STATE_SET, CONFLICT_DECLARED, CONFLICT_RESOLVED, the lost-link and dissolution
 // reasons), so the vocabulary the validator checks moved again. Minor, surfaced for Rule V-1.
-export const LEDGER_VERSION = "1.2.0";
+// 1.3.0 under BLP-011: destination control. Two event kinds (DESTINATION_SET by the human,
+// DESTINATION_LAPSED by the system) carry a governed `destination` field, validated like linkId, and
+// each destination's state is derived from history by the validator. Minor, surfaced for Rule V-1.
+export const LEDGER_VERSION = "1.3.0";
 
 /**
  * Proof-type vocabulary. MECHANISM settled by the Blueprint Supervisor (a governed enum,
@@ -70,7 +74,7 @@ export const PROOF_TYPE_LABEL = Object.freeze({
 });
 export const PROOF_TYPE_VOCABULARY_STATUS = "PROVISIONAL_PENDING_HUMAN_LEAD";
 
-export const LEDGER_EVENT_KIND = Object.freeze(["RECORDED", "RECONFIRMED", "STALE", "WITHHELD", "RESUMED", "PROOF_TYPE_SET", "CLAIM_SET", "LINKED", "UNLINKED", "LINK_INVALID", "LINK_RESUMED", "STATE_SET", "CONFLICT_DECLARED", "CONFLICT_RESOLVED", "STALE_CAUSE"]);
+export const LEDGER_EVENT_KIND = Object.freeze(["RECORDED", "RECONFIRMED", "STALE", "WITHHELD", "RESUMED", "PROOF_TYPE_SET", "CLAIM_SET", "LINKED", "UNLINKED", "LINK_INVALID", "LINK_RESUMED", "STATE_SET", "CONFLICT_DECLARED", "CONFLICT_RESOLVED", "STALE_CAUSE", "DESTINATION_SET", "DESTINATION_LAPSED"]);
 export const LEDGER_EVENT_REASON = Object.freeze([
   "EXCERPT_CONFIRMED",
   "EXCERPT_RECONFIRMED",
@@ -115,9 +119,13 @@ export const REASONS_BY_KIND = Object.freeze({
   UNLINKED: ["HUMAN_CHOICE"],
   LINK_INVALID: ["TARGET_SOURCE_CHANGED", "TARGET_ABSENT", "TARGET_REEXTRACTED", "TARGET_UNTRUSTED", "TARGET_TEXT_CHANGED", "CANDIDATE_SOURCE_CHANGED", "TARGET_EVIDENCE_UNAVAILABLE"],
   LINK_RESUMED: ["TARGET_RESTORED", "TARGET_EVIDENCE_READ", "CANDIDATE_SOURCE_RESTORED"],
+  DESTINATION_SET: ["HUMAN_CHOICE"],
+  // A lapse carries the reason of the transition that caused it: the record left its accepted state
+  // for exactly one of these reasons, and the lapse names the same one (Supervisor ruling Q3/Q5).
+  DESTINATION_LAPSED: ["SOURCE_TEXT_CHANGED", "TARGET_LINK_LOST", "EXCERPT_REMOVED", "EVIDENCE_CLEARED", "STATE_WITHDRAWN", "HUMAN_DECLARATION"],
 });
 /** A payload the ledger will not fold is refused on the record, attributed to the system, never to the human. */
-export const LEDGER_REFUSAL_REASON = Object.freeze(["PAYLOAD_REFUSED", "TRANSITION_REFUSED", "CHOICE_REFUSED", "LINK_REFUSED", "STATE_REFUSED", "LEDGER_INVALID"]);
+export const LEDGER_REFUSAL_REASON = Object.freeze(["PAYLOAD_REFUSED", "TRANSITION_REFUSED", "CHOICE_REFUSED", "LINK_REFUSED", "STATE_REFUSED", "DESTINATION_REFUSED", "LEDGER_INVALID"]);
 
 // ---------------------------------------------------------------------------------------------
 // Proof states (BLP-010). The six contract states become REACHABLE: the human declares
@@ -497,8 +505,11 @@ export function reconcileLinks(ledger, wanted, clock) {
     const standing = declared(relinked).filter((l) => l.state === "VALID");
     const lost = declared(relinked).filter(linkLost);
     if (relinked.record.state === "DEMONSTRATED" && relinked.declaration && !standing.length && lost.length) {
-      events.push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: "DEMONSTRATED", to: "STALE", reason: "TARGET_LINK_LOST", actor: LEDGER_ACTOR.SYSTEM, detail: said(`the link this demonstration stood on (${lost.map((l) => `${l.id} ${l.reason}`).join(", ")}) was judged and no longer stands against the posting evidence; the declaration lapses and is not re-asserted on resumption`) }));
-      return { ...withState(relinked, "STALE"), staleCauses: [STALE_CAUSE.TARGET_LINK] };
+      // Approved destinations lapse BEFORE the state event that takes the record out (BLP-011).
+      const lapsed = lapseDestinations(relinked, at, "TARGET_LINK_LOST", said("the demonstration's link was judged and found lost"));
+      events.push(...lapsed.events);
+      events.push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: "DEMONSTRATED", to: "STALE", reason: "TARGET_LINK_LOST", actor: LEDGER_ACTOR.SYSTEM, detail: said(`the link this demonstration stood on (${lost.map((l) => `${l.id} ${l.reason}`).join(", ")}) was judged and no longer stands against the posting evidence; the declaration lapses and is not re-asserted on resumption${lapsed.events.length ? `; ${lapsed.events.length} approved destination${lapsed.events.length === 1 ? "" : "s"} lapsed` : ""}`) }));
+      return { ...withState(lapsed.record, "STALE"), staleCauses: [STALE_CAUSE.TARGET_LINK] };
     }
     // Only a record stale for its LINK alone is judgeable here (linksJudgeable), so `standing` can be
     // non-empty only on that record: one stale for its text as well has every link waiting on the text
@@ -551,6 +562,57 @@ function settleConflicts(records, events, at, said = (t) => t) {
 }
 export const LEDGER_ACTOR = Object.freeze({ SYSTEM: "system", HUMAN: LOCAL_HUMAN_ACTOR.id });
 
+// ---------------------------------------------------------------------------------------------
+// Destinations (BLP-011). The contract holds the five destinations and their three states on every
+// ProofRecord and already refuses ALLOWED outside DEMONSTRATED or CERTIFIED (validateProofRecord:
+// "ProofRecord may allow a destination only in state DEMONSTRATED or CERTIFIED"); that one rule is
+// the operative exclusion for criterion (iii): rejected, withheld, conflicting, stale and
+// unconfirmed proof are all outside the accepted states, so no five-branch exclusion is built
+// (Supervisor ruling on criterion iii). What this layer adds: the human's act (DESTINATION_SET,
+// approve or revoke, one destination per event), the system's consequence (DESTINATION_LAPSED:
+// every ALLOWED destination returns to UNSET when the record leaves an accepted state, emitted
+// before the state event that takes it out, with that transition's reason; a REVOKED destination
+// is untouched by a lapse and by any later resumption), and derivation of every destination's
+// state from history by the validator. A lapse is NOT a fourth contract state: the panel says
+// from history "approved for resume at X; lapsed at Y because Z", never merely UNSET.
+// Approval on a DEMONSTRATED record needs the same live re-judgement a declaration needs (ruling
+// Q2): refused in words with no bundle, an unreadable bundle or no declared link standing, never
+// allowed on stored link state. Approval on a CERTIFIED record needs no bundle, because its basis
+// (the human's declaration of a qualification) is not external to the ledger; demanding a bundle
+// there would be a check that cannot fail. The proof type never gates a destination (ruling Q8).
+// ---------------------------------------------------------------------------------------------
+export const DESTINATION_EVENT_KINDS = Object.freeze(["DESTINATION_SET", "DESTINATION_LAPSED"]);
+/** The edges a human makes over one destination; every other edge is refused (ruling Q4). */
+export const DESTINATION_HUMAN_EDGES = Object.freeze([["UNSET", "ALLOWED"], ["REVOKED", "ALLOWED"], ["ALLOWED", "REVOKED"]]);
+/** The words for why an approval lapsed, keyed on the governed lapse reasons with no default arm. */
+const DESTINATION_LAPSE_WORDS = Object.freeze({
+  SOURCE_TEXT_CHANGED: "the pasted text changed and the record went stale",
+  TARGET_LINK_LOST: "the link the demonstration stood on no longer stands against the posting evidence and the record went stale",
+  EXCERPT_REMOVED: "you removed the excerpt from the marked evidence and the record was withheld",
+  EVIDENCE_CLEARED: "you cleared the evidence and the record was withheld",
+  STATE_WITHDRAWN: "you withdrew the declaration and the record returned to claimed only",
+  HUMAN_DECLARATION: "you declared the record in conflict with another",
+});
+export function destinationLapseText(reason) {
+  const words = DESTINATION_LAPSE_WORDS[reason];
+  if (!words) throw new Error(`no words are defined for lapse reason ${String(reason)}; the table must name every governed reason`);
+  return words;
+}
+/**
+ * The system's consequence of a record leaving an accepted state: every ALLOWED destination
+ * returns to UNSET, one DESTINATION_LAPSED event per destination, stamped at the transition's own
+ * instant and carrying its reason. Pure; returns the record and the events to append BEFORE the
+ * state event. A record with nothing ALLOWED returns unchanged with no events.
+ */
+function lapseDestinations(record, at, reason, detail) {
+  const allowed = PROOF_DESTINATION.filter((key) => record.record.destinations[key] === "ALLOWED");
+  if (!allowed.length) return { record, events: [] };
+  const destinations = { ...record.record.destinations };
+  for (const key of allowed) destinations[key] = "UNSET";
+  const events = allowed.map((key) => createLedgerEvent({ at, proofId: record.id, destination: key, kind: "DESTINATION_LAPSED", from: "ALLOWED", to: "UNSET", reason, actor: LEDGER_ACTOR.SYSTEM, detail: `approval for ${destinationText(key)} lapses with the ${record.record.state} state: ${detail}` }));
+  return { record: { ...record, record: { ...record.record, destinations } }, events };
+}
+
 function isObject(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
 function isIso(value) { return typeof value === "string" && /T/.test(value) && !Number.isNaN(Date.parse(value)); }
 function nonempty(value) { return typeof value === "string" && value.trim().length > 0; }
@@ -558,13 +620,15 @@ function nonempty(value) { return typeof value === "string" && value.trim().leng
 // ---------------------------------------------------------------------------------------------
 // Events: the one audit shape, defined here and validated here.
 // ---------------------------------------------------------------------------------------------
-export function createLedgerEvent({ at, proofId, linkId, kind, from, to, reason, actor, detail, seq } = {}) {
+export function createLedgerEvent({ at, proofId, linkId, destination, kind, from, to, reason, actor, detail, seq } = {}) {
   return {
     ledgerVersion: LEDGER_VERSION,
     seq: Number.isInteger(seq) ? seq : null,
     at: isIso(at) ? at : null,
     proofId: nonempty(proofId) ? proofId : null,
     linkId: nonempty(linkId) ? linkId : null,
+    // The destination a DESTINATION_SET or DESTINATION_LAPSED event is about; governed, like linkId (BLP-011).
+    destination: PROOF_DESTINATION.includes(destination) ? destination : null,
     kind: LEDGER_EVENT_KIND.includes(kind) ? kind : null,
     from: from ?? null,
     to: to ?? null,
@@ -585,6 +649,7 @@ export function validateLedgerEvent(event) {
   if (event.actor !== LEDGER_ACTOR.SYSTEM && event.actor !== LEDGER_ACTOR.HUMAN) errors.push("LedgerEvent.actor must be the system or the local human actor");
   if (LEDGER_EVENT_KIND.includes(event.kind) && LEDGER_EVENT_REASON.includes(event.reason) && !REASONS_BY_KIND[event.kind].includes(event.reason)) errors.push(`reason ${event.reason} cannot be true of a ${event.kind} event`);
   if (!["LINKED", "UNLINKED", "LINK_INVALID", "LINK_RESUMED"].includes(event.kind) && event.linkId !== null) errors.push(`${event.kind} is not a link event and must carry no linkId`);
+  if (DESTINATION_EVENT_KINDS.includes(event.kind) ? !PROOF_DESTINATION.includes(event.destination) : event.destination !== null) errors.push(DESTINATION_EVENT_KINDS.includes(event.kind) ? `${event.kind} must name one of the governed destinations ${PROOF_DESTINATION.join(", ")}` : `${event.kind} is not a destination event and must carry no destination`);
   if (event.seq !== null && !(Number.isInteger(event.seq) && event.seq >= 0)) errors.push("LedgerEvent.seq must be null before commit or a non-negative integer after it");
   switch (event.kind) {
     case "RECORDED":
@@ -665,6 +730,17 @@ export function validateLedgerEvent(event) {
       if (!nonempty(event.linkId) || !event.linkId.startsWith("link:")) errors.push("LINK_RESUMED must name its link");
       if (event.from !== "INVALID" || event.to !== "VALID") errors.push("LINK_RESUMED must enter VALID from INVALID");
       if (event.actor !== LEDGER_ACTOR.SYSTEM) errors.push("link resumption is detected by the system");
+      break;
+    case "DESTINATION_SET":
+      // The human's act over one destination (Supervisor ruling Q4): approve from UNSET or REVOKED,
+      // revoke from ALLOWED only. UNSET is never set by a human; only a lapse returns a destination to it.
+      if (!DESTINATION_STATE.includes(event.from) || !DESTINATION_STATE.includes(event.to)) errors.push(`DESTINATION_SET must leave and enter one of ${DESTINATION_STATE.join(", ")}`);
+      else if (!DESTINATION_HUMAN_EDGES.some(([f, t]) => f === event.from && t === event.to)) errors.push(`destination edge ${event.from} -> ${event.to} is not one a human makes (approve from UNSET or REVOKED; revoke from ALLOWED)`);
+      if (event.actor !== LEDGER_ACTOR.HUMAN) errors.push("DESTINATION_SET is the human's act");
+      break;
+    case "DESTINATION_LAPSED":
+      if (event.from !== "ALLOWED" || event.to !== "UNSET") errors.push("DESTINATION_LAPSED moves ALLOWED to UNSET only (a REVOKED destination is untouched by a lapse)");
+      if (event.actor !== LEDGER_ACTOR.SYSTEM) errors.push("a lapse is the system's consequence of the record leaving its accepted state, never a human's choice");
       break;
     default:
       errors.push(`no validation case for event kind ${String(event.kind)}; every governed kind must be validated`);
@@ -855,13 +931,17 @@ export function applyEvidenceToLedger(previousLedger, payload, at, { bundle } = 
     if (!["CLAIMED_ONLY", "DEMONSTRATED", "CERTIFIED", "CONFLICTING"].includes(current) && !linkStaleOnly) { next.set(record.id, record); continue; }
     if (!evidence) {
       if (!isProofTransitionPermitted(current, "WITHHELD")) return refuse(`${record.id}: ${current} -> WITHHELD is not permitted by the contract`);
-      push(createLedgerEvent({ at, proofId: record.id, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "EVIDENCE_CLEARED", actor: LEDGER_ACTOR.HUMAN }));
-      next.set(record.id, { ...withState(leaveState(record), "WITHHELD"), withheldCause: WITHHELD_CAUSE.EVIDENCE_CLEARED, lastEventAt: at });
+      const lapsed = lapseDestinations(record, at, "EVIDENCE_CLEARED", "the evidence was cleared");
+      for (const e of lapsed.events) push(e);
+      push(createLedgerEvent({ at, proofId: record.id, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "EVIDENCE_CLEARED", actor: LEDGER_ACTOR.HUMAN, detail: lapsed.events.length ? `${lapsed.events.length} approved destination${lapsed.events.length === 1 ? "" : "s"} lapsed` : undefined }));
+      next.set(record.id, { ...withState(leaveState(lapsed.record), "WITHHELD"), withheldCause: WITHHELD_CAUSE.EVIDENCE_CLEARED, lastEventAt: at });
     } else if (evidence.sourceId === record.sourceId) {
       // Same text, this excerpt no longer offered: a human removed it.
       if (!isProofTransitionPermitted(current, "WITHHELD")) return refuse(`${record.id}: ${current} -> WITHHELD is not permitted by the contract`);
-      push(createLedgerEvent({ at, proofId: record.id, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "EXCERPT_REMOVED", actor: LEDGER_ACTOR.HUMAN }));
-      next.set(record.id, { ...withState(leaveState(record), "WITHHELD"), withheldCause: WITHHELD_CAUSE.EXCERPT_REMOVED, lastEventAt: at });
+      const lapsed = lapseDestinations(record, at, "EXCERPT_REMOVED", "the excerpt was removed from the marked evidence");
+      for (const e of lapsed.events) push(e);
+      push(createLedgerEvent({ at, proofId: record.id, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "EXCERPT_REMOVED", actor: LEDGER_ACTOR.HUMAN, detail: lapsed.events.length ? `${lapsed.events.length} approved destination${lapsed.events.length === 1 ? "" : "s"} lapsed` : undefined }));
+      next.set(record.id, { ...withState(leaveState(lapsed.record), "WITHHELD"), withheldCause: WITHHELD_CAUSE.EXCERPT_REMOVED, lastEventAt: at });
     } else if (linkStaleOnly) {
       push(createLedgerEvent({ at, proofId: record.id, kind: "STALE_CAUSE", from: null, to: null, reason: "SOURCE_TEXT_CHANGED", actor: LEDGER_ACTOR.SYSTEM, detail: `source ${record.sourceId} replaced by ${evidence.sourceId}; CANDIDATE_TEXT joins TARGET_LINK as a cause, so the target's return alone no longer resumes this record` }));
       next.set(record.id, { ...record, staleCauses: [...record.staleCauses, STALE_CAUSE.CANDIDATE_TEXT], lastEventAt: at });
@@ -869,8 +949,10 @@ export function applyEvidenceToLedger(previousLedger, payload, at, { bundle } = 
       // Different text: the source this record was cut from is gone. Every active record on the
       // old source goes stale together; the system detects it, nobody decides it.
       if (!isProofTransitionPermitted(current, "STALE")) return refuse(`${record.id}: ${current} -> STALE is not permitted by the contract`);
-      push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: current, to: "STALE", reason: "SOURCE_TEXT_CHANGED", actor: LEDGER_ACTOR.SYSTEM, detail: `source ${record.sourceId} replaced by ${evidence.sourceId}${ACCEPTED_STATES.includes(current) ? `; the ${current} declaration lapses and is not re-asserted on resumption` : ""}` }));
-      next.set(record.id, { ...withState(leaveState(record), "STALE"), staleCauses: [STALE_CAUSE.CANDIDATE_TEXT], lastEventAt: at });
+      const lapsed = lapseDestinations(record, at, "SOURCE_TEXT_CHANGED", `source ${record.sourceId} replaced by ${evidence.sourceId}`);
+      for (const e of lapsed.events) push(e);
+      push(createLedgerEvent({ at, proofId: record.id, kind: "STALE", from: current, to: "STALE", reason: "SOURCE_TEXT_CHANGED", actor: LEDGER_ACTOR.SYSTEM, detail: `source ${record.sourceId} replaced by ${evidence.sourceId}${ACCEPTED_STATES.includes(current) ? `; the ${current} declaration lapses and is not re-asserted on resumption` : ""}${lapsed.events.length ? `; ${lapsed.events.length} approved destination${lapsed.events.length === 1 ? "" : "s"} lapsed` : ""}` }));
+      next.set(record.id, { ...withState(leaveState(lapsed.record), "STALE"), staleCauses: [STALE_CAUSE.CANDIDATE_TEXT], lastEventAt: at });
     }
   }
 
@@ -1034,10 +1116,11 @@ export function withdrawProofState(ledger, proofId, at) {
   if (!record) return refuseState(ledger, at, `no proof record ${String(proofId)}`);
   const current = record.record.state;
   if (!ACCEPTED_STATES.includes(current)) return refuseState(ledger, at, `proof ${proofId} is ${current}; there is no declaration to withdraw${current === "CONFLICTING" ? " (resolve the conflict instead)" : ""}`);
-  const gone = createLedgerEvent({ at, proofId, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "STATE_WITHDRAWN", actor: LEDGER_ACTOR.HUMAN, detail: `the ${current} declaration is withdrawn by the human; via WITHHELD because the contract admits no direct edge back to CLAIMED_ONLY` });
-  const back = createLedgerEvent({ at, proofId, kind: "RESUMED", from: "WITHHELD", to: "CLAIMED_ONLY", reason: "STATE_WITHDRAWN", actor: LEDGER_ACTOR.HUMAN, detail: "the excerpt still stands as confirmed evidence; links untouched" });
-  const next = { ...withState(leaveState(record), "CLAIMED_ONLY"), lastEventAt: at };
-  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? next : r)), events: [...ledger.events, gone, back] }, at, "withdrawProofState");
+  const lapsed = lapseDestinations(record, at, "STATE_WITHDRAWN", "the declaration was withdrawn by the human");
+  const gone = createLedgerEvent({ at, proofId, kind: "WITHHELD", from: current, to: "WITHHELD", reason: "STATE_WITHDRAWN", actor: LEDGER_ACTOR.HUMAN, detail: `the ${current} declaration is withdrawn by the human; via WITHHELD because the contract admits no direct edge back to CLAIMED_ONLY${lapsed.events.length ? `; ${lapsed.events.length} approved destination${lapsed.events.length === 1 ? "" : "s"} lapsed` : ""}` });
+  const back = createLedgerEvent({ at, proofId, kind: "RESUMED", from: "WITHHELD", to: "CLAIMED_ONLY", reason: "STATE_WITHDRAWN", actor: LEDGER_ACTOR.HUMAN, detail: "the excerpt still stands as confirmed evidence; links untouched; a lapsed approval is not restored by a later declaration" });
+  const next = { ...withState(leaveState(lapsed.record), "CLAIMED_ONLY"), lastEventAt: at };
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? next : r)), events: [...ledger.events, ...lapsed.events, gone, back] }, at, "withdrawProofState");
 }
 /** The human offers again an excerpt withheld at a conflict's resolution (the only withheld cause an apply does not clear). */
 export function offerAgain(ledger, proofId, at, { bundle } = {}) {
@@ -1080,10 +1163,12 @@ export function declareConflict(ledger, proofId, counterpartId, { targetKind, ta
   const shared = conflictCandidates(ledger, proofId, bundle).some((c) => c.counterpartId === counterpartId && c.targetKind === targetKind && c.targetId === targetId);
   if (!shared) return refuseState(ledger, at, `${String(targetKind)} ${String(targetId)} does not stand against the current posting evidence on both proof ${proofId} and proof ${counterpartId}; a conflict needs one shared standing target`);
   const conflictWith = (other) => ({ counterpartId: other.id, targetKind, targetId, declaredAt: at });
-  const nextA = { ...withState(leaveState(a), "CONFLICTING"), conflict: conflictWith(b), lastEventAt: at };
-  const nextB = { ...withState(leaveState(b), "CONFLICTING"), conflict: conflictWith(a), lastEventAt: at };
-  const ev = (self, other) => createLedgerEvent({ at, proofId: self.id, kind: "CONFLICT_DECLARED", from: self.record.state, to: "CONFLICTING", reason: "HUMAN_DECLARATION", actor: LEDGER_ACTOR.HUMAN, detail: `declared by the human in conflict with proof ${other.id} over ${targetKind} ${targetId}; the earlier ${self.record.state} declaration lapses until resolved` });
-  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === a.id ? nextA : r.id === b.id ? nextB : r)), events: [...ledger.events, ev(a, b), ev(b, a)] }, at, "declareConflict");
+  const lapsedA = lapseDestinations(a, at, "HUMAN_DECLARATION", `declared in conflict with proof ${b.id}`);
+  const lapsedB = lapseDestinations(b, at, "HUMAN_DECLARATION", `declared in conflict with proof ${a.id}`);
+  const nextA = { ...withState(leaveState(lapsedA.record), "CONFLICTING"), conflict: conflictWith(b), lastEventAt: at };
+  const nextB = { ...withState(leaveState(lapsedB.record), "CONFLICTING"), conflict: conflictWith(a), lastEventAt: at };
+  const ev = (self, other, n) => createLedgerEvent({ at, proofId: self.id, kind: "CONFLICT_DECLARED", from: self.record.state, to: "CONFLICTING", reason: "HUMAN_DECLARATION", actor: LEDGER_ACTOR.HUMAN, detail: `declared by the human in conflict with proof ${other.id} over ${targetKind} ${targetId}; the earlier ${self.record.state} declaration lapses until resolved${n ? `; ${n} approved destination${n === 1 ? "" : "s"} lapsed` : ""}` });
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === a.id ? nextA : r.id === b.id ? nextB : r)), events: [...ledger.events, ...lapsedA.events, ev(a, b, lapsedA.events.length), ...lapsedB.events, ev(b, a, lapsedB.events.length)] }, at, "declareConflict");
 }
 /**
  * The human resolves a conflict for BOTH sides in one act: each side goes to DEMONSTRATED,
@@ -1113,6 +1198,92 @@ export function resolveConflict(ledger, proofId, { thisTo, counterpartTo }, at, 
   // A side withheld at resolution takes its links with it at the same instant, as a fold would: a
   // stored VALID link on a WITHHELD record would otherwise stand until the next fold re-judged it.
   return result.ok && bundle !== undefined ? { ...result, ledger: reconcileLinks(result.ledger, bundle, at) } : result;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Human acts on destinations (BLP-011). Refused in words when the gate does not hold; a refusal is
+// recorded (DESTINATION_REFUSED) and changes no record.
+// ---------------------------------------------------------------------------------------------
+function refuseDestination(ledger, at, detail) {
+  const refusal = createLedgerRefusal({ at: isIso(at) ? at : null, reason: "DESTINATION_REFUSED", detail });
+  if (!validateLedgerRefusal(refusal).ok) throw new Error("a refusal needs an ISO instant");
+  return { ok: false, ledger: { ...ledger, refusals: [...(ledger.refusals || []), refusal] }, error: detail };
+}
+/**
+ * Whether this record may be approved for a destination NOW, stated once for the data layer and
+ * the panel. Returns { ok, error, linkIds, basis }. Switches over the full set of proof states with
+ * no default arm. The one operative exclusion is the contract's: ALLOWED only in DEMONSTRATED or
+ * CERTIFIED. DEMONSTRATED additionally needs its declared link standing under a LIVE judgement
+ * (ruling Q2); CERTIFIED needs no bundle (its basis is the human's own declaration, not external).
+ */
+export function destinationApproval(record, bundle) {
+  const state = record.record.state;
+  const rule = "the contract allows a destination only in state DEMONSTRATED or CERTIFIED";
+  if (record.record.confirmation !== "USER-CONFIRMED") return { ok: false, error: `this record's confirmation is not USER-CONFIRMED, so no destination can be approved (${rule})`, linkIds: [], basis: null };
+  switch (state) {
+    case "CLAIMED_ONLY": return { ok: false, error: `proof ${record.id} is CLAIMED_ONLY and licenses no destination; declare it demonstrated or certified first (${rule})`, linkIds: [], basis: null };
+    case "STALE": return { ok: false, error: `proof ${record.id} is STALE and licenses no destination; it resumes to CLAIMED_ONLY first, then is declared again (${rule})`, linkIds: [], basis: null };
+    case "WITHHELD": return { ok: false, error: `proof ${record.id} is WITHHELD and licenses no destination; offer or mark it again, then declare it (${rule})`, linkIds: [], basis: null };
+    case "CONFLICTING": return { ok: false, error: `proof ${record.id} is CONFLICTING and licenses no destination; resolve the conflict for both sides first (${rule})`, linkIds: [], basis: null };
+    case "CERTIFIED": return { ok: true, error: null, linkIds: [], basis: `a qualification or credential declared certified by you at ${record.declaration ? record.declaration.at : "an unrecorded instant"}; no link is re-judged because a certification stands on your declaration, not on the posting evidence` };
+    case "DEMONSTRATED": {
+      if (!isObject(bundle)) return { ok: false, error: "approval on a DEMONSTRATED record needs its declared link standing under a live judgement, and no posting evidence was given to judge against; refused rather than allowed on stored link state", linkIds: [], basis: null };
+      const catalogue = bundleTargets(bundle);
+      if (!catalogue.sourceId) return { ok: false, error: `approval on a DEMONSTRATED record needs its declared link standing, and the posting evidence could not be read (${catalogue.unlinkable[0].text}); refused`, linkIds: [], basis: null };
+      const declared = record.declaration ? record.declaration.linkIds.map((id) => (record.links || []).find((l) => l.id === id)).filter(Boolean) : [];
+      const standing = declared.filter((l) => judgeLink(l, bundle).valid);
+      if (!standing.length) return { ok: false, error: `approval on a DEMONSTRATED record needs at least one declared link standing against the current posting evidence; ${declared.length ? `${plural(declared.length, "declared link")} judged and none standing` : "no declared link"}; refused rather than allowed on stored link state`, linkIds: [], basis: null };
+      return { ok: true, error: null, linkIds: standing.map((l) => l.id), basis: `on ${standing.length === 1 ? "link" : "links"} ${standing.map((l) => l.id).join(", ")}, standing against the posting evidence at approval` };
+    }
+    default: throw new Error(`no approval rule for proof state ${String(state)}; every governed state must be answered`);
+  }
+}
+/**
+ * The human approves (to ALLOWED) or revokes (to REVOKED) one destination on one record. UNSET is
+ * never set by a human. Approve from UNSET or REVOKED, revoke from ALLOWED only (ruling Q4).
+ */
+export function setDestination(ledger, proofId, destination, to, at, { bundle } = {}) {
+  if (!isIso(at)) throw new Error("setDestination needs an ISO instant");
+  const record = ledger.records.find((r) => r.id === proofId);
+  if (!record) return refuseDestination(ledger, at, `no proof record ${String(proofId)}`);
+  if (!PROOF_DESTINATION.includes(destination)) return refuseDestination(ledger, at, `${String(destination)} is not a governed destination; it must be one of ${PROOF_DESTINATION.join(", ")}`);
+  if (to !== "ALLOWED" && to !== "REVOKED") return refuseDestination(ledger, at, `${String(to)} is not a state a human sets on a destination; approve (ALLOWED) or revoke (REVOKED); UNSET is reached only when an approval lapses`);
+  const from = record.record.destinations[destination];
+  const name = destinationText(destination);
+  if (!DESTINATION_HUMAN_EDGES.some(([f, t]) => f === from && t === to)) return refuseDestination(ledger, at, to === "REVOKED" ? `${name} is ${from} on proof ${proofId}; only an approved destination can be revoked` : `${name} is already approved on proof ${proofId}`);
+  let detail;
+  if (to === "ALLOWED") {
+    const gate = destinationApproval(record, bundle);
+    if (!gate.ok) return refuseDestination(ledger, at, gate.error);
+    detail = `${name} approved by the human on a ${record.record.state} record: ${gate.basis}`;
+  } else detail = `${name} revoked by the human; approve again to carry this proof there`;
+  const next = { ...record, record: { ...record.record, destinations: { ...record.record.destinations, [destination]: to } }, lastEventAt: at };
+  const verdict = validateProofRecord(next.record);
+  if (!verdict.ok) return refuseDestination(ledger, at, `contract refused the destination: ${verdict.errors[0]}`);
+  const event = createLedgerEvent({ at, proofId, destination, kind: "DESTINATION_SET", from, to, reason: "HUMAN_CHOICE", actor: LEDGER_ACTOR.HUMAN, detail });
+  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === proofId ? next : r)), events: [...ledger.events, event] }, at, "setDestination");
+}
+/**
+ * Each destination as it stands, with its history said in words (ruling Q3): a lapsed approval is
+ * never shown as merely UNSET. Switches over the full DESTINATION_STATE set with no default arm.
+ */
+export function destinationRows(record, events) {
+  const own = (Array.isArray(events) ? events : []).filter((e) => e.proofId === record.id && DESTINATION_EVENT_KINDS.includes(e.kind));
+  return PROOF_DESTINATION.map((key) => {
+    const hist = own.filter((e) => e.destination === key);
+    const state = record.record.destinations[key];
+    const name = destinationText(key);
+    const last = hist.length ? hist[hist.length - 1] : null;
+    const lastAllowed = [...hist].reverse().find((e) => e.to === "ALLOWED") || null;
+    let text;
+    switch (state) {
+      case "ALLOWED": text = lastAllowed ? `approved for ${name} at ${lastAllowed.at}` : `approved for ${name} (no approval event; the ledger is invalid)`; break;
+      case "REVOKED": text = last ? `revoked for ${name} at ${last.at}${lastAllowed ? `; approved earlier at ${lastAllowed.at}` : ""}` : `revoked for ${name} (no revocation event; the ledger is invalid)`; break;
+      case "UNSET": text = last ? (last.kind === "DESTINATION_LAPSED" ? `approved for ${name} at ${lastAllowed ? lastAllowed.at : "an unrecorded instant"}; lapsed at ${last.at} because ${destinationLapseText(last.reason)}` : `not approved for ${name} (last event ${last.kind} to ${last.to}; the ledger is invalid)`) : `not approved for ${name}`; break;
+      default: throw new Error(`no words for destination state ${String(state)}; every governed state must be answered`);
+    }
+    return { destination: key, name, state, stateText: destinationStateText(state), text, approvedAt: lastAllowed ? lastAllowed.at : null, lapsedAt: last && last.kind === "DESTINATION_LAPSED" ? last.at : null, lapseReason: last && last.kind === "DESTINATION_LAPSED" ? last.reason : null, events: hist.length };
+  });
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1206,8 +1377,8 @@ export function downstreamUsesOf(record, { bundle } = {}) {
         : !links.judged ? `${links.caveat}${kept}`
         : !links.standing.length ? `no link currently stands${links.caveat ? `: ${links.caveat}` : ""}${kept}`
         : `linked to ${plural(links.standing.length, "target")} that ${links.standing.length === 1 ? "stands" : "stand"} against the current posting evidence${lapsed}${kept}`,
-      allowed.length ? `approved for ${allowed.join(", ")}` : "no destinations approved yet (see destination approvals)",
-      revoked.length ? `revoked for ${revoked.join(", ")}` : null,
+      allowed.length ? `approved for ${allowed.map(destinationText).join(", ")}` : "no destinations approved yet (see destination approvals)",
+      revoked.length ? `revoked for ${revoked.map(destinationText).join(", ")}` : null,
     ].filter(Boolean),
   };
 }
@@ -1242,6 +1413,8 @@ export function ledgerRows(ledger, { currentSourceId, bundle } = {}) {
     links: (Array.isArray(record.links) ? record.links : []).map((link) => ({ ...link })),
     missingEvidence: missingEvidenceOf(record, { currentSourceId, bundle }),
     downstreamUses: downstreamUsesOf(record, { bundle }),
+    destinations: destinationRows(record, events),
+    destinationApproval: destinationApproval(record, bundle),
     recordedAt: record.recordedAt,
     lastEventAt: record.lastEventAt,
     events: events.filter((e) => e.proofId === record.id),
@@ -1294,6 +1467,11 @@ export function validateLedger(ledger) {
     const lastClaim = [...own].reverse().find((e) => e.kind === "CLAIM_SET");
     if ((lastClaim ? lastClaim.to : null) !== record.claimText) errors.push(`${record.id}: claim does not follow from its history (${lastClaim ? "last CLAIM_SET differs" : "no CLAIM_SET event"})`);
     if (own.length && own[own.length - 1].at !== record.lastEventAt) errors.push(`${record.id}: lastEventAt does not match its last event`);
+    // Destinations (BLP-011): each destination's state follows from its own history, UNSET until an event names it.
+    if (isObject(record.record?.destinations)) for (const key of PROOF_DESTINATION) {
+      const lastDest = [...own].reverse().find((e) => DESTINATION_EVENT_KINDS.includes(e.kind) && e.destination === key);
+      if ((lastDest ? lastDest.to : "UNSET") !== record.record.destinations[key]) errors.push(`${record.id}: destination ${key} is ${record.record.destinations[key]} but does not follow from its history (${lastDest ? `last event ${lastDest.kind} to ${lastDest.to}` : "no destination event"})`);
+    }
     // Proof states (BLP-010): what each state carries, and only that state.
     const st = record.record?.state;
     const causes = Array.isArray(record.staleCauses) ? record.staleCauses : null;

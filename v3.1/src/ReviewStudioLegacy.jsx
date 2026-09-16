@@ -698,7 +698,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, onExportJson, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError, initialIntent }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, onExportJson, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError, initialIntent, proofLedger }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1970,6 +1970,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       variant={printVariant}
       setVariant={setPrintVariant}
       onClose={() => setPrintOpen(false)}
+      proofLedger={proofLedger}
       result={result}
       title={title}
       employer={employer}
