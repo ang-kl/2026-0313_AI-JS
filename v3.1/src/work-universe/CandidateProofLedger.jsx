@@ -84,6 +84,17 @@ function useSuccessorFocus(watched) {
       if (target && !target.disabled) { target.focus(); return; }
     }
   }, [watched]);
+  // AN INTENT LIVES EXACTLY ONE COMMIT. Without this, an intent armed by an act that was REFUSED
+  // survives and is consumed by the next change to `watched`, whatever causes it - focus moving
+  // without the user having caused it, which is the mirror image of the defect this hook exists to
+  // fix. Measured, not reasoned about: a refused unlink (a declaration rests on the link, BLP-010
+  // ruling Q4) left the chooser intent armed, and a later link to a second target then moved focus
+  // to the chooser. Raised by the Blueprint Supervisor from a static read and confirmed by probe.
+  //
+  // This effect is declared AFTER the keyed one and React runs effects in declaration order, so on
+  // an act that DID take effect the keyed effect has already fired and cleared the intent in the
+  // same commit; what reaches here is only an intent whose act changed nothing.
+  useEffect(() => { wanted.current = null; });
   return [scope, (...selectors) => { wanted.current = selectors; }];
 }
 
@@ -280,7 +291,7 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
             <option value="">{options.length ? "Choose a target" : (catalogue.targets.length ? "Every linkable target is already linked" : "No target in this posting evidence is linkable yet")}</option>
             {options.map((t) => <option key={`${t.targetKind}|${t.targetId}`} value={`${t.targetKind}|${t.targetId}`}>{t.targetKind} {t.label}: {t.text.length > 90 ? `${t.text.slice(0, 90)}…` : t.text}</option>)}
           </select>
-          <button type="button" data-testid="cpl-link-button" disabled={disabled || !choice} onClick={() => { const [targetKind, targetId] = choice.split("|"); onLink(row.id, { targetKind, targetId }); }}>Link</button>
+          <button type="button" data-testid="cpl-link-button" disabled={disabled || !choice} onClick={() => { const [targetKind, targetId] = choice.split("|"); focusAfterLink('[data-testid="cpl-link-select"]'); onLink(row.id, { targetKind, targetId }); }}>Link</button>
         </div>
       )}
       {linkable && !catalogue.sourceId && <p className="cpl-meta" data-testid="cpl-link-no-bundle">{catalogue.unlinkable[0]?.text || "No canonical posting evidence is available to link to."}</p>}
