@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-18T13:45:00+08:00"
+      "updatedAt": "2026-09-18T13:50:00+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -2026,7 +2026,7 @@
         {
           "kind": "FILE",
           "reference": "v3.1/tests/reviewer-contract.mjs",
-          "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) modified this requirement's suite (+24/-1), adding review-filter assertions at both widths and, among them, `ok(true, ...)` at the clearing-filters step, an assertion that cannot fail (the Supervisor's finding). Counts AT 61531dc were 61 node / 130 Chromium; the counts on this record, 61 / 120, remain correct at its verified commit. Fixed at 50690c1: the step now captures the unfiltered card count before filtering and asserts, after the filters clear, that the count is restored and the chosen anchor keeps its accepted decision and its selection; the suite reads 61 / 132 at that commit."
+          "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) modified this requirement's suite (+24/-1), adding review-filter assertions at both widths and, among them, `ok(true, ...)` at the clearing-filters step, an assertion that cannot fail (the Supervisor's finding). Counts AT 61531dc were 61 node / 130 Chromium; the counts on this record, 61 / 120, remain correct at its verified commit. Fixed at 50690c1: the step now captures the unfiltered card count before filtering and asserts, after the filters clear, that the count is restored and the chosen anchor keeps its accepted decision and its selection; the suite reads 61 node / 134 Chromium at that commit, read from the gate's own run 103 (35311435178, job 105494120948, pull_request on 50690c1) rather than from any local build. CORRECTION, recorded rather than silently amended: this note first cited 132, a figure taken from a local run made before the last accessibility change of that commit; the coordinating session compared what it had written against what it had measured, found the disagreement and flagged it before the Supervisor did. Three figures now stand, each naming the commit it describes and none overwriting another: 61 / 120 at this requirement's own verified commit, 61 / 130 at 61531dc, and 61 / 134 at 50690c1."
         }
       ],
       "blockers": [

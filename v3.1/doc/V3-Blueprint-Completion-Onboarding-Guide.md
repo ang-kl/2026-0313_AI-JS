@@ -8,7 +8,7 @@
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
 **Current main observed:** `61531dc9c59685a1f1c21202c93b531595a86283` (`feat(v3.1): implement BLP-012 through BLP-028 (#508)`)  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `e6e8cba7671d403fac199c7a73c36b120f49770b67a042ff30ebe0a43b665ca2`  
+**Register snapshot SHA-256:** `fcd0b7814233360d1625d05ad27de9c6f7afc336b3a302320aeb1690532ca4ff`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
