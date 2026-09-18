@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, Fragment } from "react";
+import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { buildGovernanceLedgerData } from "../work-universe/governanceLedgerData.js";
 import { ledgerRows, ACCEPTED_STATES, linkStanding, ledgerFaultText } from "../work-universe/candidateProofLedgerData.js";
@@ -67,6 +67,24 @@ export default function PrintPackage({
   confidence,
   windowRows, dissection, comments, decisions, critical, proofLedger,
 }) {
+  // BLP-012 measured this overlay opening with focus left on the button behind it, so a keyboard
+  // user opened a package they could not reach. Focus moves to the overlay's own heading, which
+  // names what opened. The heading is the conventional target rather than the first control,
+  // because it tells the user where they now are before offering them an action.
+  //
+  // NOT DONE HERE, and stated rather than left to be assumed: this is a focus move only. The
+  // overlay does not declare dialog semantics and does not trap focus, so tabbing past the last
+  // control still reaches the page behind it. That is a larger change than the defect BLP-012
+  // found and it is recorded as an omission rather than folded in silently.
+  //
+  // Keyed on `open`, NOT on mount. This component stays mounted and returns null until it is
+  // opened (see the `if (!open) return null` below), so a mount-only effect fires once while the
+  // heading does not exist and never again. The first version of this fix did exactly that and
+  // measured no better than the defect: focus still landed on the document body. Found by running
+  // the probe against the fix rather than by reading it.
+  const titleRef = useRef(null);
+  useEffect(() => { if (open) titleRef.current?.focus(); }, [open]);
+
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (event) => { if (event.key === "Escape") onClose(); };
@@ -140,7 +158,7 @@ export default function PrintPackage({
         }
       `}</style>
       <header className="v31-print-controls">
-        <div><h2>Editorial review package</h2><p>Choose what to include, then print or save as PDF.</p></div>
+        <div><h2 ref={titleRef} tabIndex={-1} data-testid="print-package-title">Editorial review package</h2><p>Choose what to include, then print or save as PDF.</p></div>
         <div className="v31-print-actions">
           <div className="v31-print-switch" role="group" aria-label="Print package mode">
             <button type="button" className={variant === "clean" ? "on" : ""} aria-pressed={variant === "clean"} onClick={() => setVariant("clean")}>Clean package</button>

@@ -461,6 +461,7 @@ async function runViewport({ name, width, height, phone }) {
   const tag = name;
   const page = await setupSession({ width, height, phone });
   const rec0 = record(page, 0);
+  const rec1 = record(page, 1);
 
   // -------------------------------------------------------------------------------------------
   // Stage 1. The anchors are minted. Everything after this is measured against them.
@@ -496,6 +497,8 @@ async function runViewport({ name, width, height, phone }) {
   await pressByKeyboard(rec0.getByTestId("cpl-declare-demonstrated"), page, "Enter", `${tag} stage 2 declare`);
   await named(noticeChanged(page, before), `${tag} stage 2: declaring demonstrated by keyboard changed the ledger notice`);
   await named(waitState(page, 0, "DEMONSTRATED"), `${tag} stage 2: the Enter key on the demonstrated control moved the record to DEMONSTRATED`);
+  let f = await settleFocus(page, (a) => a?.testid === "cpl-withdraw");
+  eq(f.testid, "cpl-withdraw", `${tag} stage 2: declaring demonstrated moves focus to the withdraw control, which now occupies the place of the button that was pressed; focus settled on ${JSON.stringify(f)} (before the BLP-012 fix this was the document body, stranding a keyboard user at the top of a ledger thousands of pixels tall)`);
   now = await readAnchors(page);
   assertAnchors(linked, now, [...CARRIED, "linkId", "linkTargetId"], tag, "stage 2 after declaring demonstrated by keyboard");
 
@@ -526,12 +529,16 @@ async function runViewport({ name, width, height, phone }) {
   await pressByKeyboard(rec0.getByTestId("cpl-withdraw"), page, "Enter", `${tag} stage 2 withdraw`);
   await named(noticeChanged(page, before), `${tag} stage 2: withdrawing the declaration by keyboard changed the ledger notice`);
   await named(waitState(page, 0, "CLAIMED_ONLY"), `${tag} stage 2: withdrawing returns the record to CLAIMED_ONLY`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-declare-demonstrated");
+  eq(f.testid, "cpl-declare-demonstrated", `${tag} stage 2: withdrawing a declaration moves focus to the declare control that replaces the withdraw button; focus settled on ${JSON.stringify(f)}`);
   now = await readAnchors(page);
   eq(now.claim, CLAIM, `${tag} stage 2: withdrawing a declaration does NOT clear the human's claim (this is the anchor's own documented failure mode, driven rather than merely described)`);
   before = await noticeText(page);
   await pressByKeyboard(rec0.getByTestId("cpl-declare-demonstrated"), page, "Enter", `${tag} stage 2 re-declare`);
   await named(noticeChanged(page, before), `${tag} stage 2: re-declaring demonstrated by keyboard changed the ledger notice`);
   await named(waitState(page, 0, "DEMONSTRATED"), `${tag} stage 2: the record can be declared demonstrated again after a withdrawal`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-withdraw");
+  eq(f.testid, "cpl-withdraw", `${tag} stage 2: re-declaring after a withdrawal moves focus to the withdraw control again, so the behaviour is not a one-shot of the first declaration; focus settled on ${JSON.stringify(f)}`);
   now = await readAnchors(page);
   assertAnchors(claimed, now, [...CARRIED, "claim", "linkId", "linkTargetId"], tag, "stage 2 after a withdrawal and a re-declaration");
 
@@ -539,6 +546,8 @@ async function runViewport({ name, width, height, phone }) {
   await pressByKeyboard(destRow(page, 0, "resume").getByTestId("cpl-dest-approve"), page, "Enter", `${tag} stage 2 approve resume`);
   await named(noticeChanged(page, before), `${tag} stage 2: approving the resume destination by keyboard changed the ledger notice`);
   await named(waitDest(page, 0, "resume", "ALLOWED"), `${tag} stage 2: the Enter key on the approve control moved the resume destination to ALLOWED`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-dest-revoke");
+  eq(f.testid, "cpl-dest-revoke", `${tag} stage 2: approving a destination moves focus to the revoke control on that row, which the approval has just made the live one; focus settled on ${JSON.stringify(f)}`);
   now = await readAnchors(page);
   assertAnchors(claimed, now, [...CARRIED, "claim", "linkId", "linkTargetId"], tag, "stage 2 after approving a destination by keyboard");
   eq(now.destResume, "ALLOWED", `${tag} stage 2: the destination approval was made by the Enter key on the approve control`);
@@ -598,8 +607,10 @@ async function runViewport({ name, width, height, phone }) {
   // -------------------------------------------------------------------------------------------
   // Stage 4. The print round trip. The print package is the other way out of the ledger and back.
   // -------------------------------------------------------------------------------------------
-  await page.getByTestId("wu-open-print-package").click();
+  await pressByKeyboard(page.getByTestId("wu-open-print-package"), page, "Enter", `${tag} stage 4 open print package`);
   await page.getByTestId("print-package-preview").waitFor({ state: "visible", timeout: 15000 });
+  const printFocus = await settleFocus(page, (a) => a?.testid === "print-package-title");
+  eq(printFocus.testid, "print-package-title", `${tag} stage 4: opening the print package moves focus into the overlay, onto the heading that names what opened; focus settled on ${JSON.stringify(printFocus)} (before the fix focus stayed behind the overlay, so a keyboard user opened a package they could not reach)`);
   const printSection = page.getByTestId("print-proof-destinations");
   eq(await printSection.getAttribute("data-carried"), "1", `${tag} stage 4: the print package carries the one approval this session made, read from the ledger rather than re-derived`);
   await page.locator(".v31-print-controls .close").click();
@@ -631,6 +642,53 @@ async function runViewport({ name, width, height, phone }) {
   eq(ended.destResume, "ALLOWED", `${tag} stage 5: the destination approved at stage 2 is still approved at the end of the session`);
   eq(ended.proofId, minted.proofId, `${tag} stage 5: the proof id minted when the excerpt was confirmed is the id carrying the destination approval at the end of the session - the single continuity statement this whole suite exists to make`);
 
+  // -------------------------------------------------------------------------------------------
+  // Stage 6. The three remaining focus behaviours, DELIBERATELY LAST because each one destroys
+  // state the continuity stages above depend on: declaring the second record certified, revoking
+  // the approval that stage 5 just asserted still stands, and unlinking the link the round trip
+  // returned to. Running them earlier would mean the continuity assertions and these assertions
+  // could not both be about the same session.
+  //
+  // Criterion (ii) is about ALL of the workflow's controls, not the ones that happen to be
+  // convenient to drive in the middle of a continuity run.
+  // -------------------------------------------------------------------------------------------
+  before = await noticeText(page);
+  await pressByKeyboard(rec1.getByTestId("cpl-declare-certified"), page, "Enter", `${tag} stage 6 declare certified`);
+  await named(noticeChanged(page, before), `${tag} stage 6: declaring the second record certified by keyboard changed the ledger notice`);
+  await named(waitState(page, 1, "CERTIFIED"), `${tag} stage 6: the Enter key on the certified control moved the second record to CERTIFIED`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-withdraw");
+  eq(f.testid, "cpl-withdraw", `${tag} stage 6: declaring certified moves focus to the withdraw control, the same successor the demonstrated path uses; focus settled on ${JSON.stringify(f)}`);
+
+  before = await noticeText(page);
+  await pressByKeyboard(destRow(page, 0, "resume").getByTestId("cpl-dest-revoke"), page, "Enter", `${tag} stage 6 revoke resume`);
+  await named(noticeChanged(page, before), `${tag} stage 6: revoking the resume destination by keyboard changed the ledger notice`);
+  await named(waitDest(page, 0, "resume", "REVOKED"), `${tag} stage 6: the Enter key on the revoke control moved the resume destination to REVOKED`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-dest-approve");
+  eq(f.testid, "cpl-dest-approve", `${tag} stage 6: revoking a destination moves focus to the approve control on that row, which the revocation has just made the live one; focus settled on ${JSON.stringify(f)}`);
+  eq(await destRow(page, 0, "resume").getByTestId("cpl-dest-approve").innerText(), "Approve again", `${tag} stage 6: the control that took focus reads "Approve again", so focus landed on the successor rather than on a control that merely shares its test id`);
+
+  // The declaration must be withdrawn before the link can be removed. This is not a workaround:
+  // unlinkProof refuses while a declaration rests on the link ("a human may not pull the object out
+  // from under a declaration", BLP-010 ruling Q4, candidateProofLedgerData.js:363-366). The suite
+  // hit that refusal on its first run and the product was right - the test was wrong. Withdrawing
+  // first is the path a human takes, and it exercises the withdraw focus behaviour a second time
+  // from a different starting state.
+  before = await noticeText(page);
+  await pressByKeyboard(rec0.getByTestId("cpl-withdraw"), page, "Enter", `${tag} stage 6 withdraw before unlinking`);
+  await named(noticeChanged(page, before), `${tag} stage 6: withdrawing before the unlink changed the ledger notice`);
+  await named(waitState(page, 0, "CLAIMED_ONLY"), `${tag} stage 6: the record is claimed only again, so the link is no longer held by a declaration`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-declare-demonstrated");
+  eq(f.testid, "cpl-declare-demonstrated", `${tag} stage 6: withdrawing moves focus to the declare control from this starting state too; focus settled on ${JSON.stringify(f)}`);
+
+  const linksBefore = await rec0.locator('[data-testid="cpl-link"]').count();
+  ok(linksBefore > 0, `${tag} stage 6: there is a link to unlink (without one the unlink assertion below would be vacuous)`);
+  before = await noticeText(page);
+  await pressByKeyboard(rec0.getByTestId("cpl-unlink").first(), page, "Enter", `${tag} stage 6 unlink`);
+  await named(noticeChanged(page, before), `${tag} stage 6: unlinking by keyboard changed the ledger notice`);
+  await named(page.waitForFunction((n) => (document.querySelectorAll('[data-testid="cpl-record"]')[0]?.querySelectorAll('[data-testid="cpl-link"]').length ?? 0) < n, linksBefore, { timeout: 5000 }), `${tag} stage 6: the Enter key on the unlink control actually removed a link row`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-link-select");
+  eq(f.testid, "cpl-link-select", `${tag} stage 6: unlinking moves focus to the link chooser - the control a human who has just unlinked acts on next - rather than to the document body, which is where the removed row would otherwise leave them; focus settled on ${JSON.stringify(f)}`);
+
   await page.close();
   return { widthTested: width };
 }
@@ -646,17 +704,18 @@ console.log(`BLP-012 candidate-proof workflow: PASS, ${checks} checks across ${B
 console.log([
   "NOT COVERED by this suite, stated so the file name does not overclaim:",
   "",
-  "  1. FOCUS RESTORATION ON SEVEN CONTROLS, WHICH THIS SUITE MEASURED AS FAILING.",
-  "     Driven by keyboard and read from document.activeElement, at desktop-1440x1000 AND",
-  "     phone-390x844, identically, every one lands on BODY:",
-  "       declare demonstrated, declare certified, approve destination, revoke destination,",
-  "       withdraw declaration, unlink, open print package.",
-  "     Two paths ARE sound and this suite asserts both: saving a claim moves focus to the",
-  "     announced claim state, and closing the print package restores focus to the control that",
-  "     opened it. So focus is managed in the two places someone thought about and nowhere else.",
-  "     Acceptance criterion (ii) says keyboard operation and focus restoration PASS, not that they",
-  "     are tested, so BLP-012 cannot reach COMPLETE until this is fixed and asserted here. The fix",
-  "     is scoped as its own change rather than widened into this verification requirement.",
+  "  1. NOT AN OMISSION ANY MORE, and recorded here because this block previously said it was:",
+  "     the seven controls that dropped keyboard focus to the document body are FIXED and ASSERTED.",
+  "     Each is driven by key and its successor focus asserted by name: declare demonstrated and",
+  "     declare certified move to withdraw; withdraw and offer again move to declare; approve moves",
+  "     to revoke on the same destination row and revoke moves to approve; unlink moves to the link",
+  "     chooser; opening the print package moves focus onto the overlay's heading. The measurement",
+  "     that found them, BODY at both 1440x1000 and 390x844, is on the BLP-012 record.",
+  "",
+  "  1b. WHAT THE PRINT OVERLAY STILL DOES NOT DO. Focus moves into it; it does not declare dialog",
+  "     semantics and does not trap focus, so tabbing past its last control reaches the page behind",
+  "     it. That is a larger change than the defect this requirement found, and it is named here",
+  "     rather than folded in silently.",
   "",
   "  2. KEYBOARD OPERATION OF THE EVIDENCE CAPTURE STAGE. Marking, confirming and applying an",
   "     excerpt are driven by click here, and the text selection is set by script. Criterion (ii) is",

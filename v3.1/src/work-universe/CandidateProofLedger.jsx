@@ -57,6 +57,36 @@ function stateActText(e) {
   return null;
 }
 
+// Focus after an act that unmounts or disables the control that caused it.
+//
+// BLP-012's suite measured six controls in this file returning a keyboard user to the document
+// body: declare demonstrated, declare certified, withdraw, offer again, approve and revoke a
+// destination, and unlink. On a ledger thousands of pixels tall that is not a small inconvenience.
+//
+// Focus goes to the SUCCESSOR control - the one that now occupies the place of the control that
+// was pressed - and the outcome is announced by the ledger's existing live notice, which already
+// says what happened. Sending focus to a second announcing element would make assistive technology
+// say it twice. `scope` keeps the lookup inside the component's own subtree, so one record's act
+// can never move focus into another record.
+function useSuccessorFocus(watched) {
+  const scope = useRef(null);
+  const wanted = useRef(null);
+  useEffect(() => {
+    const want = wanted.current;
+    if (!want) return;
+    wanted.current = null;
+    // First enabled match wins. The list is ordered by preference, so a successor that the act
+    // itself disables (approve, once the destination is allowed) falls through to the control that
+    // is now the live one. If nothing in the list is present and enabled, focus is left alone
+    // rather than sent somewhere arbitrary: a wrong destination is worse than none.
+    for (const selector of want) {
+      const target = scope.current?.querySelector(selector);
+      if (target && !target.disabled) { target.focus(); return; }
+    }
+  }, [watched]);
+  return [scope, (...selectors) => { wanted.current = selectors; }];
+}
+
 function ClaimField({ row, disabled, onChange }) {
   const [draft, setDraft] = useState(row.claimText || "");
   const stateRef = useRef(null);
@@ -84,6 +114,7 @@ function ClaimField({ row, disabled, onChange }) {
  * bundle the demonstrated control is withheld with the reason, never enabled on stored state.
  */
 function StateControls({ row, ledger, bundle, disabled, onDeclare, onWithdraw, onOfferAgain, onDeclareConflict, onResolve }) {
+  const [scopeRef, focusAfter] = useSuccessorFocus(row.state);
   const [conflictChoice, setConflictChoice] = useState("");
   const [thisTo, setThisTo] = useState("DEMONSTRATED");
   const [counterpartTo, setCounterpartTo] = useState("WITHHELD");
@@ -94,18 +125,18 @@ function StateControls({ row, ledger, bundle, disabled, onDeclare, onWithdraw, o
   const whyNotDemonstrate = row.state !== "CLAIMED_ONLY" ? null : row.unstructured ? "no exact excerpt marked, so no accepted state can be declared" : unjudged ? "the posting evidence is not given to this view, so no link can be judged to stand; demonstrated is withheld rather than allowed on stored link state" : standing && standing.unreadable ? `the posting evidence could not be read (${standing.unreadable}), so no link can be judged to stand` : standing && !standing.standing.length ? (row.links.length ? "no link stands against the current posting evidence" : "not yet linked to a target, so there is nothing this excerpt could demonstrate") : null;
   const candidates = record && ACCEPTED_STATES.includes(row.state) ? conflictCandidates(ledger, row.id, bundle) : [];
   return (
-    <div className="cpl-stateCtl" data-testid="cpl-state-controls" data-state={row.state}>
+    <div className="cpl-stateCtl" ref={scopeRef} data-testid="cpl-state-controls" data-state={row.state}>
       <span className="cpl-label">Proof state (your declaration)</span>
       {row.state === "CLAIMED_ONLY" && (
         <div className="cpl-linkRow">
-          <button type="button" data-testid="cpl-declare-demonstrated" disabled={disabled || !canDemonstrate} aria-describedby={whyNotDemonstrate ? `cpl-declare-why-${row.id}` : undefined} onClick={() => onDeclare(row.id, "DEMONSTRATED")}>Declare demonstrated</button>
-          <button type="button" data-testid="cpl-declare-certified" disabled={disabled || row.unstructured} aria-describedby={row.unstructured ? `cpl-declare-why-${row.id}` : undefined} onClick={() => onDeclare(row.id, "CERTIFIED")}>Declare certified</button>
+          <button type="button" data-testid="cpl-declare-demonstrated" disabled={disabled || !canDemonstrate} aria-describedby={whyNotDemonstrate ? `cpl-declare-why-${row.id}` : undefined} onClick={() => { focusAfter('[data-testid="cpl-withdraw"]'); onDeclare(row.id, "DEMONSTRATED"); }}>Declare demonstrated</button>
+          <button type="button" data-testid="cpl-declare-certified" disabled={disabled || row.unstructured} aria-describedby={row.unstructured ? `cpl-declare-why-${row.id}` : undefined} onClick={() => { focusAfter('[data-testid="cpl-withdraw"]'); onDeclare(row.id, "CERTIFIED"); }}>Declare certified</button>
         </div>
       )}
       {row.state === "CLAIMED_ONLY" && whyNotDemonstrate && <p className="cpl-meta" id={`cpl-declare-why-${row.id}`} data-testid="cpl-declare-why">{row.unstructured ? "Neither demonstrated nor certified is offered" : "Demonstrated is not offered"}: {whyNotDemonstrate}.</p>}
       {ACCEPTED_STATES.includes(row.state) && (
         <div className="cpl-linkRow">
-          <button type="button" data-testid="cpl-withdraw" disabled={disabled} onClick={() => onWithdraw(row.id)}>Withdraw this declaration (back to claimed only)</button>
+          <button type="button" data-testid="cpl-withdraw" disabled={disabled} onClick={() => { focusAfter('[data-testid="cpl-declare-demonstrated"]', '[data-testid="cpl-declare-certified"]'); onWithdraw(row.id); }}>Withdraw this declaration (back to claimed only)</button>
         </div>
       )}
       {ACCEPTED_STATES.includes(row.state) && (candidates.length ? (
@@ -131,7 +162,7 @@ function StateControls({ row, ledger, bundle, disabled, onDeclare, onWithdraw, o
       {row.state === "STALE" && <p className="cpl-meta" data-testid="cpl-state-stale-note">{row.staleCauses.length > 1 ? "This record resumes as claimed only when every cause is cleared: the excerpt confirmed again on its text, and a declared link standing again or linked again; the earlier declaration is not re-asserted." : row.staleCauses[0] === "TARGET_LINK" ? "This record resumes as claimed only when a declared link stands again or you link again; the earlier demonstrated declaration is not re-asserted." : "This record resumes as claimed only when the excerpt is confirmed again; any earlier declaration is not re-asserted."}</p>}
       {row.state === "WITHHELD" && row.withheldCause === "CONFLICT_RESOLVED" && (
         <div className="cpl-linkRow">
-          <button type="button" data-testid="cpl-offer-again" disabled={disabled} aria-describedby={`cpl-state-withheld-note-${row.id}`} onClick={() => onOfferAgain(row.id)}>Offer this excerpt again (back to claimed only)</button>
+          <button type="button" data-testid="cpl-offer-again" disabled={disabled} aria-describedby={`cpl-state-withheld-note-${row.id}`} onClick={() => { focusAfter('[data-testid="cpl-declare-demonstrated"]', '[data-testid="cpl-declare-certified"]'); onOfferAgain(row.id); }}>Offer this excerpt again (back to claimed only)</button>
         </div>
       )}
       {row.state === "WITHHELD" && <p className="cpl-meta" id={`cpl-state-withheld-note-${row.id}`} data-testid="cpl-state-withheld-note" data-cause={row.withheldCause}>Withheld: {row.withheldCauseText}; it resumes as claimed only.</p>}
@@ -150,8 +181,12 @@ function StateControls({ row, ledger, bundle, disabled, onDeclare, onWithdraw, o
 function DestinationControls({ row, disabled, onSet }) {
   const gate = row.destinationApproval;
   const whyId = `cpl-dest-why-${row.id}`;
+  // Watched on the joined destination states, so the effect fires when any row's state moves. The
+  // selectors below name the destination, so approving one destination never moves focus to another.
+  const [scopeRef, focusAfter] = useSuccessorFocus(row.destinations.map((d) => `${d.destination}:${d.state}`).join(","));
+  const rowTarget = (key, testid) => `[data-testid="cpl-dest"][data-destination="${key}"] [data-testid="${testid}"]`;
   return (
-    <div className="cpl-dest" data-testid="cpl-destinations" data-approval={gate.ok ? "offered" : "withheld"}>
+    <div className="cpl-dest" ref={scopeRef} data-testid="cpl-destinations" data-approval={gate.ok ? "offered" : "withheld"}>
       <span className="cpl-label" id={`cpl-dest-label-${row.id}`}>Destinations (your approvals)</span>
       {!gate.ok && <p className="cpl-meta" id={whyId} data-testid="cpl-dest-why">Approval is not offered: {gate.error}.</p>}
       <ul aria-labelledby={`cpl-dest-label-${row.id}`} data-testid="cpl-dest-list">
@@ -160,8 +195,8 @@ function DestinationControls({ row, disabled, onSet }) {
             <div className="cpl-state"><span data-testid="cpl-dest-name">destination: {d.name}</span> · {d.state} · <span data-testid="cpl-dest-state-text">{d.stateText}</span></div>
             <div className="cpl-meta" data-testid="cpl-dest-history">{d.text}</div>
             <div className="cpl-linkRow">
-              <button type="button" data-testid="cpl-dest-approve" disabled={disabled || d.state === "ALLOWED" || !gate.ok} aria-describedby={gate.ok ? undefined : whyId} aria-label={`Approve proof ${row.id} for the destination ${d.name}`} onClick={() => onSet(row.id, d.destination, "ALLOWED")}>{d.state === "REVOKED" ? "Approve again" : "Approve"}</button>
-              <button type="button" data-testid="cpl-dest-revoke" disabled={disabled || d.state !== "ALLOWED"} aria-label={`Revoke the approval of proof ${row.id} for the destination ${d.name}`} onClick={() => onSet(row.id, d.destination, "REVOKED")}>Revoke</button>
+              <button type="button" data-testid="cpl-dest-approve" disabled={disabled || d.state === "ALLOWED" || !gate.ok} aria-describedby={gate.ok ? undefined : whyId} aria-label={`Approve proof ${row.id} for the destination ${d.name}`} onClick={() => { focusAfter(rowTarget(d.destination, "cpl-dest-revoke"), rowTarget(d.destination, "cpl-dest-approve")); onSet(row.id, d.destination, "ALLOWED"); }}>{d.state === "REVOKED" ? "Approve again" : "Approve"}</button>
+              <button type="button" data-testid="cpl-dest-revoke" disabled={disabled || d.state !== "ALLOWED"} aria-label={`Revoke the approval of proof ${row.id} for the destination ${d.name}`} onClick={() => { focusAfter(rowTarget(d.destination, "cpl-dest-approve"), rowTarget(d.destination, "cpl-dest-revoke")); onSet(row.id, d.destination, "REVOKED"); }}>Revoke</button>
             </div>
           </li>
         ))}
@@ -186,6 +221,10 @@ function liveText(link, live) {
 }
 
 function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRelink, onOpenEvidence }) {
+  // Watched on the link identities, so the effect fires when one is removed or added. Unlink is the
+  // one act here whose control does not survive it: the row it sits in is gone. Focus goes to the
+  // chooser, which is where a human who has just unlinked acts next, rather than to the document.
+  const [linkScopeRef, focusAfterLink] = useSuccessorFocus(row.links.map((l) => l.id).join(","));
   // No bundle given means NOT RE-CHECKED here, the same statement ledgerRows makes; it is not "could
   // not be read", which is what judging against nothing would say (conformance-auditor S-new-2).
   const unjudged = bundle === undefined;
@@ -206,7 +245,7 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
   const liveOf = (link) => (!unjudged && row.linksJudgeable ? judgeLink(link, bundle) : null);
   const disagrees = (link, live) => live && ((link.state === "VALID") !== live.valid || (!live.valid && live.reason !== link.reason));
   return (
-    <div className="cpl-links" data-testid="cpl-links">
+    <div className="cpl-links" ref={linkScopeRef} data-testid="cpl-links">
       <span className="cpl-label" id={`cpl-links-label-${row.id}`}>Links to role evidence</span>
       {row.links.length ? (
         <ul aria-labelledby={`cpl-links-label-${row.id}`} data-testid="cpl-link-list">
@@ -226,7 +265,7 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
               <div><span className="cpl-label">Target text as it was at link time ({link.linkedAt}), parentage then {link.targetDerivationState}; not the current text or the current parentage</span><blockquote data-testid="cpl-link-target-text">{link.targetText}</blockquote></div>
               <div className="cpl-linkRow">
                 <button type="button" data-testid="cpl-link-open" disabled={!onOpenEvidence} aria-describedby={onOpenEvidence ? undefined : `cpl-link-open-why-${link.id}`} aria-label={`Open ${link.targetKind} ${link.targetId} in the evidence workspace`} onClick={() => onOpenEvidence?.(link.targetId)}>Open target in evidence workspace</button>
-                <button type="button" data-testid="cpl-unlink" disabled={disabled} aria-label={`Unlink ${link.targetKind} ${link.targetId}`} onClick={() => onUnlink(row.id, link.id)}>Unlink</button>
+                <button type="button" data-testid="cpl-unlink" disabled={disabled} aria-label={`Unlink ${link.targetKind} ${link.targetId}`} onClick={() => { focusAfterLink('[data-testid="cpl-link-select"]', '[data-testid="cpl-link-button"]'); onUnlink(row.id, link.id); }}>Unlink</button>
               </div>
               {!onOpenEvidence && <p className="cpl-meta" id={`cpl-link-open-why-${link.id}`} data-testid="cpl-link-open-why">No evidence workspace is connected on this surface, so the target cannot be opened from here.</p>}
             </li>
