@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-    "updatedAt": "2026-09-18T20:06:44+08:00"
+    "updatedAt": "2026-09-18T20:15:33+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -4724,6 +4724,11 @@
           "kind": "OTHER",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ba3216abc04482d764603003cb659bdaf0cdd255",
           "label": "NAMED OMISSIONS WITH OWNERS, recorded on the Blueprint Supervisor's criterion (ii) ruling of 2026-09-18 rather than left for a reader to find. Criterion (ii) is satisfied for the workflow THIS requirement verifies - paste, excerpt, record, link, declare, approve, output - and every control that workflow drives has its focus behaviour measured and asserted by name at four widths. Three ledger controls are not stages of that workflow and this suite cannot reach the states that render them: RE-LINK (a target re-extracted under a new id) is BLP-009's surface; DECLARE CONFLICT and RESOLVE CONFLICT (two accepted records sharing a target) are BLP-010's. Neither is wired nor measured. A fourth, cpl-offer-again, CARRIES the fix at the handler but was never measured, because it renders only for a record withheld by a resolved conflict - that is a reading of the code, not a measurement, and it is recorded as such. The Supervisor's reason for not barring COMPLETE on them: reading criterion (ii) as every control in the ledger would make this requirement unsatisfiable without reopening two COMPLETE requirements, which its own scope ruling forbade; the eight that were fixed were fixed because THIS requirement's probe measured them failing on ITS OWN path, and COMPLETE was refused while that was true. IF NO FUTURE REQUIREMENT WILL DRIVE THE THREE, that is a coverage gap for the Human Lead in the same terms as wu-open-print-package."
+        },
+        {
+          "kind": "RUNTIME",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35343059039",
+          "label": "THE TWO DISPATCH CAVEATS, MEASURED AFTERWARDS RATHER THAN LEFT AS REASONING (2026-09-18, pull_request run 111 on d435ac3, conclusion success). Run 110's approval carries two caveats. One is now CLOSED for this branch and one is WORSE than recorded. CLOSED: the feature-map contract's scope comparison. Run 111 invoked it as FEATURE_MAP_BASE_REF=8642b22cdfb89f02e546ec63b143a698d98dbb67, a real base, and it reported PASS (3 maps, 3 indexed maps, 294 unique IDs, 41 visual callouts) - so on a pull_request run the comparison IS exercised, which is what the caveat said a dispatch could not do. WORSE: step 9. The recorded reason - that it keys on a pull_request event - is false. It keys on a branch-name prefix, codex/v31-blueprint-completion-register-, so it skips on this branch on EVERY event, and run 111 shows it SKIPPED on a pull_request. No run of this programme's own branch has ever executed that step, and none can. Guide section 6.7 already recorded the correct gating and the residual it leaves; the register note contradicted it until this correction. THE LESSON IS 6.9'S: the false half was asserted from a step list without opening the workflow file, which is a relationship claimed with one operand unread, and it was carried by both the coordinating session and the Blueprint Supervisor because each read it in the other's words."
         }
       ],
       "blockers": [
@@ -4862,7 +4867,7 @@
               "label": "Reopen tests on the same dispatch run, recorded either way: proof-links 160 node / 301 Chromium, proof-states 167 / 242, proof-destinations 135 / 268 - all unchanged against run 106. Nothing reopens."
             }
           ],
-          "note": "Run on the merge commit 8642b22 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit. CAVEATS, stated so this run is not cited beyond what it establishes: FEATURE_MAP_BASE_REF is empty on a dispatch, so the feature-map contract's scope comparison is NOT exercised; and step 9, 'Enforce blueprint-register construction scope', has conclusion SKIPPED because its condition keys on a pull_request event, so it cannot run on a dispatch by construction (guide section 6.7). Every other step succeeded and the browser gate step ran in full, 11:49:46-11:52:57. This run is evidence for the suites and the completion contract only, and must not be cited as feature-map scope or register-scope evidence."
+          "note": "Run on the merge commit 8642b22 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit. CAVEATS, stated so this run is not cited beyond what it establishes: FEATURE_MAP_BASE_REF is empty on a dispatch, so the feature-map contract's scope comparison is NOT exercised; and step 9, 'Enforce blueprint-register construction scope', has conclusion SKIPPED. REASON CORRECTED 2026-09-18 AFTER MEASUREMENT, because the reason first recorded here was wrong and wrong in a way the register could not falsify from inside: this note, and the Supervisor's caveat it was written from, both said the step skips because its condition keys on a pull_request event and so cannot run on a dispatch. It does not. The condition is startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-'), a BRANCH-NAME prefix, so on this branch the step skips on EVERY event, dispatch and pull_request alike. Measured, not reasoned: pull_request run 111 (35343059039) on d435ac3 reports step 9 SKIPPED too. Guide section 6.7 had the correct reason on the record the whole time and this note contradicted it in the same repository. The claim was written by reading a step list and not the workflow file - the same shape as 6.9's, a relationship asserted with one operand unread. Every other step succeeded and the browser gate step ran in full, 11:49:46-11:52:57. This run is evidence for the suites and the completion contract only, and must not be cited as feature-map scope or register-scope evidence."
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -4988,7 +4993,7 @@
           {
             "kind": "RUNTIME",
             "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35341484394",
-            "label": "Gate run 110 on 8642b22 by workflow_dispatch, conclusion success. TWO CAVEATS, recorded so this run is not cited beyond what it establishes: FEATURE_MAP_BASE_REF is empty on a dispatch so the feature-map contract's scope comparison is not exercised, and step 9 'Enforce blueprint-register construction scope' is SKIPPED because its condition keys on a pull_request event. Evidence for the suites and the completion contract only."
+            "label": "Gate run 110 on 8642b22 by workflow_dispatch, conclusion success. TWO CAVEATS, recorded so this run is not cited beyond what it establishes: FEATURE_MAP_BASE_REF is empty on a dispatch so the feature-map contract's scope comparison is not exercised, and step 9 'Enforce blueprint-register construction scope' is SKIPPED because its condition is a branch-name prefix, startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-'), which this branch does not match on any event - reason corrected after measuring pull_request run 111, where it skips as well; see guide section 6.7, which had it right. Evidence for the suites and the completion contract only."
           },
           {
             "kind": "TEST",
