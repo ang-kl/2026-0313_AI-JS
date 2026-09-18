@@ -93,6 +93,7 @@ jobs:
           node tests/candidate-proof-ledger.mjs
           node tests/proof-states.mjs
           node tests/proof-destinations.mjs
+          node tests/candidate-proof-workflow.mjs
           node tests/blp028-responsive-matrix.mjs
 
       - name: Enforce blueprint-register construction scope
