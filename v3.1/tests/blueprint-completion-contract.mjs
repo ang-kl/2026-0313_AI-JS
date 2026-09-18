@@ -654,6 +654,26 @@ for (const [index, row] of guideRows.entries()) {
   if (!item.dependencies.length) assert(row.dependencies.trim() === "None", `${item.id} guide must render an empty dependency set as None`);
 }
 assert(guideHtml.includes(`name="guide-source-sha256" content="${guideSourceHash}"`), "blueprint onboarding guide HTML is stale relative to its Markdown source");
+
+// The digest above certifies the MARKDOWN. Until 2026-09-18 nothing checked that the HTML BODY had
+// been regenerated to match it, and the requirement rows above are parsed from the Markdown alone -
+// so a published HTML could carry an obsolete programme state while the contract passed. It did:
+// the HTML named a superseded commit as current main and reported BLP-012 as NOT_STARTED after the
+// register said otherwise. Found by an automated reviewer on PR #511, not by this contract.
+//
+// That is this programme's own recurring shape, a check whose subject cannot fail it, sitting
+// inside the chain meant to guarantee the record. The rows are now parsed from the HTML and
+// compared with the register, so a stale HTML fails here rather than being certified by a hash of
+// a document nobody re-rendered.
+const htmlRows = [...guideHtml.matchAll(/<tr>\s*<td><code>(?<id>BLP-\d{3})<\/code><\/td>\s*<td>(?<priority>P[0-5])<\/td>\s*<td><code>(?<status>[A-Z_]+)<\/code><\/td>/g)]
+  .map((match) => match.groups);
+assert(htmlRows.length === 30, `blueprint onboarding guide HTML must contain exactly 30 canonical requirement rows, found ${htmlRows.length} - the HTML body was not regenerated from its Markdown source`);
+for (const [index, row] of htmlRows.entries()) {
+  const item = items[index];
+  assert(row.id === item.id, `blueprint onboarding guide HTML row ${index + 1} ID drifted`);
+  assert(row.priority === item.priority, `${item.id} guide HTML priority drifted from register`);
+  assert(row.status === item.status, `${item.id} guide HTML status drifted from register (HTML says ${row.status}, register says ${item.status}) - regenerate the HTML body, do not only re-stamp its digest`);
+}
 assert(guideHtml.includes('href="V3-Blueprint-Completion-Onboarding-Guide.md"'), "blueprint onboarding guide HTML must link its Markdown source");
 assert(guideHtml.includes('href="V3-Agent-Readable-Feature-Map-Index.html"'), "blueprint onboarding guide HTML must link the master Feature Map");
 
