@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-11T08:15:18+08:00"
+      "updatedAt": "2026-09-18T11:57:40+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -4092,7 +4092,7 @@
       "title": "Control accepted proof destinations",
       "requirement": "Control accepted proof destinations: resume, cover letter, interview, portfolio, and work sample.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-009",
         "BLP-010"
@@ -4215,7 +4215,7 @@
           "id": "BLP-011-BLOCKER-01",
           "description": "Destination controls over canonical proof states are not recorded.",
           "ownerRole": "product-ui-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -4226,6 +4226,26 @@
               "kind": "TEST",
               "reference": "v3.1/tests/proof-destinations.mjs",
               "label": "Proof-destinations suite: Part A node 135 checks (the adapter's five names and three state sentences, no worth words, an unknown key or state named; two governed event kinds with the human's one reason and the lapse's six, the lapse words throwing on an ungoverned reason; the contract's own rule refusing ALLOWED in every non-accepted state and the data layer quoting it in its refusal on CLAIMED_ONLY, every proof state answered by the gate and an ungoverned one thrown, unconfirmed proof excluded in words; approval on DEMONSTRATED refused with no bundle, an unreadable bundle and a declared link that no longer stands live, accepted on a standing link with the event naming the link, approval on CERTIFIED accepted with no bundle and the event saying why no link was re-judged; the three human edges accepted and every other refused in words (approving twice, revoking from UNSET, revoking twice, setting UNSET, an ungoverned destination, an unknown record), approve again from REVOKED through the same live gate; the proof type gating nothing (credential approved for work sample, work sample for interview); the lapse at withdrawal (two lapse events preceding WITHHELD, system actor, STATE_WITHDRAWN, the act's instant, REVOKED untouched, the row saying approved at, lapsed at, because), a later declaration restoring nothing and approve again naming the new instant; the lapse at every other exit (the link lost by system detection, the text changed, the excerpt removed, the evidence cleared, a conflict declared on both sides, each with its transition's reason and its lapses before its state event) and resolution lapsing nothing; forgeries refused by the validator (ALLOWED with no event, UNSET against a last ALLOWED event, ALLOWED on a record forged back to CLAIMED_ONLY, a destination event with no destination or an ungoverned one, a destination on another kind, the human edges ALLOWED -> UNSET and UNSET -> REVOKED, a human lapse, a lapse from REVOKED, a lapse with a non-transition reason, a destination event with a linkId); downstream uses and rows in the adapter's words with no key reaching the text, the row carrying the data layer's own gate and the asymmetry reaching the view; the pure boundary; every act deterministic), Part B Chromium 238 checks total at 1440x1000 and 430x932 (five destination rows per record labelled 'destination: <name>' with the adapter's UNSET words; approval withheld on a claimed-only record with the contract's rule quoted and every control disabled; the observation that the proof type gates nothing rendered; the destination named work sample a bordered list card and the proof type a select reading 'not chosen'; the print package before any approval WITHHELD in words with the record count, stating the print instant and that link standing was not re-checked; after declaring demonstrated on a standing link approval offered, the notice naming the link, the rendered ALLOWED words equal to the adapter's, downstream uses in words, revoke enabled and approve disabled; revoke said in words with the earlier approval kept in the row, approve again from REVOKED; the destination work sample approved and standing when the proof type is changed to credential; a certified record approved with no link, the notice saying why no link was re-judged; withdrawal headlining the act and saying the two lapses after it, the lapsed row saying approved at, lapsed at, because, the other record's approval untouched; the print package carrying exactly the certified record with its destination in words and its approval instant, saying no link recorded rather than claiming one stands, counting the excluded record, no key and no claim of a currently standing link; nothing in browser storage; every destination control at least 44px; no overflow on the ledger or the print package). Every notice read captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+              "label": "Merge commit 8c0aaa0 (squash of PR #506 at head 400e5bb: the implementation 6ce3a69 and the record commit 400e5bb). Tree identity: git diff 400e5bb 8c0aaa0 with no pathspec is empty; blob identity: all nine affected files identical between 6ce3a69 and 8c0aaa0 (candidateProofLedgerData.js 6e4fd52bb8af, CandidateProofLedger.jsx 0223ff1680fe, evidenceAdapter.js 67835f960a9f, ReviewStudio.jsx ba64ce8829ff, ReviewStudioLegacy.jsx 8379e2e83e30, PrintPackage.jsx 217d74b27f24, tests/proof-destinations.mjs 7970a458ad85, tests/proof-states.mjs 450c467db8e3, .github/workflows/v31-browser-gate.yml f38405333b27). Merged at 2026-09-16T12:08:12+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of 6ce3a69 and 400e5bb and the gate green on 400e5bb (pull_request run 96, 34545784467, base 3aa339e, the run carrying the real-base-ref feature-map assurance). The coordinating session had been stopped by the Human Lead on 2026-09-11 with the merge still refused by a GitHub API rate limit, so it did not issue this merge; that is the coordinator's own statement, marked as such."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35304935300",
+              "label": "Browser-gate run 35304935300 (job 105475079828) on main at 8c0aaa0 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-destinations.mjs",
+              "label": "Proof-destinations suite on the dispatch run: Part A node PASS 135 checks; Part B Chromium PASS 238 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 8c0aaa0; 135 / 238 at the implementation commit 6ce3a69, 135 / 242 from the #507 corrections onward)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q9, recorded either way): proof-states 167 node / 242 Chromium (BLP-010, unchanged apart from its two version assertions moved to 1.3.0), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), proof-links inside the four-width matrix 225 (BLP-009), and the BLP-002 to BLP-007 suites unchanged (evidence contract 396 at 1.1.0); none reopens."
             }
           ]
         }
@@ -4254,15 +4274,31 @@
               "label": "BLP-011 implementation commit 6ce3a69: destination control over the BLP-010 state layer (candidateProofLedgerData.js: two governed event kinds, DESTINATION_SET by the human and DESTINATION_LAPSED by the system, each carrying a governed `destination` field validated like linkId, required on both kinds and null on every other; setDestination with the three human edges (approve from UNSET or REVOKED, revoke from ALLOWED only; UNSET never set by a human) and destinationApproval, a gate that switches over every proof state with no default arm, whose one operative exclusion is the contract's rule that a destination may be ALLOWED only in DEMONSTRATED or CERTIFIED, and which on DEMONSTRATED demands a declared link standing under a LIVE judgement (refused in words with no bundle, an unreadable bundle or none standing, never allowed on stored link state) and on CERTIFIED demands no bundle because its basis is the human's own declaration; lapseDestinations emitting one system DESTINATION_LAPSED event per approved destination BEFORE the state event at every exit from an accepted state (the fold's EVIDENCE_CLEARED, EXCERPT_REMOVED and SOURCE_TEXT_CHANGED, the reconcile's TARGET_LINK_LOST, the human's withdrawal and conflict declaration on both sides), each carrying that transition's own reason, a REVOKED destination untouched by lapse and by any later resumption or declaration; destinationRows saying each destination's history in words from its own events (approved at, lapsed at because, revoked at with the earlier approval), a table of lapse words keyed on the six governed reasons with no default arm; validateLedger deriving every destination's state from its history; downstream uses printing the adapter's words, never keys; LEDGER_VERSION 1.2.0 -> 1.3.0), evidenceAdapter.js (destinationText, the register requirement's own five names, and destinationStateText, one sentence per destination state; ADAPTER_VERSION 1.2.0 -> 1.3.0 additive, CONTRACT_VERSION unmoved at 1.1.0), CandidateProofLedger.jsx (DestinationControls: five bordered rows per record labelled 'destination: <name>' beside the proof-type select so the destination named work sample and the proof type named work sample are two labels and two shapes, approve and revoke with accessible names, the reason approval is withheld said once per record and aria-described, the lapses said after the act that caused them in the same notice; the note that the proof type gates no destination worded as an observation), ReviewStudio.jsx and ReviewStudioLegacy.jsx (proofLedger threaded to the print package: two lines in the protected legacy scope, an authorised change under Supervisor ruling Q7), PrintPackage.jsx (section 'Candidate proof destinations': the print instant, the statement that link standing was not re-checked at print time, only demonstrated or certified records with an approval that stands carried, each with its destinations in words and its link standing as last recorded, WITHHELD in words with the record count when nothing is approved, the excluded records counted), tests/proof-destinations.mjs (node 135 checks over a real adapter bundle, Chromium 238 at 1440x1000 and 430x932 on the company flow, every assertion naming what would make it fail and each checked reachable), tests/proof-states.mjs version assertions moved to 1.3.0 as the reopen test for the adapter bump (167 node, 242 Chromium, otherwise unchanged), gate workflow line. git diff 3aa339e 6ce3a69 -- v3.1/src v3.1/tests .github lists exactly the affectedFiles."
             }
           ],
-          "note": "Implementation commit 6ce3a69 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 6ce3a69 on the working branch. Merged to main as 8c0aaa0 by PR #506; corrected post-merge by 0e7aecc (PR #507, appended); merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/506",
+          "mergedAt": "2026-09-16T12:08:12+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/506",
+              "label": "PR #506 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+              "label": "Exact merge commit 8c0aaa0"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0e7aecc83db07228ffe7386dcc08b65f1ebc0702",
+              "label": "Post-merge corrections 0e7aecc (PR #507), appended, status unchanged"
+            }
+          ],
+          "note": "Merge commit 8c0aaa0 (PR #506, squash of implementation 6ce3a69 and record 400e5bb), merged 2026-09-16T12:08:12+08:00. Merge identity proven two ways: the whole-tree diff against the PR head 400e5bb is empty, and all nine affected files are blob-identical to 6ce3a69. No dispatch was ever run on 8c0aaa0 until the Human Lead authorised the temporary verification ref on 2026-09-18."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -4271,17 +4307,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-011 completion policy. For the record: Railway's v3-web production service deployed 8c0aaa0 at 2026-09-16T04:08Z, replaced by 0e7aecc at 06:25Z and by 61531dc at 10:05Z (SUCCESS, current at the time of approval), read from the Railway API; the live /health endpoint was not reachable from the coordinating container.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/proof-destinations.mjs",
+          "checkedAt": "2026-09-18T11:57:24+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35304935300",
+              "label": "Browser-gate run 35304935300 (job 105475079828) on main at 8c0aaa0 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-destinations.mjs",
+              "label": "Proof-destinations suite on the dispatch run: Part A node PASS 135 checks; Part B Chromium PASS 238 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 8c0aaa0; 135 / 238 at the implementation commit 6ce3a69, 135 / 242 from the #507 corrections onward)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q9, recorded either way): proof-states 167 node / 242 Chromium (BLP-010, unchanged apart from its two version assertions moved to 1.3.0), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), proof-links inside the four-width matrix 225 (BLP-009), and the BLP-002 to BLP-007 suites unchanged (evidence contract 396 at 1.1.0); none reopens."
+            }
+          ],
+          "note": "Run on main at 8c0aaa03a044cf274f9a8d601f7ba682177d7169 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit. The exact merge commit 8c0aaa0 was no longer main's head when the dispatch was possible (#507 and #508 followed on 2026-09-16), and workflow_dispatch takes a branch ref only, so this run carries BLP-011 together with #507's corrections to three of its files and #508; the Supervisor ruled on that basis (see the approval note). Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised by this run; that assurance belongs to the pull_request run 34545784467 (run 96) on 400e5bb, which supplied the real base 3aa339e and passed the locator check, and the blueprint-register construction-scope step is gated on a codex branch-name prefix and skipped on every run of the BLP branch; this run executes tests/proof-destinations.mjs with the BLP-003 to BLP-010 suites at both viewports and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "8c0aaa03a044cf274f9a8d601f7ba682177d7169"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -4291,7 +4343,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-011 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -4346,14 +4398,123 @@
               "label": "Proof-destinations suite: Part A node 135 checks (the adapter's five names and three state sentences, no worth words, an unknown key or state named; two governed event kinds with the human's one reason and the lapse's six, the lapse words throwing on an ungoverned reason; the contract's own rule refusing ALLOWED in every non-accepted state and the data layer quoting it in its refusal on CLAIMED_ONLY, every proof state answered by the gate and an ungoverned one thrown, unconfirmed proof excluded in words; approval on DEMONSTRATED refused with no bundle, an unreadable bundle and a declared link that no longer stands live, accepted on a standing link with the event naming the link, approval on CERTIFIED accepted with no bundle and the event saying why no link was re-judged; the three human edges accepted and every other refused in words (approving twice, revoking from UNSET, revoking twice, setting UNSET, an ungoverned destination, an unknown record), approve again from REVOKED through the same live gate; the proof type gating nothing (credential approved for work sample, work sample for interview); the lapse at withdrawal (two lapse events preceding WITHHELD, system actor, STATE_WITHDRAWN, the act's instant, REVOKED untouched, the row saying approved at, lapsed at, because), a later declaration restoring nothing and approve again naming the new instant; the lapse at every other exit (the link lost by system detection, the text changed, the excerpt removed, the evidence cleared, a conflict declared on both sides, each with its transition's reason and its lapses before its state event) and resolution lapsing nothing; forgeries refused by the validator (ALLOWED with no event, UNSET against a last ALLOWED event, ALLOWED on a record forged back to CLAIMED_ONLY, a destination event with no destination or an ungoverned one, a destination on another kind, the human edges ALLOWED -> UNSET and UNSET -> REVOKED, a human lapse, a lapse from REVOKED, a lapse with a non-transition reason, a destination event with a linkId); downstream uses and rows in the adapter's words with no key reaching the text, the row carrying the data layer's own gate and the asymmetry reaching the view; the pure boundary; every act deterministic), Part B Chromium 238 checks total at 1440x1000 and 430x932 (five destination rows per record labelled 'destination: <name>' with the adapter's UNSET words; approval withheld on a claimed-only record with the contract's rule quoted and every control disabled; the observation that the proof type gates nothing rendered; the destination named work sample a bordered list card and the proof type a select reading 'not chosen'; the print package before any approval WITHHELD in words with the record count, stating the print instant and that link standing was not re-checked; after declaring demonstrated on a standing link approval offered, the notice naming the link, the rendered ALLOWED words equal to the adapter's, downstream uses in words, revoke enabled and approve disabled; revoke said in words with the earlier approval kept in the row, approve again from REVOKED; the destination work sample approved and standing when the proof type is changed to credential; a certified record approved with no link, the notice saying why no link was re-judged; withdrawal headlining the act and saying the two lapses after it, the lapsed row saying approved at, lapsed at, because, the other record's approval untouched; the print package carrying exactly the certified record with its destination in words and its approval instant, saying no link recorded rather than claiming one stands, counting the excluded record, no key and no claim of a currently standing link; nothing in browser storage; every destination control at least 44px; no overflow on the ledger or the print package). Every notice read captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion."
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-18T11:57:38+08:00",
+          "reason": "Blueprint Supervisor established merge identity by two independent routes: git diff 400e5bb 8c0aaa0 with NO pathspec is empty, and all nine declared affected files are blob-identical between implementation commit 6ce3a69 and merge commit 8c0aaa0 (candidateProofLedgerData.js 6e4fd52bb8af, CandidateProofLedger.jsx 0223ff1680fe, evidenceAdapter.js 67835f960a9f, ReviewStudio.jsx ba64ce8829ff, ReviewStudioLegacy.jsx 8379e2e83e30, PrintPackage.jsx 217d74b27f24, tests/proof-destinations.mjs 7970a458ad85, tests/proof-states.mjs 450c467db8e3, gate workflow f38405333b27). Read the workflow_dispatch run 35304935300 (job 105475079828) on ref verify/blp-011-8c0aaa0 at head_sha 8c0aaa0, conclusion success, from the job object and the log: proof-destinations 135 node and 238 Chromium at 1440x1000 and 430x932, proof-states 167 and 242, proof-links 160 and 225, candidate-proof-ledger 103 and 184, evidence-failure-paths 113 and 160, reviewer-contract 61 and 120, evidence-contract 396 at contract 1.1.0, BLP-007 65 and 104, evidence-round-trip 171 and 216, evidence-window 39, 107 and 146, register and feature-map contracts passing. No figure differs from the Supervisor's own runs at 6ce3a69. Step 9 skipped by its branch-name gate.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+              "label": "Merge commit 8c0aaa0 (squash of PR #506 at head 400e5bb: the implementation 6ce3a69 and the record commit 400e5bb). Tree identity: git diff 400e5bb 8c0aaa0 with no pathspec is empty; blob identity: all nine affected files identical between 6ce3a69 and 8c0aaa0 (candidateProofLedgerData.js 6e4fd52bb8af, CandidateProofLedger.jsx 0223ff1680fe, evidenceAdapter.js 67835f960a9f, ReviewStudio.jsx ba64ce8829ff, ReviewStudioLegacy.jsx 8379e2e83e30, PrintPackage.jsx 217d74b27f24, tests/proof-destinations.mjs 7970a458ad85, tests/proof-states.mjs 450c467db8e3, .github/workflows/v31-browser-gate.yml f38405333b27). Merged at 2026-09-16T12:08:12+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of 6ce3a69 and 400e5bb and the gate green on 400e5bb (pull_request run 96, 34545784467, base 3aa339e, the run carrying the real-base-ref feature-map assurance). The coordinating session had been stopped by the Human Lead on 2026-09-11 with the merge still refused by a GitHub API rate limit, so it did not issue this merge; that is the coordinator's own statement, marked as such."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6ce3a69fbd8f5b4961614fb90fa1707ab03de151",
+              "label": "Implementation commit 6ce3a69: candidateProofLedgerData.js (LEDGER_VERSION 1.3.0), CandidateProofLedger.jsx, evidenceAdapter.js (ADAPTER_VERSION 1.3.0), ReviewStudio.jsx, ReviewStudioLegacy.jsx (two authorised lines), PrintPackage.jsx, tests/proof-destinations.mjs, tests/proof-states.mjs (version assertions), gate workflow line"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0e7aecc83db07228ffe7386dcc08b65f1ebc0702",
+              "label": "POST-MERGE CORRECTIONS (#507, merge 0e7aecc, 2026-09-16, pull_request run 35061967566 green): two fixes to files this requirement owns, appended here and not folded into the approval. PrintPackage.jsx wraps the beforeprint re-stamp in flushSync so the printed DOM carries the print instant rather than the pre-print value; CandidateProofLedger.jsx groups same-instant DESTINATION_LAPSED events by proofId so one record's lapses are never attributed to another. Suite counts AT 0e7aecc are 135 node / 242 Chromium; the counts AT 6ce3a69, which this approval rests on, are 135 / 238 and are not superseded by them. RECORDED BUT NOT VERIFIED BY THE SUPERVISOR: the Supervisor has not read #507's fixes, its regressions or its flushSync change, and does not adopt the commissioned assessor's favourable view of them as its own."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35304935300",
+              "label": "Browser-gate run 35304935300 (job 105475079828) on main at 8c0aaa0 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-destinations.mjs",
+              "label": "Proof-destinations suite on the dispatch run: Part A node PASS 135 checks; Part B Chromium PASS 238 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 8c0aaa0; 135 / 238 at the implementation commit 6ce3a69, 135 / 242 from the #507 corrections onward)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q9, recorded either way): proof-states 167 node / 242 Chromium (BLP-010, unchanged apart from its two version assertions moved to 1.3.0), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), proof-links inside the four-width matrix 225 (BLP-009), and the BLP-002 to BLP-007 suites unchanged (evidence contract 396 at 1.1.0); none reopens."
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-18T11:57:40+08:00",
+          "reason": "All three acceptance criteria are discharged. Criterion 1: setDestination approves to ALLOWED or revokes to REVOKED per destination on a confirmed proof, over the contract's five canonical destinations, with UNSET never set by a human. Criterion 2: every change is a governed event carrying a destination field validated against PROOF_DESTINATION and required null on non-destination kinds, in two kinds that let the validator refuse a human-attributed lapse and a system-attributed approval by construction, with each destination's state derived from its own last event so a forged destination is refused; destinationRows renders the history sentence, so a lapse is never indistinguishable from never-approved. Criterion 3: destinationApproval switches over all six proof states and throws on an unanswered state, quoting the contract's rule in each refusal; approval on a DEMONSTRATED record judges its declared links live and is refused in words with no bundle, an unreadable bundle or none standing, \"refused rather than allowed on stored link state\"; CERTIFIED is exempt from re-judgement with its reason recorded, because its basis is not external and not re-judgeable.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+              "label": "Merge commit 8c0aaa0 (squash of PR #506 at head 400e5bb: the implementation 6ce3a69 and the record commit 400e5bb). Tree identity: git diff 400e5bb 8c0aaa0 with no pathspec is empty; blob identity: all nine affected files identical between 6ce3a69 and 8c0aaa0 (candidateProofLedgerData.js 6e4fd52bb8af, CandidateProofLedger.jsx 0223ff1680fe, evidenceAdapter.js 67835f960a9f, ReviewStudio.jsx ba64ce8829ff, ReviewStudioLegacy.jsx 8379e2e83e30, PrintPackage.jsx 217d74b27f24, tests/proof-destinations.mjs 7970a458ad85, tests/proof-states.mjs 450c467db8e3, .github/workflows/v31-browser-gate.yml f38405333b27). Merged at 2026-09-16T12:08:12+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of 6ce3a69 and 400e5bb and the gate green on 400e5bb (pull_request run 96, 34545784467, base 3aa339e, the run carrying the real-base-ref feature-map assurance). The coordinating session had been stopped by the Human Lead on 2026-09-11 with the merge still refused by a GitHub API rate limit, so it did not issue this merge; that is the coordinator's own statement, marked as such."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6ce3a69fbd8f5b4961614fb90fa1707ab03de151",
+              "label": "Implementation commit 6ce3a69: candidateProofLedgerData.js (LEDGER_VERSION 1.3.0), CandidateProofLedger.jsx, evidenceAdapter.js (ADAPTER_VERSION 1.3.0), ReviewStudio.jsx, ReviewStudioLegacy.jsx (two authorised lines), PrintPackage.jsx, tests/proof-destinations.mjs, tests/proof-states.mjs (version assertions), gate workflow line"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0e7aecc83db07228ffe7386dcc08b65f1ebc0702",
+              "label": "POST-MERGE CORRECTIONS (#507, merge 0e7aecc, 2026-09-16, pull_request run 35061967566 green): two fixes to files this requirement owns, appended here and not folded into the approval. PrintPackage.jsx wraps the beforeprint re-stamp in flushSync so the printed DOM carries the print instant rather than the pre-print value; CandidateProofLedger.jsx groups same-instant DESTINATION_LAPSED events by proofId so one record's lapses are never attributed to another. Suite counts AT 0e7aecc are 135 node / 242 Chromium; the counts AT 6ce3a69, which this approval rests on, are 135 / 238 and are not superseded by them. RECORDED BUT NOT VERIFIED BY THE SUPERVISOR: the Supervisor has not read #507's fixes, its regressions or its flushSync change, and does not adopt the commissioned assessor's favourable view of them as its own."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35304935300",
+              "label": "Browser-gate run 35304935300 (job 105475079828) on main at 8c0aaa0 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-destinations.mjs",
+              "label": "Proof-destinations suite on the dispatch run: Part A node PASS 135 checks; Part B Chromium PASS 238 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 8c0aaa0; 135 / 238 at the implementation commit 6ce3a69, 135 / 242 from the #507 corrections onward)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q9, recorded either way): proof-states 167 node / 242 Chromium (BLP-010, unchanged apart from its two version assertions moved to 1.3.0), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), proof-links inside the four-width matrix 225 (BLP-009), and the BLP-002 to BLP-007 suites unchanged (evidence contract 396 at 1.1.0); none reopens."
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-18T11:57:40+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+            "label": "Merge commit 8c0aaa0 (squash of PR #506 at head 400e5bb: the implementation 6ce3a69 and the record commit 400e5bb). Tree identity: git diff 400e5bb 8c0aaa0 with no pathspec is empty; blob identity: all nine affected files identical between 6ce3a69 and 8c0aaa0 (candidateProofLedgerData.js 6e4fd52bb8af, CandidateProofLedger.jsx 0223ff1680fe, evidenceAdapter.js 67835f960a9f, ReviewStudio.jsx ba64ce8829ff, ReviewStudioLegacy.jsx 8379e2e83e30, PrintPackage.jsx 217d74b27f24, tests/proof-destinations.mjs 7970a458ad85, tests/proof-states.mjs 450c467db8e3, .github/workflows/v31-browser-gate.yml f38405333b27). Merged at 2026-09-16T12:08:12+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of 6ce3a69 and 400e5bb and the gate green on 400e5bb (pull_request run 96, 34545784467, base 3aa339e, the run carrying the real-base-ref feature-map assurance). The coordinating session had been stopped by the Human Lead on 2026-09-11 with the merge still refused by a GitHub API rate limit, so it did not issue this merge; that is the coordinator's own statement, marked as such."
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6ce3a69fbd8f5b4961614fb90fa1707ab03de151",
+            "label": "Implementation commit 6ce3a69: candidateProofLedgerData.js (LEDGER_VERSION 1.3.0), CandidateProofLedger.jsx, evidenceAdapter.js (ADAPTER_VERSION 1.3.0), ReviewStudio.jsx, ReviewStudioLegacy.jsx (two authorised lines), PrintPackage.jsx, tests/proof-destinations.mjs, tests/proof-states.mjs (version assertions), gate workflow line"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0e7aecc83db07228ffe7386dcc08b65f1ebc0702",
+            "label": "POST-MERGE CORRECTIONS (#507, merge 0e7aecc, 2026-09-16, pull_request run 35061967566 green): two fixes to files this requirement owns, appended here and not folded into the approval. PrintPackage.jsx wraps the beforeprint re-stamp in flushSync so the printed DOM carries the print instant rather than the pre-print value; CandidateProofLedger.jsx groups same-instant DESTINATION_LAPSED events by proofId so one record's lapses are never attributed to another. Suite counts AT 0e7aecc are 135 node / 242 Chromium; the counts AT 6ce3a69, which this approval rests on, are 135 / 238 and are not superseded by them. RECORDED BUT NOT VERIFIED BY THE SUPERVISOR: the Supervisor has not read #507's fixes, its regressions or its flushSync change, and does not adopt the commissioned assessor's favourable view of them as its own."
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35304935300",
+            "label": "Browser-gate run 35304935300 (job 105475079828) on main at 8c0aaa0 by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/proof-destinations.mjs",
+            "label": "Proof-destinations suite on the dispatch run: Part A node PASS 135 checks; Part B Chromium PASS 238 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 8c0aaa0; 135 / 238 at the implementation commit 6ce3a69, 135 / 242 from the #507 corrections onward)"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/proof-states.mjs",
+            "label": "Reopen tests on the same dispatch run (Supervisor ruling Q9, recorded either way): proof-states 167 node / 242 Chromium (BLP-010, unchanged apart from its two version assertions moved to 1.3.0), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), proof-links inside the four-width matrix 225 (BLP-009), and the BLP-002 to BLP-007 suites unchanged (evidence contract 396 at 1.1.0); none reopens."
+          }
+        ],
+        "note": "Approved on the Supervisor's own reading of run 35304935300, not on any summary. The run was made possible by a temporary verification ref the Human Lead authorised: refs/heads/verify/blp-011-8c0aaa0 pointing at 8c0aaa0 with no new commit, to be deleted after this read with the deletion recorded. The Supervisor REFUSED to rest AUTOMATED_VERIFIED on the dispatch at 61531dc for two independent reasons: blueprint-completion-contract.mjs:363-366 computes allowedCommits as [implementation, merge] absent a recorded deployment, so verifiedCommit 61531dc would fail the register contract outright; and six of the nine affected files differ between 6ce3a69 and main, so that run's subject is a different artefact. The Supervisor also ruled out recording the Railway deployment of 61531dc to widen allowedCommits, as using one provenance group to launder another. Dispatch caveat: the feature-map step ran with FEATURE_MAP_BASE_REF empty; the base-ref assurance belongs to the pull_request run 34545784467 on 400e5bb with base 3aa339e, whose tree is byte-identical to the merge tree, so that run's subject is the merged artefact. Attribution: merged_by ang-kl and 2026-09-16T04:08:12Z are the API's facts; the coordinating session's statement that it did not issue the merge is supported by its having been stopped on the Human Lead's order at 09:02 SGT on 2026-09-11, five days earlier; who did issue it is not a fact anyone holds and is not recorded. MAIN HAS MOVED PAST THIS APPROVAL: commits 0e7aecc (#507) and 61531dc (#508) landed on 2026-09-16 and six of the nine affected files now differ from the approved artefact; this approval describes 8c0aaa0.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
