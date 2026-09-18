@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-    "updatedAt": "2026-09-18T23:55:00+08:00"
+    "updatedAt": "2026-09-18T20:20:15+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -4590,7 +4590,7 @@
       "title": "Verify the complete candidate-proof workflow",
       "requirement": "Verify candidate-proof workflows on desktop, phone, keyboard, focus restoration, and evidence round trip.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-007",
         "BLP-008",
@@ -4714,6 +4714,26 @@
           "kind": "OTHER",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc4f925b3f9d5b7a8cb42cc633c69ed4e22",
           "label": "A REFUSED ACT LEFT A FOCUS INTENT ARMED (raised 2026-09-18 by the Blueprint Supervisor from a static read; CONFIRMED BY PROBE before any change). The successor-focus intent was set in the handler BEFORE the act, and consumed by an effect keyed on what the act changes - so an act the ledger REFUSED left the intent armed, and the next change to that observable consumed it. Measured: a refused unlink (a declaration rests on the link, BLP-010 ruling Q4) left the chooser intent armed, and a later link to a second target then moved focus to the chooser with the user having caused no such thing. That is the mirror image of the defect this work fixes, introduced by the fix for it. Closed: an intent now lives exactly one commit, and the suite drives the refusal and asserts focus stays on the control the human pressed."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ba3216abc04482d764603003cb659bdaf0cdd255",
+          "label": "WHAT THE FIX IS NOW (2026-09-18, ba3216a), added because evidenceLinks[13] is pinned to 44543bc and true of it, which left the record with no item describing the implementation that run 110 actually verified. EIGHT controls, not seven: declare demonstrated, declare certified, withdraw, offer again, approve destination, revoke destination, unlink, and cpl-link-button, which disables its own button on a successful link and dropped focus at both widths. Each is driven by key and its successor asserted by name at four widths, 988 checks. A REFUSED ACT is asserted to leave focus where the human put it, on the control they pressed, closing a defect the focus fix itself introduced: an intent set before the act was consumed by an effect keyed on what the act changes, so a refusal left it armed for the next change to that observable. An intent now lives exactly one commit. STILL NEITHER WIRED NOR MEASURED: re-link, declare conflict and resolve conflict - whether they drop focus is UNKNOWN, not known to be fine."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ba3216abc04482d764603003cb659bdaf0cdd255",
+          "label": "NAMED OMISSIONS WITH OWNERS, recorded on the Blueprint Supervisor's criterion (ii) ruling of 2026-09-18 rather than left for a reader to find. Criterion (ii) is satisfied for the workflow THIS requirement verifies - paste, excerpt, record, link, declare, approve, output - and every control that workflow drives has its focus behaviour measured and asserted by name at four widths. Three ledger controls are not stages of that workflow and this suite cannot reach the states that render them: RE-LINK (a target re-extracted under a new id) is BLP-009's surface; DECLARE CONFLICT and RESOLVE CONFLICT (two accepted records sharing a target) are BLP-010's. Neither is wired nor measured. A fourth, cpl-offer-again, CARRIES the fix at the handler but was never measured, because it renders only for a record withheld by a resolved conflict - that is a reading of the code, not a measurement, and it is recorded as such. The Supervisor's reason for not barring COMPLETE on them: reading criterion (ii) as every control in the ledger would make this requirement unsatisfiable without reopening two COMPLETE requirements, which its own scope ruling forbade; the eight that were fixed were fixed because THIS requirement's probe measured them failing on ITS OWN path, and COMPLETE was refused while that was true. IF NO FUTURE REQUIREMENT WILL DRIVE THE THREE, that is a coverage gap for the Human Lead in the same terms as wu-open-print-package."
+        },
+        {
+          "kind": "RUNTIME",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35343059039",
+          "label": "THE TWO DISPATCH CAVEATS, MEASURED AFTERWARDS RATHER THAN LEFT AS REASONING (2026-09-18, pull_request run 111 on d435ac3, conclusion success). Run 110's approval carries two caveats. One is now CLOSED for this branch and one is WORSE than recorded. CLOSED: the feature-map contract's scope comparison. Run 111 invoked it as FEATURE_MAP_BASE_REF=8642b22cdfb89f02e546ec63b143a698d98dbb67, a real base, and it reported PASS (3 maps, 3 indexed maps, 294 unique IDs, 41 visual callouts) - so on a pull_request run the comparison IS exercised, which is what the caveat said a dispatch could not do. WORSE: step 9. The recorded reason - that it keys on a pull_request event - is false. It keys on a branch-name prefix, codex/v31-blueprint-completion-register-, so it skips on this branch on EVERY event, and run 111 shows it SKIPPED on a pull_request. No run of this programme's own branch has ever executed that step, and none can. Guide section 6.7 already recorded the correct gating and the residual it leaves; the register note contradicted it until this correction. THE LESSON IS 6.9'S: the false half was asserted from a step list without opening the workflow file, which is a relationship claimed with one operand unread, and it was carried by both the coordinating session and the Blueprint Supervisor because each read it in the other's words."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35343059039",
+          "label": "AN EXPLANATION THAT ACCOUNTS FOR THE OBSERVATION IS NOT THEREBY THE CAUSE (recorded 2026-09-18 at the Blueprint Supervisor's insistence, as the generalisable part of the skipped-step correction). The false claim had two halves. 'Cannot run on a dispatch' is TRUE, and true for a reason neither party knew: github.head_ref is unset on a workflow_dispatch, so step 9 skips on a dispatch for EVERY branch, codex branches included. 'Because its condition keys on a pull_request event' is FALSE. The true half explained run 110's step list perfectly, so nothing felt unexplained and nothing prompted a check. What the paraphrase ALSO predicted - that a pull_request run would execute the step - went untested until run 111 tested it and refuted it. THE TEST OF AN EXPLANATION IS WHAT ELSE IT PREDICTS, not whether it fits what has already been seen. THE SUPERVISOR RECORDS THE ORIGIN AS ITS OWN AND AS WORSE THAN NOT HAVING READ THE FILE: it had read the condition and quoted it verbatim earlier in the same session, arguing that a name and a quoted expression are durable where line numbers are not, and then restated it from memory three messages later as the paraphrase. The operand was read and then overwritten by something that fit, which is 6.9's substitution - a role standing in for a value - with 'the reason step 9 skips' standing in for the condition itself."
         }
       ],
       "blockers": [
@@ -4758,8 +4778,8 @@
           "evidenceLinks": [
             {
               "kind": "COMMIT",
-              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
-              "label": "Desktop and phone, keyboard and focus evidence recorded: 972 checks across four widths"
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ba3216abc04482d764603003cb659bdaf0cdd255",
+              "label": "Desktop and phone, keyboard and focus evidence recorded: 988 checks across four widths at ba3216a. CORRECTED from 972, which was this label's figure while it pointed at 44543bc: the sentence is present tense and unpinned, so it asserted a current count and the count had moved. The reference moved with it, because a label reading 988 above a reference to the commit where it was 972 would have been the same mismatch in a new place."
             },
             {
               "kind": "TEST",
@@ -4784,24 +4804,40 @@
       "provenance": {
         "implementationCommit": {
           "state": "RECORDED",
-          "commitSha": "44543bc4f925b3f9d5b7a8cb42cc633c69ed4e22",
+          "commitSha": "ba3216abc04482d764603003cb659bdaf0cdd255",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
-              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
-              "label": "Focus restoration on the seven controls, with the suite asserting each"
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ba3216abc04482d764603003cb659bdaf0cdd255",
+              "label": "The implementation verified by run 110: the eighth focus control (cpl-link-button), the armed-intent defect the focus fix introduced, and the three record corrections. Suite 988 checks across four widths."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc4f925b3f9d5b7a8cb42cc633c69ed4e22",
+              "label": "SUPERSEDED, kept as evidence: the seven-control focus fix, 972 checks. Superseded by ba3216a, which found an eighth control the original probe never drove and a defect the fix itself introduced."
             }
           ],
-          "note": "The focus fix that makes criterion (ii) pass, together with the continuity suite merged at 1d8a6e8. Not yet verified by the Blueprint Supervisor.",
+          "note": "Repointed from 44543bc to ba3216a on the Blueprint Supervisor's verification of gate run 110. RECORDED RATHER THAN SILENTLY EDITED, because the reason is the point: run 110 verified ba3216a's tree, and the record named 44543bc, so the register described an implementation that was not the one verified. The count moved 972 -> 988 between the two commits because ba3216a added the eighth control's assertions, the refused-act assertion and their falsifications; the earlier figure is true of 44543bc and false of what run 110 read. 44543bc is retained as superseded evidence on the BLP-010 precedent at 2bfe500 and d2c7ad6, so a reader who checks out either commit is contradicted by neither.",
           "branch": "claude/v3-blueprint-completion-onboarding-0qpigt"
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "8642b22cdfb89f02e546ec63b143a698d98dbb67",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/513",
+          "mergedAt": "2026-09-18T15:50:12+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/513",
+              "label": "PR #513, the eighth focus control, the armed-intent defect and the three record corrections"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8642b22cdfb89f02e546ec63b143a698d98dbb67",
+              "label": "Merge commit 8642b22, the squash of PR #513 at head ba3216a and the current head of origin/main. Tree identity: git diff ba3216a 8642b22 with no pathspec is empty. Blob identity: register ef3b2b174, guide Markdown d21cd22a6, guide HTML 85bc5d12a, CandidateProofLedger.jsx c308ef8c2, candidate-proof-workflow.mjs 1ec3104c9, blueprint-completion-contract.mjs 43047ab18, PrintPackage.jsx a2704972a, all identical between ba3216a and 8642b22. Verified by the Blueprint Supervisor, and re-derived independently by the coordinating session before this record was written rather than copied from the Supervisor's message."
+            }
+          ],
+          "note": "The squash merge of PR #513. It carries ba3216a's tree exactly, which is what makes run 110 on 8642b22 evidence for the implementation recorded above."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -4814,13 +4850,29 @@
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main at the merge commit)",
+          "testSuite": "v3.1/tests/candidate-proof-workflow.mjs",
+          "verifiedCommit": "8642b22cdfb89f02e546ec63b143a698d98dbb67",
+          "checkedAt": "2026-09-18T19:58:11+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35341484394",
+              "label": "Browser-gate run 110 (35341484394, job 105588159810) on main at 8642b22 by workflow_dispatch, conclusion success, 11:48:56Z-11:53:01Z. Read by the Blueprint Supervisor from the run object, the job step list and the job log. Evidence artefact v31-browser-gate-evidence id 10545392630, zip sha256 e7f8bc274b908389a1c1498928c174a884f752d5470a72e3547fe61bb2b8dd32, recorded from the upload line in the log and NOT downloaded or opened by anyone."
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+              "label": "BLP-012 candidate-proof workflow: PASS, 988 checks across four widths (desktop-1440x1000, desktop-2048x1280, phone-390x844, phone-430x932), the run's own output at 8642b22. 580 at c15b470, 908 at 66c65ff, 972 at 44543bc, 988 at ba3216a."
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Reopen tests on the same dispatch run, recorded either way: proof-links 160 node / 301 Chromium, proof-states 167 / 242, proof-destinations 135 / 268 - all unchanged against run 106. Nothing reopens."
+            }
+          ],
+          "note": "Run on the merge commit 8642b22 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit. CAVEATS, stated so this run is not cited beyond what it establishes: FEATURE_MAP_BASE_REF is empty on a dispatch, so the feature-map contract's scope comparison is NOT exercised; and step 9, 'Enforce blueprint-register construction scope', has conclusion SKIPPED. REASON CORRECTED 2026-09-18 AFTER MEASUREMENT, because the reason first recorded here was wrong and wrong in a way the register could not falsify from inside: this note, and the Supervisor's caveat it was written from, both said the step skips because its condition keys on a pull_request event and so cannot run on a dispatch. It does not. The condition is startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-'), a BRANCH-NAME prefix, so on this branch the step skips on EVERY event, dispatch and pull_request alike. Measured, not reasoned: pull_request run 111 (35343059039) on d435ac3 reports step 9 SKIPPED too. PRECISION ADDED ON THE SUPERVISOR'S NOTE, because this whole finding is about an untested implication and leaving another open would be the same error: on a workflow_dispatch github.head_ref is unset for ANY branch, so even a codex/v31-blueprint-completion-register-* branch skips step 9 on a dispatch. A reader of the sentence above could otherwise infer that only this branch is affected on a dispatch. Guide section 6.7 had the correct reason on the record the whole time and this note contradicted it in the same repository. The claim was written by reading a step list and not the workflow file - the same shape as 6.9's, a relationship asserted with one operand unread. Every other step succeeded and the browser gate step ran in full, 11:49:46-11:52:57. This run is evidence for the suites and the completion contract only, and must not be cited as feature-map scope or register-scope evidence."
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -4893,14 +4945,68 @@
               "label": "Each successor focus asserted by name; the NOT COVERED block corrected, since it previously listed these seven as an omission"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-18T19:58:11+08:00",
+          "reason": "The Blueprint Supervisor read gate run 110 on the merge commit 8642b22 from the run object, the job step list and the job log, and verified tree and blob identity between ba3216a and 8642b22. The suite reports PASS at 988 checks across four widths. Criterion (i) touch targets and (iii) the evidence round trip were already asserted; criterion (ii) now passes for every control the workflow drives, including the eighth that the original probe never drove, and a refused act is asserted to leave focus where the human put it. implementationCommit is repointed from 44543bc to ba3216a in this same record, because run 110 verified ba3216a's tree and the register named a different commit.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35341484394",
+              "label": "Gate run 110 on 8642b22, workflow_dispatch, conclusion success, with its two caveats recorded in automatedRuntimeVerification"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8642b22cdfb89f02e546ec63b143a698d98dbb67",
+              "label": "The merge commit the run read. Tree identity: git diff ba3216a 8642b22 with no pathspec is empty. Blob identity: register ef3b2b174, guide Markdown d21cd22a6, guide HTML 85bc5d12a, CandidateProofLedger.jsx c308ef8c2, candidate-proof-workflow.mjs 1ec3104c9, blueprint-completion-contract.mjs 43047ab18, PrintPackage.jsx a2704972a, all identical between ba3216a and 8642b22. Verified by the Blueprint Supervisor, and re-derived independently by the coordinating session before this record was written rather than copied from the Supervisor's message."
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-18T19:58:13+08:00",
+          "reason": "Criterion (ii) is satisfied for the workflow this requirement verifies. Re-link, declare conflict and resolve conflict are neither wired nor measured and are recorded as named omissions owned by BLP-009 and BLP-010, because they are not stages of the candidate-proof workflow and this suite cannot reach them; reading the criterion as every control in the ledger would make the requirement unsatisfiable without reopening two COMPLETE requirements, which the Supervisor's own scope ruling forbade. cpl-offer-again carries the fix at the handler and is unmeasured, which is a reading of the code and not a measurement, and is recorded as such. requiresPhysicalRuntime is false, so four emulated widths are the whole of the evidence and no claim is made about real hardware.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+              "label": "BLP-012 candidate-proof workflow: PASS, 988 checks across four widths, run 110's own output at 8642b22"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ba3216abc04482d764603003cb659bdaf0cdd255",
+              "label": "The implementation this approval covers: eight controls, the refused-act assertion, and the three record corrections"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-18T19:58:13+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8642b22cdfb89f02e546ec63b143a698d98dbb67",
+            "label": "Merge commit 8642b22, the squash of PR #513 at head ba3216a, merged 2026-09-18T15:50:12+08:00. Tree identity: git diff ba3216a 8642b22 with no pathspec is empty. Blob identity: register ef3b2b174, guide Markdown d21cd22a6, guide HTML 85bc5d12a, CandidateProofLedger.jsx c308ef8c2, candidate-proof-workflow.mjs 1ec3104c9, blueprint-completion-contract.mjs 43047ab18, PrintPackage.jsx a2704972a, all identical between ba3216a and 8642b22. Verified by the Blueprint Supervisor, and re-derived independently by the coordinating session before this record was written rather than copied from the Supervisor's message."
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/35341484394",
+            "label": "Gate run 110 on 8642b22 by workflow_dispatch, conclusion success. TWO CAVEATS, recorded so this run is not cited beyond what it establishes: FEATURE_MAP_BASE_REF is empty on a dispatch so the feature-map contract's scope comparison is not exercised, and step 9 'Enforce blueprint-register construction scope' is SKIPPED because its condition is a branch-name prefix, startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-'), which this branch does not match on any event - reason corrected after measuring pull_request run 111, where it skips as well; see guide section 6.7, which had it right. Evidence for the suites and the completion contract only."
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+            "label": "BLP-012 candidate-proof workflow: PASS, 988 checks across four widths, the run's own output"
+          }
+        ],
+        "note": "Approved on the Supervisor's own read of run 110 and of the bytes at 8642b22. This approval covers the focus wiring in CandidateProofLedger.jsx (the useSuccessorFocus helper and the handlers of eight controls) and the focus move in PrintPackage.jsx, and NOTHING ELSE in CandidateProofLedger.jsx, which still carries 61531dc's undeclared material. It does not extend to re-link, declare conflict or resolve conflict, which are unwired and unmeasured, nor to cpl-offer-again, which carries the fix unmeasured. It makes no claim about physical hardware. NOT CHECKED BY THE SUPERVISOR, stated rather than left to be assumed covered: the evidence artefact was not downloaded or opened, only its id and sha256 read from the log; no suite or contract was executed; and bcb1452, the #512 merge, was not verified when it landed - it is superseded here by the whole-tree identity between ba3216a and 8642b22, which covers the same files, and the gap is stated rather than papered over.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
