@@ -6,7 +6,7 @@
 **Repository:** [`ang-kl/2026-0313_AI-JS`](https://github.com/ang-kl/2026-0313_AI-JS)  
 **Product surface:** [`https://v3.takearoundabout.com`](https://v3.takearoundabout.com)  
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
-**Current main observed:** `8c0aaa03a044cf274f9a8d601f7ba682177d7169` (`feat(v3.1): implement BLP-012 through BLP-028 (#508)`)  
+**Current main observed:** `61531dc9c59685a1f1c21202c93b531595a86283` (`feat(v3.1): implement BLP-012 through BLP-028 (#508)`)  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
 **Register snapshot SHA-256:** `aba66c4b5f9c495676c9ea5cf0597e9a3d90fa4ca75d5eb53a63b9fe77fc8b56`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
