@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-18T11:57:40+08:00"
+      "updatedAt": "2026-09-18T13:50:00+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -337,6 +337,11 @@
           "kind": "FILE",
           "reference": "v3.1/src/contracts/evidenceContracts.js",
           "label": "NOTE (2026-09-08, under BLP-006, Supervisor ruling Q3): the BLP-002 artefact moved from contract 1.0.4 to 1.1.0 by commit b672a1b: REVIEW_VERB is canonical, DECISION_STATUS, CONFIDENCE and RISK join it, actor ids are namespaced (reviewer:, human:, system), a decision must be a human act, and a roster may be passed to validateReviewChange to enforce each voice's action boundary. A MINOR bump because it is a tightening: a free-text reviewerId that validated under 1.0.4 is refused under 1.1.0. The Supervisor's reopen test is separate from the bump level and was run empirically: every 1.0.4 review fixture already used namespaced ids and re-validates unchanged (tests/evidence-contract.mjs, tests/reviewer-contract.mjs), and the BLP-003 round trip and BLP-004 window suites re-run unchanged on 1.1.0, so BLP-002 stays COMPLETE with this note."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "REOPEN TEST (2026-09-18, run by the Blueprint Supervisor against origin/main at 61531dc after #508 touched files this requirement rests on): nothing reopens; status UNCHANGED at COMPLETE. The Supervisor's own runs: evidence-contract 396 at contract 1.1.0; evidence-round-trip 171 + 216; evidence-window 39 + 107 + 146; evidence-failure-paths 118 + 211; reviewer-contract 61 + 130; person-evidence-excerpts 104. Where a suite's printed figures moved, the figures on this record stay correct AT ITS VERIFIED COMMIT and the new figures are recorded beside them, never over them."
         }
       ],
       "blockers": [
@@ -749,6 +754,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/work-universe/personEvidenceData.js",
           "label": "DISCHARGED (2026-09-08, under BLP-007, commit 5ee2f71): the candidate-proof identifier omission recorded on this entry (owner BLP-007) is implemented; manual person evidence now carries a content-addressed candidate source id and verbatim span ids from the canonical contracts."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "REOPEN TEST (2026-09-18, run by the Blueprint Supervisor against origin/main at 61531dc after #508 touched files this requirement rests on): nothing reopens; status UNCHANGED at COMPLETE. The Supervisor's own runs: evidence-contract 396 at contract 1.1.0; evidence-round-trip 171 + 216; evidence-window 39 + 107 + 146; evidence-failure-paths 118 + 211; reviewer-contract 61 + 130; person-evidence-excerpts 104. Where a suite's printed figures moved, the figures on this record stay correct AT ITS VERIFIED COMMIT and the new figures are recorded beside them, never over them."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/evidence-round-trip.mjs",
+          "label": "NOTE (post-completion, appended not edited; status unchanged): a defect in this requirement's own suite shipped and was approved. tests/evidence-round-trip.mjs carried `ok(true, ...)` at the remount-restoration step, an assertion that asserts nothing (the waitForFunction above it did the work and a failure would report as an opaque timeout), introduced at 98a99d7, the BLP-003 revision PR #491, which the Supervisor approved after upholding two Codex findings and did not catch; the Supervisor found it on 2026-09-18 while reviewing #508, which had added the same defect to BLP-006's suite. Fixed at 50690c1: the step now reads the anchor's aria-label and asserts /Decision: accepted/ on it. BLP-003 does not reopen because its evidence re-validates unchanged at 171 + 216."
         }
       ],
       "blockers": [
@@ -1596,6 +1611,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/App.jsx",
           "label": "KNOWN OMISSION (Supervisor question on verification, answered): careers.gov.sg can answer a genuine EMPTY (code EMPTY, fallback true, jobs []). The careers.gov.sg column renders a box only for the FAILURE state (data-state is the literal FAILURE, stated in a comment at the site); a genuine EMPTY is shown by omitting the column, the pre-existing Step 1a design for private employers, where most searches return no public-sector roles. So the two columns are asymmetric: MyCareersFuture shows failure and empty in words, careers.gov.sg shows failure in words and empty by absence of the column. Whether the empty answer should also be said in words (a box on every private-employer search) is the Human Lead's call; recorded rather than decided by inference."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "REOPEN TEST (2026-09-18, run by the Blueprint Supervisor against origin/main at 61531dc after #508 touched files this requirement rests on): nothing reopens; status UNCHANGED at COMPLETE. The Supervisor's own runs: evidence-contract 396 at contract 1.1.0; evidence-round-trip 171 + 216; evidence-window 39 + 107 + 146; evidence-failure-paths 118 + 211; reviewer-contract 61 + 130; person-evidence-excerpts 104. Where a suite's printed figures moved, the figures on this record stay correct AT ITS VERIFIED COMMIT and the new figures are recorded beside them, never over them."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/evidence-failure-paths.mjs",
+          "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) modified this requirement's suite (+20/-4): Part A gained role-search failure and empty assertions over api/mcf.js, and Part B now runs at the four BLP-028 widths as a child of tests/blp028-responsive-matrix.mjs rather than from the top-level gate list. Counts AT 61531dc are 118 node / 211 Chromium; the counts on this record, 113 / 160, remain correct at its verified commit and are not superseded. The Supervisor checked the matrix runner: it propagates a child's non-zero exit and asserts each child's JSON artefact per width and state, so a child that did not run fails the parent; and because the children are spawned with inherited stdio, each still prints its own headline count under its own name in the gate log, so future labels for this suite may cite those lines directly. RETROSPECTIVE DECLARATION (Supervisor ruling: authorise and record, do not revert): #508 changed existing Step 2 behaviour, a protected scope, without declaring it: v3.1/src/App.jsx McfJobsPanel now renders per-source failure and empty states and v3.1/api/mcf.js's jobs action reports partial results, failed calls and a failure code with a WARM_ERRORS fallback payload. This extends this requirement's failure-cause honesty into Step 2's UI; it is covered by evidence-failure-paths Part A and by no browser test, and it was undeclared at merge. Recorded here because the doctrine it extends is BLP-005's."
         }
       ],
       "blockers": [
@@ -1992,6 +2017,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/review/shared.jsx",
           "label": "KNOWN OMISSION (a11y-honesty-reviewer, out of scope): the suggested-rewrite swatch in the Comments window keeps its pre-existing pale mint tint (#f6fbf7 on #d8ecdd) alongside the strikethrough and arrow that carry the state; not introduced here, flagged for a follow-up."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "REOPEN TEST (2026-09-18, run by the Blueprint Supervisor against origin/main at 61531dc after #508 touched files this requirement rests on): nothing reopens; status UNCHANGED at COMPLETE. The Supervisor's own runs: evidence-contract 396 at contract 1.1.0; evidence-round-trip 171 + 216; evidence-window 39 + 107 + 146; evidence-failure-paths 118 + 211; reviewer-contract 61 + 130; person-evidence-excerpts 104. Where a suite's printed figures moved, the figures on this record stay correct AT ITS VERIFIED COMMIT and the new figures are recorded beside them, never over them."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/reviewer-contract.mjs",
+          "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) modified this requirement's suite (+24/-1), adding review-filter assertions at both widths and, among them, `ok(true, ...)` at the clearing-filters step, an assertion that cannot fail (the Supervisor's finding). Counts AT 61531dc were 61 node / 130 Chromium; the counts on this record, 61 / 120, remain correct at its verified commit. Fixed at 50690c1: the step now captures the unfiltered card count before filtering and asserts, after the filters clear, that the count is restored and the chosen anchor keeps its accepted decision and its selection; the suite reads 61 node / 134 Chromium at that commit, read from the gate's own run 103 (35311435178, job 105494120948, pull_request on 50690c1) rather than from any local build. CORRECTION, recorded rather than silently amended: this note first cited 132, a figure taken from a local run made before the last accessibility change of that commit; the coordinating session compared what it had written against what it had measured, found the disagreement and flagged it before the Supervisor did. Three figures now stand, each naming the commit it describes and none overwriting another: 61 / 120 at this requirement's own verified commit, 61 / 130 at 61531dc, and 61 / 134 at 50690c1."
         }
       ],
       "blockers": [
@@ -3311,6 +3346,11 @@
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/baf8700687fda7f40da7b9cdd3c5932cb7003ef6",
           "label": "NOTE (post-completion, appended not edited; status unchanged): a C1-class mis-attribution existed in missingEvidenceOf's fallback from ff4c7c0 through the corrected implementation 592db34 and the approved merge f1d94e9 (this requirement's verifiedCommit), and remained on main (b5c23e0) until BLP-010's merge: for a record whose links were invalid only because the record itself was stale or withheld (CANDIDATE_SOURCE_CHANGED), the missing-evidence line said 'every link is invalid against the current posting evidence' when nothing was known to have changed about the posting, the precise class this requirement's own C-a ruling existed to eliminate, surviving in a fallback neither the conformance auditor nor the Supervisor looked at. Found by the conformance auditor on BLP-010's third pass and fixed at baf8700 (noLinkStandsText, from the links' own reasons with no default arm). BLP-009 does NOT reopen: its evidence re-validates unchanged at 160 node and 225 Chromium, verified by the Supervisor at 2bfe500, and its three acceptance criteria (stable identifiers, inspectability, invalidation without mutating text) are not falsified by the fallback sentence's wording. The Supervisor approved BLP-009 without catching it, and asked for this note so the record describes the artefact as it was. WINDOW CLOSED: the merge that carried the fix is 967a8ff (PR #504) at 2026-09-09T00:15:50+08:00, so the sentence was on main from e6b3af3 (2026-09-08T15:04:05Z, the early merge of ff4c7c0) until then, and the Supervisor confirmed by artefact that origin/main at 967a8ff no longer carries it."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/proof-links.mjs",
+          "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) modified this requirement's suite (+27/-1): a keyboard open-and-return step with focus restored to the originating proof-link control, and Part B now runs at the four BLP-028 widths as a child of tests/blp028-responsive-matrix.mjs, stale-state geometry asserted, rather than from the top-level gate list. The counts on this record, 160 / 225, remain correct at its verified commit; at 61531dc the suite prints 301 Chromium checks under its own name inside the matrix's log. The Supervisor verified the matrix runner fails when a child does not run."
         }
       ],
       "blockers": [
@@ -4208,6 +4248,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
           "label": "GUIDANCE carried forward (Supervisor ruling Q10): no approval on stored link state; each destination transition asked the discarded-render question; the family rule stated once and quoted in every refusal; superseded commits kept with their own counts; counts from the suites' own output with a survivor grep; every diff statement with its pathspec; every gate sentence with its quantifier (the approval gate on DEMONSTRATED is existential over the DECLARED links, the same quantifier the validator and the reconcile apply, so a demonstration on two links is approvable while one stands); BLP-012 owns the round trip."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+          "label": "VERIFICATION REF (recorded 2026-09-18; status unchanged): refs/heads/verify/blp-011-8c0aaa0 pointed at the exact merge commit 8c0aaa0 with no new commit, was created under the Human Lead's explicit authorisation because main had advanced past the merge before any dispatch and workflow_dispatch takes a branch ref only, served exactly one dispatch (run 35304551863, job 105475079828, the run this requirement's AUTOMATED_VERIFIED rests on), and was still present at the time of this record: the deletion push was refused twice by the container's git proxy, the GitHub tools available in the session have no delete-branch call, and the Human Lead was asked to delete it in the GitHub UI; the outcome is recorded as found, not as expected."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/50690c18910abe8cfb2c2184411681d05ca5af40",
+          "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) changed this requirement's print section without declaration: PrintPackage.jsx's print button was disabled, with a blocked paragraph, whenever the candidate-proof ledger carried an integrity fault, where at the approved artefact 8c0aaa0 the package printed with the proof section withheld and the fault said in words. The Supervisor ruled REVERT (withhold, do not refuse: the programme's rule, and an untested change on the protected Clean and Full Review surface). Reverted at 50690c1: the button prints again and the section's own Withheld element still carries the fault. Main at 61531dc also carried #507's two corrections (0e7aecc, recorded on this entry) and #508's edits to CandidateProofLedger.jsx, ReviewStudio.jsx, ReviewStudioLegacy.jsx and the gate workflow, so six of this requirement's nine files differ from 8c0aaa0 on main; this approval describes 8c0aaa0."
         }
       ],
       "blockers": [
@@ -4549,6 +4599,16 @@
           "kind": "TEST",
           "reference": "v3.1/tests/company-flow-browser.mjs",
           "label": "Company-flow browser test"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: tests/proof-links.mjs gained a keyboard open and return with focus restored to the originating proof-link control at four widths, and the BLP028 responsive matrix; browser-gate.mjs and company-flow-browser.mjs (this requirement's declared files) untouched; the ledger suites remain at two widths and no overlap assertion covers the ledger workflow. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -4683,6 +4743,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
           "label": "Canonical completion instructions"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/review/reviewState.js (a pure review-state library with the eight verbs behind operationGuard, 73 unit checks in tests/review-state-contract.mjs) exists on main but is imported by nothing in src/ (the Supervisor verified: the only match is the orphan duplicate src/App 2.jsx); ReviewStudioLegacy.jsx still holds decisions as a mutable accepted/rejected map and offers no split, merge, relabel, escalate, withhold, resolve, reopen or undo control. Recorded as delivered-but-unconsumed library material; the consuming surface is this requirement's own review studio. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -4808,6 +4878,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/review/PrintPackage.jsx",
           "label": "Print package"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: immutability and append-only history hold inside src/review/reviewState.js only; the studio's live decisions are not routed through it. Delivered-but-unconsumed; consumer BLP-013/BLP-014. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -4934,6 +5014,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/goal/v3-blueprint.md",
           "label": "V3 blueprint"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: review filters by reviewer, verb and status with evidence-identity rows exist in src/review/windows/Comments.jsx and are Chromium-tested at both widths (tests/reviewer-contract.mjs); the filters act only in the Comments window and the status set is open, accepted, rejected. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -5061,6 +5151,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudioLegacy.jsx",
           "label": "Review implementation"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: every listed path has a unit fixture in tests/review-state-contract.mjs; nothing renders these states in a browser; browser-gate.mjs untouched. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -5201,6 +5301,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/review/PrintPackage.jsx",
           "label": "Print package"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/review/resumeClaimData.js and ResumeClaimWorkbench.jsx propose claims citing span and duty ids with a lexical overclaim assessment; reviewer identity is the constant UNASSIGNED; no browser test names the workbench (one Chromium section was added at 50690c1 for the release gate only). Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -5340,6 +5450,16 @@
           "kind": "TEST",
           "reference": "v3.1/tests/browser-gate.mjs",
           "label": "Browser gate"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: v3.1/api/generation.js with api/generationPolicy.js (server-owned tasks, schema, citation and hash validation, 17 + 24 unit checks) exists on main; no file under src/ calls /api/generation and the provider path is untested. Delivered-but-unconsumed; consumer BLP-019. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -5468,6 +5588,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
           "label": "Blueprint component cross-reference"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/review/coverLetterData.js assembles the user's approved claim text plus terminal punctuation; no drafting occurs and the generation service is not used; review state is the constant PENDING; no scaffold on insufficient evidence; windows/Shortcuts.jsx untouched. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -5601,6 +5731,21 @@
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudioLegacy.jsx",
           "label": "Review implementation"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/review/outputReleasePolicy.js and OutputActions.jsx exist; at 61531dc the workbenches judged the output against its own citations (a stale gate that could not fire) and never passed the unsupported or conflict flags, corrected at 50690c1 (see the fix note); export carries no omissions list and no evidence-window disclosure. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/50690c18910abe8cfb2c2184411681d05ca5af40",
+          "label": "FIX (2026-09-18, Supervisor finding on #508, applied at 50690c1 before any register status moved; status UNCHANGED at NOT_STARTED): at 61531dc src/review/ResumeClaimWorkbench.jsx and CoverLetterWorkbench.jsx passed the output's own sourceRefs back to outputReleaseGate as currentSourceRefs, so isOutputStale compared a hash with itself and the stale branch could never fire, and hasUnsupported and hasConflict were never passed: a release gate in production that could not block. Fixed: outputReleasePolicy.js gains releaseGateFor(held, live, ledger): the workbench HOLDS the output the human assembled (a click, with its instant) and the gate judges that held output against the LIVE rebuild's citable refs, the live items' overclaim state and the ledger's unresolved conflicts; before assembly every action is blocked with the reason said. A SECOND conformance pass then found the first fix still incomplete: it compared only the cited evidence ids, and a claim edited after assembly leaves the ref SET untouched, so superseded wording could still be released under a sentence claiming currency. The gate now judges BOTH dimensions, the ids and the wording, and fails closed on every absent input (no items list, no ledger, no overclaim assessment); the verdict is carried in flags rather than parsed back out of the reason prose, and the action buttons are the policy's own governed set, each disabled by its own verdict. Asserted in tests/output-release-policy.mjs (20 checks: the stale branch fires when the live refs move, unsupported wording blocks, an unresolved conflict blocks) and in Chromium in tests/proof-destinations.mjs at both widths (assemble, revoke the destination so the evidence moves and the actions block as stale; approve again and they release; then edit the saved claim after assembly and the WORDING dimension fires with the evidence unmoved). The Blueprint Supervisor probed the gate adversarially over eleven cases and confirmed it both allows and blocks, and that the two stale dimensions fire independently. This is a fix to material on main, not an implementation of this requirement: export still carries no omissions list and no evidence-window disclosure, and the requirement stays NOT_STARTED."
         }
       ],
       "blockers": [
@@ -5736,6 +5881,16 @@
           "kind": "TEST",
           "reference": "v3.1/tests/browser-gate.mjs",
           "label": "Browser gate"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: tests/generation-adversarial.mjs covers invented numbers, unknown ids, schema smuggling, stale hashes and state exclusion; no prompt-injection or provider-failure fixture; revoked and unconfirmed evidence are not representable in the request schema. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -5874,6 +6029,16 @@
           "kind": "TEST",
           "reference": "v3.1/tests/company-flow-browser.mjs",
           "label": "Company-flow browser test"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: tests/visual-workspaces-positive.mjs drives organisation, workflow, value-stream and architecture maps over a supplied-data harness in Chromium at 1440 only against a vite dev server; no Business Cube and no Role Graph fixture. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -6004,6 +6169,16 @@
           "kind": "TEST",
           "reference": "v3.1/tests/browser-gate.mjs",
           "label": "Browser gate"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/work-universe/VisualWorkspaceFrame.jsx docks, floats and lays out linearly with keyboard chords; restore is identical to dock; one overlap check. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -6138,6 +6313,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
           "label": "Blueprint component cross-reference"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/work-universe/organisationSynthesisData.js and OrganisationSynthesis.jsx (11 unit checks) exist on main; nothing in the app produces the payload they read, so the panel is always withheld in production. Delivered-but-unconsumed contract; the producer is this requirement's own build. No promotion on the assessor's 3/3 reading, per the Supervisor. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -6270,6 +6455,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
           "label": "Blueprint component cross-reference"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/work-universe/roleSensitiveVisualData.js declares seven families of one shape rendered by one component, withholding on title-only input (44 unit checks); no producer of the payload exists outside the harness. Delivered-but-unconsumed. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -6397,6 +6592,16 @@
           "kind": "FILE",
           "reference": "v3.1/doc/v3-feature-map-index.json",
           "label": "Feature-map index"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: src/blueprint/blueprintTraceData.js and BlueprintTracePanel.jsx carry a trace on the four new panels only; no pre-existing component exposes one; the feature-map index and contract are untouched. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -6553,6 +6758,16 @@
           "kind": "RUNTIME",
           "reference": "https://v3.takearoundabout.com",
           "label": "Production runtime"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: tests/blp027-production-gate.mjs (23 lines) is wired into no workflow, referenced in no document and has never run. Its whole method is to compare /health.commit against EXPECTED_DEPLOYED_COMMIT before and after the suites, and server.js line 37 reads that commit from RAILWAY_GIT_COMMIT_SHA, VERCEL_GIT_COMMIT_SHA, SOURCE_VERSION or COMMIT_SHA, defaulting to null. Observed by the Blueprint Supervisor on 2026-09-18: a local run of this repo's own server answers {\"ok\":true,\"commit\":null}, so wherever those variables are unset the runner's equality check cannot be satisfied and the gate can verify nothing. That is an environment configuration rather than a code defect, and it bears on whether this runner could ever have worked; a build of this requirement settles it before the gate is wired. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [
@@ -6691,6 +6906,16 @@
           "kind": "RUNTIME",
           "reference": "https://v3.takearoundabout.com",
           "label": "Production runtime"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/61531dc9c59685a1f1c21202c93b531595a86283",
+          "label": "NOTE (2026-09-18, Blueprint Supervisor ruling on #508; status UNCHANGED at NOT_STARTED, implementationCommit UNCHANGED at NOT_IMPLEMENTED): partial material touching this requirement exists on main at 61531dc, merged and deployed on 2026-09-16 with no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification. It is recorded here as an undeclared change against the programme that a future implementation may adopt or discard, never as provenance: IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify, and on the commissioned assessment (verified by the Supervisor only where stated) what exists is scaffolding. What is there: tests/blp028-responsive-matrix.mjs runs evidence-failure-paths and proof-links at four widths and asserts the union of five states per width from each child's JSON artefact, passing in CI locally; not against the deployed commit; geometry checked on one element per state. Any build of this requirement starts with a Supervisor scope ruling before code, as every approved requirement did."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+          "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
         }
       ],
       "blockers": [

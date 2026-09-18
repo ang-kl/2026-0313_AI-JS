@@ -470,8 +470,12 @@ async function runViewport({ name, width, height, phone }) {
   await page.getByRole("tab", { name: "The Ad" }).click();
   await openCommentsWindow(page);
   deq(await readCommentAnchors(page), anchors1, `${tag}: comment anchors are byte-identical across a full remount`);
-  await page.waitForFunction((sel) => /Decision: accepted/.test(document.querySelector(sel)?.getAttribute("aria-label") || ""), `[data-comment-anchor="${expectedDuty}"]`, { timeout: 15000 });
-  ok(true, `${tag}: the decision made in the first mount is restored in the second under the same anchor`);
+  // The wait holds the PRECONDITION only (the card is hydrated and carries a decision line); the
+  // assertion below judges WHICH decision, so a wrong decision fails with its message rather than
+  // as an opaque timeout (conformance-auditor W-2).
+  await page.waitForFunction((sel) => /Decision:/.test(document.querySelector(sel)?.getAttribute("aria-label") || ""), `[data-comment-anchor="${expectedDuty}"]`, { timeout: 15000 });
+  const restoredLabel = await page.locator(`[data-comment-anchor="${expectedDuty}"]`).getAttribute("aria-label");
+  ok(/Decision: accepted/.test(restoredLabel || ""), `${tag}: the decision made in the first mount is restored in the second under the same anchor (${restoredLabel})`);
   await page.screenshot({ path: `test-results/evidence-round-trip/${name}-02-workspace-remount.png`, fullPage: true });
   await page.close();
   return { rowIds: rowIds1.map(([id]) => id), proposalIds: proposals1.ids, anchors: anchors1 };

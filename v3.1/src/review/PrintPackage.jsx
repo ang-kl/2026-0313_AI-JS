@@ -134,7 +134,7 @@ export default function PrintPackage({
           body *{visibility:hidden!important}
           .v31-print-overlay,.v31-print-overlay *{visibility:visible!important}
           .v31-print-overlay{position:absolute;inset:0;display:block;background:#fff}
-          .v31-print-controls{display:none!important}.v31-print-scroll{overflow:visible;padding:0;background:#fff}.v31-print-package{width:auto;margin:0;padding:0;box-shadow:none}
+          .v31-print-controls,.v31-print-screen-only{display:none!important}.v31-print-scroll{overflow:visible;padding:0;background:#fff}.v31-print-package{width:auto;margin:0;padding:0;box-shadow:none}
           .v31-print-section.page-break{break-before:page}.v31-print-section,.v31-print-markup,.v31-print-note,.v31-print-stat{break-inside:avoid}.v31-print-ledger tr{break-inside:avoid}
           .v31-print-package h1{font-size:28pt}.v31-print-section h2{font-size:16pt}
         }
@@ -146,11 +146,13 @@ export default function PrintPackage({
             <button type="button" className={variant === "clean" ? "on" : ""} aria-pressed={variant === "clean"} onClick={() => setVariant("clean")}>Clean package</button>
             <button type="button" className={variant === "review" ? "on" : ""} aria-pressed={variant === "review"} onClick={() => setVariant("review")}>Full review</button>
           </div>
-          <button data-testid="print-package-action" type="button" className="primary" disabled={Boolean(proofFault)} aria-describedby={proofFault ? "print-package-blocked" : undefined} onClick={() => { if (!proofFault) window.print(); }}>Print / save PDF</button>
+          <button data-testid="print-package-action" type="button" className="primary" aria-describedby={proofFault ? "print-package-fault-notice" : undefined} onClick={() => window.print()}>Print / save PDF</button>
           <button type="button" className="close" onClick={onClose}>Close</button>
         </div>
       </header>
-      {proofFault && <p id="print-package-blocked" className="v31-print-withheld" data-testid="print-package-blocked">Print and PDF actions are blocked while the candidate-proof ledger has an integrity fault: {proofFault}</p>}
+      {/* Withhold, do not refuse (Supervisor ruling on #508): a ledger fault is said at the control and in the
+          section it concerns, and the package still prints with that section withheld. */}
+      {proofFault && <p id="print-package-fault-notice" className="v31-print-withheld v31-print-screen-only" data-testid="print-package-fault-notice">The candidate-proof ledger has an integrity fault, so the package prints with the candidate proof destinations section withheld and the fault stated there.</p>}
       <div className="v31-print-scroll">
         <article className="v31-print-package" data-testid="print-package-preview" data-variant={variant}>
           <p className="v31-print-kicker">V3 · reviewable work intelligence</p>

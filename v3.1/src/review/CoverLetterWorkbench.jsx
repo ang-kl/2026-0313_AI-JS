@@ -1,13 +1,16 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { buildCoverLetterWorkbench } from "./coverLetterData.js";
 import OutputActions from "./OutputActions.jsx";
-import { outputReleaseGate } from "./outputReleasePolicy.js";
+import { releaseGateFor } from "./outputReleasePolicy.js";
 import BlueprintTracePanel from "../blueprint/BlueprintTracePanel.jsx";
 import { createBlueprintTrace } from "../blueprint/blueprintTraceData.js";
 
 export default function CoverLetterWorkbench({ ledger, bundle }) {
   const workbench = useMemo(() => buildCoverLetterWorkbench(ledger, bundle), [ledger, bundle]);
-  const gate = outputReleaseGate(workbench.output, { currentSourceRefs: workbench.trace.flatMap((item) => item.sourceRefs) });
+  // Held at the human's assembly and judged against the live rebuild (Supervisor finding on #508).
+  const [held, setHeld] = useState(null);
+  const assemble = () => setHeld({ output: workbench.output, trace: workbench.trace, assembledAt: new Date().toISOString() });
+  const gate = releaseGateFor(held, { output: workbench.output, items: workbench.sentences }, ledger);
   const trace = createBlueprintTrace({ id: "trace:cover-letter", requirement: "BLP-019", component: "Cover-letter workbench", sourceIds: workbench.output.sourceRefs, status: workbench.sentences.length ? "AVAILABLE" : "WITHHELD", rule: workbench.sentences.length ? "Shown because every included sentence is user-authored and traces to approved candidate proof plus current job evidence." : "Withheld until a sentence traces to approved candidate proof and current job evidence.", knownGap: workbench.withheld.length ? `${workbench.withheld.length} sentence candidates do not pass every gate` : null });
   return (
     <section className="clw-root" data-testid="cover-letter-workbench" aria-label="Cover-letter workbench" data-sentence-count={workbench.sentences.length} data-withheld-count={workbench.withheld.length}>
@@ -19,7 +22,7 @@ export default function CoverLetterWorkbench({ ledger, bundle }) {
       <BlueprintTracePanel traces={[trace]} label="Cover-letter blueprint trace" />
       {workbench.sentences.length ? <div className="clw-body" data-testid="cover-letter-body">{workbench.sentences.map((sentence, index) => <p className="clw-sentence" data-testid="cover-letter-sentence" data-proof-id={sentence.proofId} key={sentence.id}>{sentence.text}<span className="clw-trace" data-testid="cover-letter-trace">sentence {index + 1} · {sentence.sourceRefs.join(" · ")}</span></p>)}</div> : <p className="clw-meta" data-testid="cover-letter-empty">No cover-letter sentence passes every gate.</p>}
       {workbench.withheld.length > 0 && <details data-testid="cover-letter-withheld"><summary>Withheld sentences · {workbench.withheld.length}</summary><ul>{workbench.withheld.map((sentence) => <li key={sentence.id}>{sentence.proofId}: {sentence.reasons.join("; ")}</li>)}</ul></details>}
-      <OutputActions label="cover-letter" output={workbench.output} trace={workbench.trace} gate={gate} />
+      <OutputActions label="cover-letter" held={held} gate={gate} onAssemble={assemble} canAssemble={workbench.sentences.length > 0} nothingToAssemble={workbench.sentences.length === 0} />
     </section>
   );
 }
