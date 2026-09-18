@@ -54,7 +54,7 @@ The present repository contains a strong working foundation: Step 1a role and or
 However, the full blueprint is **not complete**. The completion programme intentionally starts from a stricter definition than "the screen exists." A requirement becomes complete only when its contracts, implementation, positive and negative tests, provenance, responsive behaviour, and Blueprint Supervisor approval are all recorded. The canonical register currently contains:
 
 - `12` requirements approved as `COMPLETE`: `BLP-001` through `BLP-012`; the P0 gate is closed and the first six P1 requirements are approved.
-- `0` requirements `IMPLEMENTED_UNVERIFIED` or `IN_PROGRESS`: `BLP-012` was the last, and was approved `COMPLETE` on 2026-09-18 at 19:58 SGT on gate run 110 at its merge commit.
+- `0` requirements `IMPLEMENTED_UNVERIFIED`: `BLP-012` was the last, and was approved `COMPLETE` on 2026-09-18 at 19:58 SGT on gate run 110 at its merge commit.
 - `18` requirements `NOT_STARTED`: `BLP-013` through `BLP-030` (code for `BLP-013` through `BLP-028` was merged and deployed by PR #508 on 2026-09-16 ahead of any register record; it is recorded as undeclared material, never as provenance, and each build starts with a scope ruling before code).
 - `0` requirements `IN_PROGRESS`, `BLOCKED` or `WITHHELD`.
 
@@ -306,20 +306,39 @@ Reporting gate run 110 to the Blueprint Supervisor, the coordinating session wro
 four suite figures "equal the figures you set as expected", and attached a careful epistemic
 qualification: that this was agreement between a log line and a prior expectation, not
 independent corroboration, since the same suite produced both. The qualification was accurate
-and it was beside the point. Nobody checked whether the claim it qualified was **true** - the
-Supervisor's stated expectation for the continuity suite was `972`, the run reported `988`, and
-the correct figure `988` appeared four lines above the sentence asserting agreement.
+and it was beside the point. Nobody checked whether the claim it qualified was **true**: the
+Supervisor's stated expectation for the continuity suite was `972` and the run reported `988`.
+
+**The fact that makes the mechanism worse, not better.** The coordinating session's own carried
+expectation WAS `988`. It had named that figure to the Human Lead before the run finished, and
+the run's `988` sat four lines above the sentence asserting agreement. So the claim was not made
+in ignorance of the number, and the writer was not wrong about it. **Two figures occupied the
+same role - "the expected figure" - and a role is not a value.** The writer's own correct figure
+was substituted for the one being attributed to another party, and being right about the number
+is precisely what made the substitution invisible: nothing felt like a gap, because from the
+inside nothing was.
 
 **The mechanism.** In the five earlier instances a check was performed under the felt authority
-of being a check. Here the authority came from somewhere else: a claim was hedged so precisely
-about what KIND of support it had that the hedging stood in for asking whether it had any. A
-disclaimer about the strength of evidence reads like scrupulousness, and scrupulousness is
-what a reader credits; it is not verification and it does not become verification by being
-well-phrased.
+of being a check. Here the authority came from somewhere else: the hedging was applied to the
+strength of a relationship whose second operand was never read. The claim had support - for the
+writer's own expectation. What it lacked was support for the attribution, and no amount of care
+spent on characterising the evidence could supply that, because the missing step was not an
+appraisal but a read. A disclaimer about the strength of evidence reads like scrupulousness, and
+scrupulousness is what a reader credits; it is not verification and it does not become
+verification by being well-phrased.
 
-**The guard is the same one that always applies and was not applied:** a claim of agreement
-between two values is checked by reading both values, not by characterising the relationship
-between them. The figure was right, which is the only reason this cost nothing.
+**And the Supervisor committed the same error while diagnosing it**, which is recorded here at
+the Supervisor's own insistence rather than left out of a section it would flatter. Its finding
+named the mechanism confidently and implied the coordinating session had held `972` and had
+failed to notice its own artefact contradicting it. That is not what happened, and the
+Supervisor had not asked which expectation was at issue - it characterised the relationship
+between two expectations having read only one of them, which is the closing guard below,
+breached in the act of writing the section that states it. A record that misdescribes what it
+records is worse than no record, which is why 6.8 exists and why this paragraph is in 6.9.
+
+**The guard is the same one that always applies and was not applied, twice:** a claim of
+agreement between two values is checked by reading both values, not by characterising the
+relationship between them. Both figures were right, which is the only reason this cost nothing.
 
 ## 7. What remains incomplete
 
