@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-18T13:50:00+08:00"
+    "updatedAt": "2026-09-18T23:05:00+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -4575,7 +4575,7 @@
       "title": "Verify the complete candidate-proof workflow",
       "requirement": "Verify candidate-proof workflows on desktop, phone, keyboard, focus restoration, and evidence round trip.",
       "priority": "P1",
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "dependencies": [
         "BLP-007",
         "BLP-008",
@@ -4609,15 +4609,86 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Onboarding-Guide.md",
           "label": "PROGRAMME EVENT (recorded 2026-09-18 under Blueprint Supervisor rulings; status of this requirement UNCHANGED): three squash merges landed on main on 2026-09-16, each by the account ang-kl per the commit author: 8c0aaa0 (PR #506, BLP-011) at 04:08:12Z, 0e7aecc (PR #507) at 06:25:02Z and 61531dc (PR #508, 'implement BLP-012 through BLP-028', 48 files, +2087/-88) at 10:05:22Z. Who issued them is not a fact anyone holds and is not recorded. 61531dc carried no scope ruling, no IMPLEMENTED_UNVERIFIED record and no Supervisor verification, and was deployed to Railway production (project Job-Analysis, service v3-web) at 10:05Z where it remained current at the time of this record; its pull_request run 98 (35082706514) was green; no workflow_dispatch ran on 61531dc until run 99 (35304551863) on 2026-09-18, five days after deployment. The Supervisor records this as a section 13 execution-discipline breach and a section 8 evidence gap. The register was not advanced by any of it."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+          "label": "IMPLEMENTATION (2026-09-18, c15b470): the end-to-end continuity suite. BLP-007 to BLP-011 each own a suite and each mounts its own session, which is why none can verify CONTINUITY: a property existing only across stages cannot be observed by a test that sees one stage. This drives the whole chain in ONE session - paste, excerpt, ledger record, link, state declaration, destination approval, output - across the four BLP028 widths (1440x1000, 2048x1280, 390x844, 430x932). 908 checks. 390x844 is where overlap surfaces and the ledger suites test only 430x932, so the more dangerous phone width was unverified before this. Registered in .github/workflows/v31-browser-gate.yml, taking the gate to 35 listed suites; the full list is green locally against base 37d51b8 with a real FEATURE_MAP_BASE_REF."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+          "label": "NO LOST STATE, DEFINED CONCRETELY (2026-09-18): abstractly the phrase is unfalsifiable, so the suite names six anchors minted when the records are created and re-read after every later stage, each with the observation that would break it stated in the file: proofId, sourceId, spanId, excerpt, claim, recordCount, plus proofType and the link target id and destination state from the stages that create them. The claim is read BOTH as the editable draft and as the committed announcement, so its survival across a round trip does not rest on a textarea a remount could repopulate."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+          "label": "FALSIFICATION, five runs against the product, recorded because a green suite proves nothing on its own (2026-09-18). (1) Removing the focus move after saving a claim: failed naming where focus landed, BODY. (2) A transparent overlay over the ledger: failed naming the covered control and the covering element. (3) The recorded claim not carried back into its field: failed on the anchor. (4) The link control permanently disabled: failed naming that focus stayed on cpl-link-select - this is the wrong-reason pass the conformance auditor predicted, and it proves the repaired identity check. (5) A pair member collapsed to a zero box: PASSED against my first guard and fails against the corrected one. Two of my own waits originally failed with bare timeouts naming nothing and were rewritten as settle-then-assert. The suite's own first run caught itself vacuous - nothing was in view - and its guard fired rather than passing on zero elements."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/66c65ff",
+          "label": "AUDIT FINDINGS CLOSED (2026-09-18, 66c65ff): a conformance audit and an accessibility review ran against c15b470. Two critical instrument defects were real. pressByKeyboard asserted that SOME element with a test id held focus rather than the intended control, and Playwright's focus() does not throw on a disabled control, so a regression would have passed while the key went to whatever held focus before. assertPairsReadable clipped only against the viewport, so a member scrolled out of the ledger's overflow panel was judged unobscured for the reason that nobody sampled it - the same mistake this file already records making once, fixed in one helper and not the other. THEN THE GUARD WRITTEN FOR THAT FIX FAILED ITS OWN FALSIFICATION: it compared the judged count against the number of pairs while its message claimed both members of each were sampled, so one missing member per pair passed silently. Corrected to require both. Also closed: a zero-keypress path in the select helper, a reachability guard satisfiable by one control out of many, a header claiming no per-slice duplication when there are two deliberate ones, a stage-5 rationale claiming to catch a drift every earlier stage already catches, an anchor whose documented failure mode was never driven, six waits failing with unnamed timeouts, a self-comparison, a dead import and a browser leak on the error path."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/66c65ff",
+          "label": "AN AUDIT FINDING REFUSED, WITH THE CHECK THAT REFUSED IT (2026-09-18): the conformance audit reported as CRITICAL, from a grep of the workflow file, that tests/proof-links.mjs is not run by CI and that this suite's deferral to it is therefore a false claim. It IS run: tests/blp028-responsive-matrix.mjs spawns it together with tests/evidence-failure-paths.mjs, and that runner is in the gate list; the Supervisor's own read of gate run 105 reports proof-links at 160 node / 301 Chromium. Acting on the finding would have made the gate run the suite twice. Recorded because a refused finding needs its evidence on the record as much as an accepted one, and because the indirection cost a careful reviewer a critical finding - the suite's NOT COVERED block now names where it runs."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "DECLARED BUT UNCHANGED (2026-09-18): blob ed8d9d98581c1ccbc3f7dd2c4f0a75d7992b5146, byte-identical to main, verified after every falsification was reverted. Every control the suite drives already carried a test id and an accessible name, so there was no test enablement to make and no accessibility defect of that kind surfaced. The two are recorded distinctly on the Supervisor's instruction, and neither occurred. THIS FILE ON MAIN STILL CARRIES 61531dc's undeclared material, and BLP-012 touching nothing in it means this requirement's approval must NOT be read as having verified anything that #508 put there."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/66c65ff",
+          "label": "DEFECT FOUND BY THIS REQUIREMENT, NOT FIXED BY IT (2026-09-18, measured not inferred): seven ledger actions drop keyboard focus to BODY, driven by key and read from document.activeElement, IDENTICAL at desktop-1440x1000 and phone-390x844 - declare demonstrated, declare certified, approve destination, revoke destination, withdraw declaration, unlink, and open print package. Two paths ARE sound and this suite asserts both: saving a claim moves focus to the announced claim state, and closing the print package restores focus to its opener. The Supervisor's independent static read corroborates the cause: CandidateProofLedger.jsx contains exactly one focus move in the whole file. Acceptance criterion (ii) says keyboard operation and focus restoration PASS, not that they are tested, so BLP-012 CANNOT REACH COMPLETE until the fix lands and this suite asserts the seven. The fix is scoped as its own change under its own Supervisor ruling rather than widening a verification requirement into product work; the seven controls belong to surfaces BLP-009, BLP-010 and BLP-011 own, all COMPLETE, so that PR follows the BLP-009 mis-attribution precedent: fix, append a note to each completed requirement, and apply the empirical reopen test."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/66c65ff",
+          "label": "TOUCH TARGETS, CHECKED AND CLEAN (2026-09-18): the accessibility review named a plausible risk at 390x844 from a min-width:0 on flex children. Every ledger control judged in view was measured at both widths and none is under 44 by 44 CSS pixels. The assertion is now permanent in the suite, added on criterion (i)'s own grounds and not borrowed from BLP-028: a control too small to hit reliably at the narrow phone width is a workflow that cannot complete on a phone. Recorded as a measurement rather than a reassurance, and so that BLP-028 later neither assumes the ground is uncovered nor duplicates it blindly."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/66c65ff",
+          "label": "STATED OMISSIONS (2026-09-18), so the file name does not overclaim: keyboard operation is asserted for the LEDGER's own controls only - marking, confirming and applying an excerpt are click-driven and the text selection is set by script; the print package's return is a click while the evidence round trip's is a key. The overlap checks use elementFromPoint, a pointer hit test that establishes occlusion and NOTHING about reading order or what an assistive technology announces; an earlier draft justified a pair by saying a keyboard user would otherwise hear an outcome they could not see, which claimed an auditory property from a visual check, and the wording now says only what is measured. A second opening of the print package in one session still lands on the workspace with no overlay, pre-existing and raised rather than fixed. No claim is made about physical hardware: requiresPhysicalRuntime is false for this requirement."
         }
       ],
       "blockers": [
         {
           "id": "BLP-012-BLOCKER-01",
-          "description": "BLP-007 through BLP-011 are not recorded as complete.",
+          "description": "BLP-007 through BLP-011 are not recorded as complete. RESOLVED 2026-09-18 on the Blueprint Supervisor's ruling, at the IN_PROGRESS record rather than at COMPLETE. This blocker's condition names the state of OTHER requirements, which is already true and independently verifiable without anything this build produces, unlike BLP-005's and BLP-006's blockers which described their own requirement's unfinished work and could only close when that work landed. A blocker whose condition has ceased to hold says so at the first opportunity; carrying it OPEN to COMPLETE would make the register assert an impediment that does not exist.",
           "ownerRole": "test-evaluation-engineer",
-          "status": "OPEN",
-          "evidenceLinks": []
+          "status": "RESOLVED",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+              "label": "BLP-007 COMPLETE, automated runtime verified at 15a20c6"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "BLP-008 COMPLETE, automated runtime verified at c3923af"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f1d94e91ac03905301b2eb1664e91d8832c28644",
+              "label": "BLP-009 COMPLETE, automated runtime verified at f1d94e9"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/967a8ff3a702beb6df383a790b0114fb71951e76",
+              "label": "BLP-010 COMPLETE, automated runtime verified at 967a8ff"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/8c0aaa03a044cf274f9a8d601f7ba682177d7169",
+              "label": "BLP-011 COMPLETE, automated runtime verified at 8c0aaa0"
+            }
+          ]
         },
         {
           "id": "BLP-012-BLOCKER-02",
@@ -4687,9 +4758,11 @@
         }
       },
       "affectedFiles": [
+        "v3.1/tests/candidate-proof-workflow.mjs",
         "v3.1/src/work-universe/CandidateProofLedger.jsx",
         "v3.1/tests/browser-gate.mjs",
-        "v3.1/tests/company-flow-browser.mjs"
+        "v3.1/tests/company-flow-browser.mjs",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -4704,6 +4777,25 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-18T23:05:00+08:00",
+          "reason": "The end-to-end continuity suite is implemented at c15b470 and its audit findings closed at 66c65ff, with the full 35-suite gate green locally. IN_PROGRESS rather than IMPLEMENTED_UNVERIFIED on the Blueprint Supervisor's ruling: acceptance criterion (ii) requires that keyboard operation and focus restoration PASS, not that they are tested, and this suite MEASURED seven ledger controls dropping focus to the document body at two widths. IMPLEMENTED_UNVERIFIED asserts an implementation a Supervisor may verify as meeting the requirement; the requirement is not met by the product today and the honest state is that the work is under way. The fix is scoped as its own change under its own ruling. affectedFiles amended by Supervisor ruling, recorded rather than silently edited: the declared browser-gate.mjs and company-flow-browser.mjs verify Step 1, Step 2 and the company flow, different surfaces from the Work Universe person lens where the candidate-proof chain lives, so filing this requirement's evidence there would misfile it and a later reader would not find BLP-012's coverage where its subject lives. That reason is architectural and independent of where the work was going to be written, which is the test that makes such an amendment legitimate rather than a field trued up after the fact. Both declared files are retained and are unchanged by this work.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c15b4705c52a17944d0f0694af1b04d9d3658a49",
+              "label": "BLP-012 implementation: the end-to-end continuity suite, 908 checks across four widths"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+              "label": "The suite, with its NOT COVERED block naming the seven focus failures and their measurement"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
