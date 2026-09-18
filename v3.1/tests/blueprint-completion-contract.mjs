@@ -677,6 +677,46 @@ for (const [index, row] of htmlRows.entries()) {
 assert(guideHtml.includes('href="V3-Blueprint-Completion-Onboarding-Guide.md"'), "blueprint onboarding guide HTML must link its Markdown source");
 assert(guideHtml.includes('href="V3-Agent-Readable-Feature-Map-Index.html"'), "blueprint onboarding guide HTML must link the master Feature Map");
 
+// The row check above closes ONE of the four symptoms this incident actually had. Re-run the
+// incident against it alone and the HTML could still name a superseded commit as current main,
+// still report the wrong NOT_STARTED count, and still omit a whole section - and pass. A check that
+// catches one symptom of the failure that motivated it makes the chain FEEL closed, which is the
+// same defect in a weaker form. Three structural equalities, required by the Blueprint Supervisor,
+// none of which compares prose.
+
+// 1. HEADER AGREEMENT. Catches a re-stamped digest on a body nobody regenerated, at the first field.
+const headerFields = [
+  { name: "Version", md: /^\*\*Version:\*\* (.+)$/m, html: /<strong>Version:<\/strong> ([^<]+)</ },
+  { name: "Register snapshot SHA-256", md: /\*\*Register snapshot SHA-256:\*\* `([a-f0-9]{64})`/, html: /<strong>Register snapshot SHA-256:<\/strong> <code>([a-f0-9]{64})<\/code>/ },
+  { name: "Current main observed", md: /\*\*Current main observed:\*\* `([a-f0-9]{7,40})`/, html: /<strong>Current main observed:<\/strong> <code>([a-f0-9]{7,40})<\/code>/ },
+];
+for (const field of headerFields) {
+  const inMd = guideMarkdown.match(field.md);
+  const inHtml = guideHtml.match(field.html);
+  assert(inMd && inHtml, `blueprint onboarding guide must state "${field.name}" in BOTH the Markdown and the HTML`);
+  assert(inMd[1].trim() === inHtml[1].trim(), `blueprint onboarding guide "${field.name}" disagrees between Markdown (${inMd[1].trim()}) and HTML (${inHtml[1].trim()}) - the HTML body was not regenerated`);
+}
+
+// 2. HEADING PRESENCE. Catches a section that exists in the source and not in the published page.
+const mdHeadings = [...guideMarkdown.matchAll(/^#{2,3} (.+)$/gm)].map((m) => m[1].trim());
+assert(mdHeadings.length > 0, "blueprint onboarding guide Markdown must carry section headings (zero would make the next assertion vacuous)");
+const htmlHeadingText = [...guideHtml.matchAll(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/g)]
+  .map((m) => m[1].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim());
+const plain = (text) => text.replace(/[`*]/g, "").replace(/\s+/g, " ").trim();
+const htmlHeadingSet = new Set(htmlHeadingText.map(plain));
+const missingHeadings = mdHeadings.map(plain).filter((heading) => !htmlHeadingSet.has(heading));
+assert(missingHeadings.length === 0, `blueprint onboarding guide HTML omits ${missingHeadings.length} section heading(s) present in its Markdown source: ${JSON.stringify(missingHeadings.slice(0, 4))} - the HTML body was not regenerated`);
+
+// 3. COUNTS. Catches a status-count table that disagrees with the register it is chained to.
+const registerCounts = items.reduce((acc, item) => ({ ...acc, [item.status]: (acc[item.status] || 0) + 1 }), {});
+const htmlCountRows = [...guideHtml.matchAll(/<tr>\s*<td><code>([A-Z_]+)<\/code><\/td>\s*<td>(\d+)<\/td>/g)]
+  .map((m) => ({ status: m[1], count: Number(m[2]) }));
+assert(htmlCountRows.length > 0, "blueprint onboarding guide HTML must carry a status-count table (zero rows would make the next assertion vacuous)");
+for (const row of htmlCountRows) {
+  const expected = registerCounts[row.status] || 0;
+  assert(row.count === expected, `blueprint onboarding guide HTML status count for ${row.status} is ${row.count}, register says ${expected} - the HTML body was not regenerated`);
+}
+
 // Self-check of the policy gate on the direct completion edge. Without this fixture nothing proves the
 // edge is closed to a record whose policy requires automated runtime.
 {
