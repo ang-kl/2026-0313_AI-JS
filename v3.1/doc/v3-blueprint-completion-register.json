@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-    "updatedAt": "2026-09-18T23:05:00+08:00"
+    "updatedAt": "2026-09-18T23:55:00+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -3351,6 +3351,11 @@
           "kind": "FILE",
           "reference": "v3.1/tests/proof-links.mjs",
           "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) modified this requirement's suite (+27/-1): a keyboard open-and-return step with focus restored to the originating proof-link control, and Part B now runs at the four BLP-028 widths as a child of tests/blp028-responsive-matrix.mjs, stale-state geometry asserted, rather than from the top-level gate list. The counts on this record, 160 / 225, remain correct at its verified commit; at 61531dc the suite prints 301 Chromium checks under its own name inside the matrix's log. The Supervisor verified the matrix runner fails when a child does not run."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "NOTE (2026-09-18, appended not edited; status UNCHANGED at COMPLETE): cpl-unlink, introduced by this requirement at ff4c7c0, shipped without keyboard focus management and returned a keyboard user to the document body after acting. Measured by BLP-012's probe at 1440x1000 and 390x844, identical. It was approved in that state and the approval is not withdrawn: the defect is recorded against what shipped, as the BLP-009 mis-attribution precedent requires. Fixed at 44543bc and now asserted by tests/candidate-proof-workflow.mjs. THE PROVENANCE CITATION IS THE INTRODUCING COMMIT, NOT THE SQUASH THAT CARRIED IT: git log -S over a path prunes merge parents that appear not to contribute, and this branch's -X ours reconciliation merges are exactly that shape, so a trace without --full-history names the squash. Both the Supervisor and the coordinating session were misled by it before the flag was used; three of five citations were wrong and every layer assignment was right. REOPEN TEST: this requirement's suite is unchanged at the fix commit and nothing reopens."
         }
       ],
       "blockers": [
@@ -3827,6 +3832,11 @@
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6ce3a69fbd8f5b4961614fb90fa1707ab03de151",
           "label": "NOTE (post-completion, appended not edited): the known omission 'destinations remain PENDING for every record and no state licenses one yet (BLP-011)' recorded at BLP-010 is discharged by BLP-011 at 6ce3a69: a demonstrated or certified record is approved for a destination by the human, and every approval lapses by the system when the record leaves its accepted state. BLP-010's own suite re-ran at 167 node and 242 Chromium on the BLP-011 tree with its two version assertions moved to 1.3.0 (the reopen test for the adapter bump); no BLP-010 assertion was removed or weakened."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "NOTE (2026-09-18, appended not edited; status UNCHANGED at COMPLETE): cpl-declare-demonstrated, cpl-declare-certified, cpl-withdraw and cpl-offer-again, introduced by this requirement at 06ef237, shipped without keyboard focus management and returned a keyboard user to the document body after acting. Measured by BLP-012's probe at 1440x1000 and 390x844, identical. It was approved in that state and the approval is not withdrawn: the defect is recorded against what shipped, as the BLP-009 mis-attribution precedent requires. Fixed at 44543bc and now asserted by tests/candidate-proof-workflow.mjs. THE PROVENANCE CITATION IS THE INTRODUCING COMMIT, NOT THE SQUASH THAT CARRIED IT: git log -S over a path prunes merge parents that appear not to contribute, and this branch's -X ours reconciliation merges are exactly that shape, so a trace without --full-history names the squash. Both the Supervisor and the coordinating session were misled by it before the flag was used; three of five citations were wrong and every layer assignment was right. REOPEN TEST: this requirement's suite is unchanged at the fix commit and nothing reopens."
         }
       ],
       "blockers": [
@@ -4258,6 +4268,11 @@
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/50690c18910abe8cfb2c2184411681d05ca5af40",
           "label": "NOTE (2026-09-18, appended not edited; status unchanged): #508 (61531dc) changed this requirement's print section without declaration: PrintPackage.jsx's print button was disabled, with a blocked paragraph, whenever the candidate-proof ledger carried an integrity fault, where at the approved artefact 8c0aaa0 the package printed with the proof section withheld and the fault said in words. The Supervisor ruled REVERT (withhold, do not refuse: the programme's rule, and an untested change on the protected Clean and Full Review surface). Reverted at 50690c1: the button prints again and the section's own Withheld element still carries the fault. Main at 61531dc also carried #507's two corrections (0e7aecc, recorded on this entry) and #508's edits to CandidateProofLedger.jsx, ReviewStudio.jsx, ReviewStudioLegacy.jsx and the gate workflow, so six of this requirement's nine files differ from 8c0aaa0 on main; this approval describes 8c0aaa0."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "NOTE (2026-09-18, appended not edited; status UNCHANGED at COMPLETE): cpl-dest-approve and cpl-dest-revoke, introduced by this requirement at 6ce3a69, shipped without keyboard focus management and returned a keyboard user to the document body after acting. Measured by BLP-012's probe at 1440x1000 and 390x844, identical. It was approved in that state and the approval is not withdrawn: the defect is recorded against what shipped, as the BLP-009 mis-attribution precedent requires. Fixed at 44543bc and now asserted by tests/candidate-proof-workflow.mjs. THE PROVENANCE CITATION IS THE INTRODUCING COMMIT, NOT THE SQUASH THAT CARRIED IT: git log -S over a path prunes merge parents that appear not to contribute, and this branch's -X ours reconciliation merges are exactly that shape, so a trace without --full-history names the squash. Both the Supervisor and the coordinating session were misled by it before the flag was used; three of five citations were wrong and every layer assignment was right. REOPEN TEST: this requirement's suite is unchanged at the fix commit and nothing reopens."
         }
       ],
       "blockers": [
@@ -4575,7 +4590,7 @@
       "title": "Verify the complete candidate-proof workflow",
       "requirement": "Verify candidate-proof workflows on desktop, phone, keyboard, focus restoration, and evidence round trip.",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-007",
         "BLP-008",
@@ -4613,7 +4628,7 @@
         {
           "kind": "TEST",
           "reference": "v3.1/tests/candidate-proof-workflow.mjs",
-          "label": "IMPLEMENTATION (2026-09-18, c15b470): the end-to-end continuity suite. BLP-007 to BLP-011 each own a suite and each mounts its own session, which is why none can verify CONTINUITY: a property existing only across stages cannot be observed by a test that sees one stage. This drives the whole chain in ONE session - paste, excerpt, ledger record, link, state declaration, destination approval, output - across the four BLP028 widths (1440x1000, 2048x1280, 390x844, 430x932). 908 checks. 390x844 is where overlap surfaces and the ledger suites test only 430x932, so the more dangerous phone width was unverified before this. Registered in .github/workflows/v31-browser-gate.yml, taking the gate to 35 listed suites; the full list is green locally against base 37d51b8 with a real FEATURE_MAP_BASE_REF."
+          "label": "IMPLEMENTATION (2026-09-18, c15b470 then 66c65ff): the end-to-end continuity suite. BLP-007 to BLP-011 each own a suite and each mounts its own session, which is why none can verify CONTINUITY: a property existing only across stages cannot be observed by a test that sees one stage. This drives the whole chain in ONE session - paste, excerpt, ledger record, link, state declaration, destination approval, output - across the four BLP028 widths (1440x1000, 2048x1280, 390x844, 430x932). 908 checks AT 66c65ff, the audit-fix commit; c15b470 itself produces 580, and the audit fixes rewrote the suite by +260/-103 lines. CORRECTION recorded rather than silently applied (Blueprint Supervisor finding on the merged record): this note first attached 908 to c15b470 alone, so a reader who checked out that commit to reproduce the figure would have been contradicted by it. That is the same family as the 132/134 correction, running forwards instead of backwards - a figure true of today's tree and false of the commit it was pinned to. 390x844 is where overlap surfaces and the ledger suites test only 430x932, so the more dangerous phone width was unverified before this. Registered in .github/workflows/v31-browser-gate.yml, taking the gate to 35 listed suites; the full list is green locally against base 37d51b8 with a real FEATURE_MAP_BASE_REF."
         },
         {
           "kind": "TEST",
@@ -4654,6 +4669,41 @@
           "kind": "OTHER",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/66c65ff",
           "label": "STATED OMISSIONS (2026-09-18), so the file name does not overclaim: keyboard operation is asserted for the LEDGER's own controls only - marking, confirming and applying an excerpt are click-driven and the text selection is set by script; the print package's return is a click while the evidence round trip's is a key. The overlap checks use elementFromPoint, a pointer hit test that establishes occlusion and NOTHING about reading order or what an assistive technology announces; an earlier draft justified a pair by saying a keyboard user would otherwise hear an outcome they could not see, which claimed an auditory property from a visual check, and the wording now says only what is measured. A second opening of the print package in one session still lands on the workspace with no overlay, pre-existing and raised rather than fixed. No claim is made about physical hardware: requiresPhysicalRuntime is false for this requirement."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "FOCUS DEFECT FIXED AND NOW ASSERTED (2026-09-18, 44543bc): the seven controls this requirement measured dropping keyboard focus to the document body are fixed, and tests/candidate-proof-workflow.mjs asserts each successor focus by name at all four widths, 972 checks. Focus goes to the SUCCESSOR control - the one now occupying the place of the control that was pressed - and the ledger's existing live notice announces the outcome; focusing a second announcing element would make assistive technology say it twice. Declaring moves to withdraw, withdrawing to declare, approving to revoke on the same destination row and revoking back, unlinking to the link chooser, and opening the print package to the overlay's heading. FALSIFIED both halves: removing the destination focus move and reverting the print effect each fail naming that focus settled on BODY. Criterion (ii) is now met by the product."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "THE FIX'S OWN FIRST ATTEMPT MEASURED NO BETTER THAN THE DEFECT (2026-09-18): PrintPackage.jsx stays mounted and returns null until opened, so a mount-only effect fired once while the heading did not exist and never again. Focus still landed on BODY. Found by running the probe AGAINST the fix rather than by reading it, and keyed on the open flag thereafter. Recorded because it is the clearest instance in this programme of the failure mode below: the first attempt was written in the posture of fixing a known defect, which is exactly the posture in which a fix is not itself checked."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "THE SUITE WAS WRONG AND THE PRODUCT WAS RIGHT (2026-09-18): the new stage first tried to unlink while a declaration rested on the link. unlinkProof refuses that by design - 'a human may not pull the object out from under a declaration', BLP-010 ruling Q4, src/work-universe/candidateProofLedgerData.js:363-366. The suite now withdraws first, which is the path a human takes, and that exercises the withdraw focus a second time from a different starting state. Recorded because a test correcting itself against a governed rule is evidence the rule is reachable from the panel, which is what BLP-010's ruling required."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/72c0a58",
+          "label": "OWNERSHIP GAP, ESCALATED TO THE HUMAN LEAD (2026-09-18): wu-open-print-package, the seventh control, was introduced at 72c0a58 'Add v3.1 editorial print package' on 2026-08-26, about two weeks before BLP-009, BLP-010 and BLP-011 existed. None of them created it, none verified its focus behaviour and none of their approvals ever covered it, so its note belongs on no completed requirement and is recorded here instead. The Blueprint Supervisor's ruling separates who INTRODUCED a defect, which decides where the note goes, from who REQUIRES it fixed, which decides why the work happens; they coincide for six controls and separate for this one. THE GAP ITSELF IS THE ESCALATION: a live surface that no canonical requirement owns is a fact about the register's coverage, not about one button, and it is for the Human Lead to decide whether the thirty requirements are meant to cover it."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "THE FAILURE MODE THIS PROGRAMME KEEPS MEETING, stated generally because it has now appeared five times (2026-09-18): a correction is performed under the felt authority of being a correction, and that authority is indistinguishable from having checked. The vacuous wait was in a fix for a race; the quantifier defect was in a fix for a narration error; the pair-sampling guard was in a fix for an audit finding and carried the very defect it existed to catch; the print focus effect was in a fix for a measured defect and did not fix it; and the Supervisor's own mis-citation came from re-running a trace in the posture of confirming a correction rather than testing a claim. The builder falsified the three original assertions because they were not yet trusted, and nearly did not falsify the guard BECAUSE IT WAS A CORRECTION. The only defence that has worked is falsifying every assertion, most of all the ones just written to catch the last instance."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+          "label": "REOPEN TEST, run and recorded either way (2026-09-18, 44543bc): against gate run 106's figures, all three unchanged - BLP-009 tests/proof-links.mjs 160 node / 301 Chromium; BLP-010 tests/proof-states.mjs 167 / 242; BLP-011 tests/proof-destinations.mjs 135 / 268. Nothing reopens. Recorded because an expectation reported as a result is the defect this programme corrected over 132 against 134, and boring is a result."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/511#discussion_r4044555110",
+          "label": "A CHECK WHOSE SUBJECT COULD NOT FAIL IT, INSIDE THIS PROGRAMME'S OWN CHAIN (found 2026-09-18 by the automated reviewer on PR #511, not by the contract and not by the coordinating session). The register -> Markdown -> HTML chain certifies the HTML by embedding a digest OF THE MARKDOWN, and blueprint-completion-contract.mjs parsed the thirty requirement rows from the MARKDOWN ALONE, checking the HTML only for the document id, the register hash, the presence of the thirty ids somewhere in the file and the provenance field names. So an HTML body that was never regenerated passed every check while telling readers an obsolete story: at the merge of PR #511 the published HTML still named 61531dc as current main, still carried BLP-012 as NOT_STARTED with a 19-row NOT_STARTED summary, and had no section 6.7 at all, while its digest correctly certified a Markdown that said none of those things. Every guide update in this arc re-stamped the digest and patched the version string without regenerating the body, and the contract reported PASS each time. THE MARKDOWN ALSO CONTRADICTED ITSELF, reported in the same review: after recording one requirement as IMPLEMENTED_UNVERIFIED it still asserted zero, and its status table carried both a count of one and a row of zero for that status. FIXED: the contract now parses the requirement rows OUT OF THE HTML and compares each id, priority and status against the register, so a body that was not regenerated fails with the status it wrongly shows; the HTML body is brought into line including section 6.7, rendered from the Markdown source rather than retyped; and the self-contradicting summary rows are removed. The new contract assertion was written BEFORE the repair and observed failing on the stale HTML, which is how this programme establishes that a check can fail."
         }
       ],
       "blockers": [
@@ -4694,8 +4744,19 @@
           "id": "BLP-012-BLOCKER-02",
           "description": "Complete desktop, phone, keyboard and focus evidence is not recorded.",
           "ownerRole": "test-evaluation-engineer",
-          "status": "OPEN",
-          "evidenceLinks": []
+          "status": "RESOLVED",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+              "label": "Desktop and phone, keyboard and focus evidence recorded: 972 checks across four widths"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+              "label": "The suite that records it"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -4712,11 +4773,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "commitSha": "44543bc4f925b3f9d5b7a8cb42cc633c69ed4e22",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+              "label": "Focus restoration on the seven controls, with the suite asserting each"
+            }
+          ],
+          "note": "The focus fix that makes criterion (ii) pass, together with the continuity suite merged at 1d8a6e8. Not yet verified by the Blueprint Supervisor.",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt"
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -4760,6 +4827,7 @@
       "affectedFiles": [
         "v3.1/tests/candidate-proof-workflow.mjs",
         "v3.1/src/work-universe/CandidateProofLedger.jsx",
+        "v3.1/src/review/PrintPackage.jsx",
         "v3.1/tests/browser-gate.mjs",
         "v3.1/tests/company-flow-browser.mjs",
         ".github/workflows/v31-browser-gate.yml"
@@ -4788,12 +4856,31 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c15b4705c52a17944d0f0694af1b04d9d3658a49",
-              "label": "BLP-012 implementation: the end-to-end continuity suite, 908 checks across four widths"
+              "label": "BLP-012 implementation: the end-to-end continuity suite. 908 checks is the figure at 66c65ff, not at this commit, which produces 580"
             },
             {
               "kind": "TEST",
               "reference": "v3.1/tests/candidate-proof-workflow.mjs",
               "label": "The suite, with its NOT COVERED block naming the seven focus failures and their measurement"
+            }
+          ]
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-18T23:55:00+08:00",
+          "reason": "The focus defect that held this requirement at IN_PROGRESS is fixed at 44543bc and asserted by tests/candidate-proof-workflow.mjs, 972 checks across four widths, with both halves of the fix falsified against the product. Acceptance criterion (ii) requires that keyboard operation and focus restoration PASS, and they now do: the seven controls that returned a keyboard user to the document body each move focus to the successor control, measured at 1440x1000 and 390x844. Criterion (i) and criterion (iii) were already asserted. IMPLEMENTED_UNVERIFIED is now the honest status because there is an implementation a Supervisor may verify as MEETING the requirement, which was precisely what was untrue while the product failed. affectedFiles gains v3.1/src/review/PrintPackage.jsx, declared with its reason rather than appearing silently: the seventh control's focus is restored from that file, and the Supervisor's scope ruling named the ledger controls without naming it. The change to v3.1/src/work-universe/CandidateProofLedger.jsx is confined to the focus wiring - the useSuccessorFocus helper and six onClick handlers - and its approval covers that and nothing else in a file that still carries 61531dc's undeclared material at the blob it had before this change.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/44543bc",
+              "label": "The focus fix and its assertions, 972 checks across four widths"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-workflow.mjs",
+              "label": "Each successor focus asserted by name; the NOT COVERED block corrected, since it previously listed these seven as an omission"
             }
           ]
         }
