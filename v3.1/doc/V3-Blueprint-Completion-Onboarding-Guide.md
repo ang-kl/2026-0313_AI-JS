@@ -1,14 +1,14 @@
 # V3.1 Blueprint Completion: Onboarding and Delivery Guide
 
 **Document ID:** `GUIDE-V3-BLUEPRINT-COMPLETION-001`  
-**Version:** 1.0.33  
+**Version:** 1.0.34  
 **Prepared:** 2026-09-08 (SGT)  
 **Repository:** [`ang-kl/2026-0313_AI-JS`](https://github.com/ang-kl/2026-0313_AI-JS)  
 **Product surface:** [`https://v3.takearoundabout.com`](https://v3.takearoundabout.com)  
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
 **Current main observed:** `1d8a6e8ff361ed849a8ca63c96c0d0b4659b1476` (`test(v3.1): BLP-012 verify the complete candidate-proof workflow, and the focus defect it found (#511)`)  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `7514ccb528e8dfa8e290d7059396bc4fb0658251aacfa4bc024b0f7bc1219bcc`  
+**Register snapshot SHA-256:** `7d081d2bad1364cca58767c3dbbc85f59554d47c7eca76ae7aa3fd82fbf01fc4`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
@@ -278,6 +278,23 @@ The Blueprint Supervisor ruled this is **not** a member of the family this progr
 The residual is recorded honestly rather than as a lapse: **no rule currently enforces docs-only on register changes made from non-`codex/` branches.** Nobody has stated that rule, so nothing is being violated. If the programme wants it, that is a workflow change needing its own scope ruling.
 
 **A gate must not be widened under the commit it is gating.** Stated generally, because it is a rule about how to change a gate rather than about what this gate does: *a gate widened under the commit it is gating produces an approving run from the pre-change gate, so the changed gate is trusted without ever having been exercised.* That is why a gate change needs its own commit and its own run before anything relies on it. It is recorded here, beside the reasoning it arose from, rather than in the workflow file, because a reader of the YAML would meet it without its context and the question it answers - "why not just widen the trigger?" - is asked while reading this note.
+
+
+### 6.8 A digest certifies only what it was computed over (recorded 2026-09-18)
+
+**The defect.** This programme's record chain publishes an HTML guide and certifies it with a digest **of the Markdown**. `tests/blueprint-completion-contract.mjs` parsed the thirty requirement rows from the Markdown alone and checked the HTML only for the document identifier, the register hash, the presence of the thirty identifiers somewhere in the file, and the provenance field names. Nothing a stale body would fail.
+
+So an HTML that was never regenerated passed every check while telling readers an obsolete story. At the merge of PR #511 the published HTML named `61531dc` as current main - the very commit this programme had ruled was undeclared material - reported nineteen requirements `NOT_STARTED` where the register said eighteen, showed `BLP-012` as `NOT_STARTED` after the register said otherwise, and omitted section 6.7 entirely. Its version string and its digest were both current and both truthful. The body they were attached to was not.
+
+**Who missed it.** This register names the finder of every defect it records, and where a defect stood in front of someone whose task was to catch it, it names them too. The automated reviewer on PR #511 found it. The contract did not. The coordinating session did not, having re-stamped the digest and patched the version string at every guide update in the arc. **The Blueprint Supervisor did not**, having verified that digest equality at `8c0aaa0` and again at the PR #511 merge and reported it, in a list of verification steps, as establishing something about the published guide. The one instance where naming is least comfortable is the one where it matters.
+
+**The narrow rule.** *A digest certifies the bytes it was computed over and nothing else. A chain that hashes A and publishes B has certified only that A is A, until something compares B with A.* That sounds obvious after the fact and did not stop two parties across eleven consecutive approvals.
+
+**The rule that matters more, and its second instance.** Both parties re-reported that equality as verification every time, because it had the shape of what a thorough report says, and neither asked what it ruled out. This is the same mechanism recorded during the PR #508 arc, now with a second instance and a second victim: **a check is performed under the felt authority of being a check, and that authority is indistinguishable from having checked.** The first instance was a correction - the pair-sampling guard that carried the defect it existed to catch, and the print-focus effect that measured no better than the defect it was fixing, found by running a probe against the fix rather than by reading it. This instance is a verification step. The mechanism is identical, which is the evidence that it is a mechanism and not an anecdote.
+
+**What this means for the eleven `COMPLETE` approvals: nothing, and the reason is worth stating.** An approval is sound if the artefacts its evidence rests on were sound. For all eleven the evidence was the register record read field by field, blob identity between implementation and merge commits, and a CI run read from its run object and job log. Every one of those was sound and none of them is the HTML, which is a derived reading surface and was never load-bearing for any approval. No approval is withdrawn, no requirement is reopened, and a reader of any of the eleven needs to do nothing: their evidence is independently re-derivable today. **What was wrong was the description of a check, eleven times, not the check the approvals actually rested on** - and misdescribing a check is the same defect class as writing one that cannot fail.
+
+**What now guards it.** The contract parses the requirement rows out of the HTML and compares identifier, priority and status against the register; requires the HTML's version, register digest and current-main fields to equal the Markdown's; requires every Markdown section heading to appear as a heading in the HTML; and requires the HTML's status counts to equal the counts computed from the register. Each of the four was observed failing on the stale file before the repair, on the symptom it exists to catch. **The durable remedy is not in place:** the HTML is maintained by hand-patching, which is why a body could lag its digest at all. Generating the HTML from the Markdown and having the contract regenerate and compare would make every field check unnecessary. No canonical requirement owns the guide's build, which is a coverage gap of the same kind as `wu-open-print-package` and is escalated to the Human Lead in the same terms.
 
 
 ## 7. What remains incomplete

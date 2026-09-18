@@ -488,6 +488,12 @@ async function runViewport({ name, width, height, phone }) {
   await pressByKeyboard(rec0.getByTestId("cpl-link-button"), page, "Enter", `${tag} stage 2 link`);
   await named(noticeChanged(page, before), `${tag} stage 2: linking by keyboard changed the ledger notice`);
   await named(page.waitForFunction(() => !document.querySelector('[data-testid="cpl-declare-demonstrated"]')?.disabled, null, { timeout: 5000 }), `${tag} stage 2: a standing link enables the demonstrated declaration`);
+  // The EIGHTH control. The original probe measured the seven an accessibility review named and
+  // this one was never among them, so "seven" was the reviewer's list reported as the complete set.
+  // Linking disables its own button (the chooser resets) and dropped focus to the document body at
+  // both widths until the fix; the chooser stays live, so that is the successor.
+  let f = await settleFocus(page, (a) => a?.testid === "cpl-link-select");
+  eq(f.testid, "cpl-link-select", `${tag} stage 2: linking by keyboard moves focus to the link chooser, which stays live when the link button disables itself; focus settled on ${JSON.stringify(f)}`);
   let now = await readAnchors(page);
   assertAnchors(minted, now, CARRIED, tag, "stage 2 after linking by keyboard");
   ok(now.linkId && now.linkTargetId === dutyOption.split("|")[1], `${tag} stage 2: the keyboard-made link carries the canonical target id that was chosen (${now.linkTargetId} against ${dutyOption.split("|")[1]}); a mismatch means the Enter key linked something other than the selected option`);
@@ -497,7 +503,7 @@ async function runViewport({ name, width, height, phone }) {
   await pressByKeyboard(rec0.getByTestId("cpl-declare-demonstrated"), page, "Enter", `${tag} stage 2 declare`);
   await named(noticeChanged(page, before), `${tag} stage 2: declaring demonstrated by keyboard changed the ledger notice`);
   await named(waitState(page, 0, "DEMONSTRATED"), `${tag} stage 2: the Enter key on the demonstrated control moved the record to DEMONSTRATED`);
-  let f = await settleFocus(page, (a) => a?.testid === "cpl-withdraw");
+  f = await settleFocus(page, (a) => a?.testid === "cpl-withdraw");
   eq(f.testid, "cpl-withdraw", `${tag} stage 2: declaring demonstrated moves focus to the withdraw control, which now occupies the place of the button that was pressed; focus settled on ${JSON.stringify(f)} (before the BLP-012 fix this was the document body, stranding a keyboard user at the top of a ledger thousands of pixels tall)`);
   now = await readAnchors(page);
   assertAnchors(linked, now, [...CARRIED, "linkId", "linkTargetId"], tag, "stage 2 after declaring demonstrated by keyboard");
@@ -667,6 +673,22 @@ async function runViewport({ name, width, height, phone }) {
   eq(f.testid, "cpl-dest-approve", `${tag} stage 6: revoking a destination moves focus to the approve control on that row, which the revocation has just made the live one; focus settled on ${JSON.stringify(f)}`);
   eq(await destRow(page, 0, "resume").getByTestId("cpl-dest-approve").innerText(), "Approve again", `${tag} stage 6: the control that took focus reads "Approve again", so focus landed on the successor rather than on a control that merely shares its test id`);
 
+  // A REFUSED ACT MUST NOT LEAVE A FOCUS INTENT ARMED. Raised by the Blueprint Supervisor from a
+  // static read and confirmed by probe before the fix: a refused unlink left the chooser intent
+  // armed, and a later link to a second target consumed it, moving focus without the user having
+  // caused it - the mirror image of the defect this work fixes. Driven here while the declaration
+  // still stands, which is the one refusal this workflow can reach.
+  before = await noticeText(page);
+  const refusedUnlink = rec0.getByTestId("cpl-unlink").first();
+  await refusedUnlink.scrollIntoViewIfNeeded();
+  await refusedUnlink.focus();
+  await page.keyboard.press("Enter");
+  await named(noticeChanged(page, before), `${tag} stage 6: the refused unlink is said in the notice`);
+  ok(/Refused/.test(await noticeText(page)), `${tag} stage 6: unlinking under a standing declaration is REFUSED by the product, not performed (BLP-010 ruling Q4); the notice says so: ${JSON.stringify((await noticeText(page)).slice(0, 80))}`);
+  eq(await rec0.locator('[data-testid="cpl-link"]').count(), 1, `${tag} stage 6: the refused unlink removed nothing`);
+  f = await settleFocus(page, (a) => a?.testid === "cpl-unlink");
+  eq(f.testid, "cpl-unlink", `${tag} stage 6: a refused act leaves focus where the human put it, on the control they pressed; focus settled on ${JSON.stringify(f)}`);
+
   // The declaration must be withdrawn before the link can be removed. This is not a workaround:
   // unlinkProof refuses while a declaration rests on the link ("a human may not pull the object out
   // from under a declaration", BLP-010 ruling Q4, candidateProofLedgerData.js:363-366). The suite
@@ -705,14 +727,24 @@ console.log([
   "NOT COVERED by this suite, stated so the file name does not overclaim:",
   "",
   "  1. NOT AN OMISSION ANY MORE, and recorded here because this block previously said it was:",
-  "     the seven controls that dropped keyboard focus to the document body are FIXED and ASSERTED.",
+  "     the controls that dropped keyboard focus to the document body are FIXED and ASSERTED. The",
+  "     count was SEVEN and is EIGHT: seven was the list an accessibility review named, reported as",
+  "     though it were the complete set. Linking was the eighth - it disables its own button and",
+  "     dropped focus at both widths - found only when a later probe measured it.",
   "     Each is driven by key and its successor focus asserted by name: declare demonstrated and",
   "     declare certified move to withdraw; withdraw and offer again move to declare; approve moves",
   "     to revoke on the same destination row and revoke moves to approve; unlink moves to the link",
   "     chooser; opening the print package moves focus onto the overlay's heading. The measurement",
   "     that found them, BODY at both 1440x1000 and 390x844, is on the BLP-012 record.",
   "",
-  "  1b. WHAT THE PRINT OVERLAY STILL DOES NOT DO. Focus moves into it; it does not declare dialog",
+  "  1b. THREE LEDGER CONTROLS ARE NEITHER FIXED NOR ASSERTED, named rather than left to be found:",
+  "     re-link (a target re-extracted under a new id), declare conflict and resolve conflict (two",
+  "     accepted records sharing a target). This workflow cannot reach the states that render them,",
+  "     so none was measured and none was wired. An earlier draft of this very block said they carry",
+  "     the same wiring - they do not, and that sentence was written while correcting an overclaim of",
+  "     exactly the same shape. Whether they drop focus is UNKNOWN, not known to be fine.",
+  "",
+  "  1c. WHAT THE PRINT OVERLAY STILL DOES NOT DO. Focus moves into it; it does not declare dialog",
   "     semantics and does not trap focus, so tabbing past its last control reaches the page behind",
   "     it. That is a larger change than the defect this requirement found, and it is named here",
   "     rather than folded in silently.",
