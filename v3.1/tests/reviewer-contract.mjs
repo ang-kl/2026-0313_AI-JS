@@ -227,6 +227,7 @@ async function runViewport({ name, width, height, phone }) {
   // Shared filters act on the same decision state used by the manuscript, header and print input.
   // Filtering never clears the selected anchor or the accepted decision.
   const chosenCard = page.locator("[data-comment-anchor]").first();
+  const unfilteredCount = await page.locator("[data-comment-anchor]").count();
   const chosen = await chosenCard.evaluate((element) => ({ anchor: element.dataset.commentAnchor, reviewer: element.dataset.reviewerId, verb: element.dataset.reviewVerb }));
   await chosenCard.click();
   await page.getByTestId("review-filter-reviewer").selectOption(chosen.reviewer);
@@ -237,13 +238,19 @@ async function runViewport({ name, width, height, phone }) {
     return cards.length > 0 && cards.every((card) => card.dataset.reviewerId === reviewer && card.dataset.reviewVerb === verb && card.dataset.reviewStatus === "accepted");
   }, chosen, { timeout: 5000 });
   const filteredCards = page.locator("[data-comment-anchor]");
-  ok(await filteredCards.count() >= 1, `${tag}: combined reviewer, verb and accepted-status filters keep a matching result`);
+  const filteredCount = await filteredCards.count();
+  ok(filteredCount >= 1, `${tag}: combined reviewer, verb and accepted-status filters keep a matching result`);
+  // The restored-count assertion below is only meaningful if the filter hid something; that
+  // precondition is stated, not assumed (conformance-auditor S-1).
+  ok(filteredCount < unfilteredCount, `${tag}: the filters actually hid cards (${filteredCount} of ${unfilteredCount}), so restoring the full view is a real observation`);
   ok((await filteredCards.evaluateAll((cards) => cards.every((card) => card.dataset.selected === "true" && card.dataset.reviewStatus === "accepted"))), `${tag}: filtering preserves the selected anchor and accepted decision`);
   await page.getByTestId("review-filter-reviewer").selectOption("all");
   await page.getByTestId("review-filter-verb").selectOption("all");
   await page.getByTestId("review-filter-status").selectOption("all");
   await page.waitForFunction((anchor) => [...document.querySelectorAll("[data-comment-anchor]")].some((card) => card.dataset.commentAnchor === anchor && card.dataset.reviewStatus === "accepted" && card.dataset.selected === "true"), chosen.anchor, { timeout: 5000 });
-  ok(true, `${tag}: clearing filters restores the full view without losing selection or decision state`);
+  const restored = await page.locator("[data-comment-anchor]").evaluateAll((cards, anchor) => ({ count: cards.length, chosen: cards.filter((card) => card.dataset.commentAnchor === anchor).map((card) => ({ status: card.dataset.reviewStatus, selected: card.dataset.selected })) }), chosen.anchor);
+  eq(restored.count, unfilteredCount, `${tag}: clearing filters restores the full view, the same card count as before filtering (fails if a filter leaves cards hidden)`);
+  ok(restored.chosen.length === 1 && restored.chosen[0].status === "accepted" && restored.chosen[0].selected === "true", `${tag}: the chosen anchor keeps its accepted decision and its selection after the filters clear (${JSON.stringify(restored.chosen)})`);
   // Analysis views: lens cards are lenses, advisory cards carry the advisory voice, nothing off roster.
   await page.getByRole("tab", { name: "Critical Read" }).click();
   await page.locator('[data-speaker-kind="lens"]').first().waitFor({ state: "visible", timeout: 15000 });

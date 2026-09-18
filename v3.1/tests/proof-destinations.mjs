@@ -405,12 +405,43 @@ async function runViewport({ name, width, height, phone }) {
   ok(await destRow(page, 0, "resume").locator('[data-testid="cpl-dest-approve"]').isDisabled() && await destRow(page, 0, "resume").locator('[data-testid="cpl-dest-revoke"]').isEnabled(), `${tag}: on an approved destination approve is disabled and revoke enabled`);
   ok(await destRow(page, 0, "interview").locator('[data-testid="cpl-dest-revoke"]').isDisabled(), `${tag}: revoke stays disabled on a destination never approved (REVOKED from UNSET is not offered)`);
 
+  // 3b. The release gate judges a HELD output against the live evidence (Supervisor finding on #508):
+  // a claim in the record's own words makes one proposal; assembling holds it; the actions release.
+  const actions = page.getByTestId("resume-claim-actions");
+  eq(await actions.getAttribute("data-assembled"), "false", `${tag}: nothing is held before the human assembles`);
+  ok(await page.getByTestId("resume-claim-assemble").isDisabled(), `${tag}: assemble is withheld while no claim passes every gate (no claim wording yet)`);
+  await record(page, 0).locator('[data-testid="cpl-claim-input"]').fill("monitored operational data daily");
+  await record(page, 0).locator('[data-testid="cpl-claim-save"]').click();
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="resume-claim-proposed"]').length === 1, null, { timeout: 5000 });
+  ok(await page.getByTestId("resume-claim-assemble").isEnabled(), `${tag}: with one proposal, assemble is offered`);
+  ok(await page.getByTestId("resume-claim-action-export").isDisabled() && /no output has been assembled yet/.test(await page.getByTestId("resume-claim-release-reason").innerText()), `${tag}: the actions stay blocked until assembled, with the reason said`);
+  await page.getByTestId("resume-claim-assemble").click();
+  await page.waitForFunction(() => document.querySelector('[data-testid="resume-claim-actions"]')?.dataset.release === "allowed", null, { timeout: 5000 });
+  ok(/Output assembled at 20\d\d-/.test(await page.getByTestId("resume-claim-assembled-at").innerText()), `${tag}: the assembly instant is said`);
+  ok(await page.getByTestId("resume-claim-action-export").isEnabled() && await page.getByTestId("resume-claim-action-copy").isEnabled(), `${tag}: with the held output equal to the live evidence, the actions release`);
+  ok(/reads exactly as this workbench reads now/.test(await page.getByTestId("resume-claim-release-reason").innerText()), `${tag}: the released sentence states both quantifiers, the wording and the evidence`);
+  // The WORDING dimension in the browser: editing the saved claim after assembly leaves the cited
+  // refs untouched, so only a gate that compares the text can block (conformance-auditor C-1).
+  await record(page, 0).locator('[data-testid="cpl-claim-input"]').fill("investigated every payments exception");
+  await record(page, 0).locator('[data-testid="cpl-claim-save"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-testid="resume-claim-actions"]')?.dataset.release === "blocked", null, { timeout: 5000 });
+  ok(/wording changed since assembly/.test(await page.getByTestId("resume-claim-release-reason").innerText()) && await page.getByTestId("resume-claim-action-copy").isDisabled(), `${tag}: a claim edited after assembly blocks every action on the wording dimension, with the cited evidence unmoved`);
+  await page.getByTestId("resume-claim-assemble").click();
+  await page.waitForFunction(() => document.querySelector('[data-testid="resume-claim-actions"]')?.dataset.release === "allowed", null, { timeout: 5000 });
+  ok(await page.getByTestId("resume-claim-action-copy").isEnabled(), `${tag}: assembling again adopts the new wording and releases`);
+  await record(page, 0).locator('[data-testid="cpl-claim-input"]').fill("monitored operational data daily");
+  await record(page, 0).locator('[data-testid="cpl-claim-save"]').click();
+  await page.getByTestId("resume-claim-assemble").click();
+  await page.waitForFunction(() => document.querySelector('[data-testid="resume-claim-actions"]')?.dataset.release === "allowed", null, { timeout: 5000 });
+
   // 4. Revoke, approve again.
   before = await noticeText(page);
   await destRow(page, 0, "resume").locator('[data-testid="cpl-dest-revoke"]').click();
   await noticeChanged(page, before);
   await waitDest(page, 0, "resume", "REVOKED");
   ok(/Destination resume revoked at/.test(await noticeText(page)), `${tag}: the revocation is said in words`);
+  await page.waitForFunction(() => document.querySelector('[data-testid="resume-claim-actions"]')?.dataset.release === "blocked", null, { timeout: 5000 });
+  ok((await page.getByTestId("resume-claim-actions").getAttribute("data-stale")) === "true" && /stale/.test(await page.getByTestId("resume-claim-release-reason").innerText()) && await page.getByTestId("resume-claim-action-export").isDisabled(), `${tag}: revoking the destination moves the live evidence away from the held output, so the stale branch FIRES and every action blocks (this is the assertion that dies if the gate compares the output against itself)`);
   eq(await destRow(page, 0, "resume").locator('[data-testid="cpl-dest-state-text"]').innerText(), destinationStateText("REVOKED"), `${tag}: the rendered REVOKED words equal the adapter's`);
   ok(/revoked for resume at .*; approved earlier at/.test(await destRow(page, 0, "resume").locator('[data-testid="cpl-dest-history"]').innerText()), `${tag}: the row keeps the earlier approval in its history`);
   eq(await destRow(page, 0, "resume").locator('[data-testid="cpl-dest-approve"]').innerText(), "Approve again", `${tag}: the control reads approve again from REVOKED`);
@@ -419,6 +450,8 @@ async function runViewport({ name, width, height, phone }) {
   await noticeChanged(page, before);
   await waitDest(page, 0, "resume", "ALLOWED");
   ok(/Destination resume approved at/.test(await noticeText(page)), `${tag}: approve again from REVOKED is accepted through the same gate`);
+  await page.waitForFunction(() => document.querySelector('[data-testid="resume-claim-actions"]')?.dataset.release === "allowed", null, { timeout: 5000 });
+  ok((await page.getByTestId("resume-claim-actions").getAttribute("data-stale")) === "false", `${tag}: once the evidence stands again exactly as held, the held output is current again and releases without re-assembly`);
   before = await noticeText(page);
   await destRow(page, 0, "workSample").locator('[data-testid="cpl-dest-approve"]').click();
   await noticeChanged(page, before);
@@ -469,6 +502,10 @@ async function runViewport({ name, width, height, phone }) {
   ok(/Not carried: 1 record with no approval that stands/.test(await section.innerText()), `${tag}: the excluded record is counted in words`);
   ok(/link standing was not re-checked at print time/.test(await section.innerText()) && !/stands against the current posting evidence/.test(await section.innerText()), `${tag}: nothing in the print section claims a link stands currently`);
   ok(/Candidate proof destinations/.test(await page.getByTestId("print-package-preview").innerText()) && /AI-assisted · human decides/.test(await page.getByTestId("print-package-preview").innerText()), `${tag}: the section is titled and the honesty footer stands`);
+  // Withhold, do not refuse: the print control is never disabled by a ledger condition; the section
+  // withholds instead (Supervisor ruling on #508, conformance-auditor W-5).
+  ok(await page.getByTestId("print-package-action").isEnabled(), `${tag}: the print control is enabled, the package printing with any withheld section rather than refusing`);
+  eq(await page.getByTestId("print-package-fault-notice").count(), 0, `${tag}: with no ledger fault, no fault notice is shown at the control`);
   ok(!/coverLetter|workSample/.test(await section.innerText()), `${tag}: no contract key reaches the print`);
   const printGeometry = await page.evaluate(() => ({ viewport: window.innerWidth, scroll: document.documentElement.scrollWidth }));
   ok(printGeometry.scroll <= printGeometry.viewport + 1, `${tag}: the print package does not overflow the viewport`);

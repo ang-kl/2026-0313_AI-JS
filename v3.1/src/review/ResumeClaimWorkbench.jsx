@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { buildResumeClaimWorkbench } from "./resumeClaimData.js";
 import OutputActions from "./OutputActions.jsx";
-import { outputReleaseGate } from "./outputReleasePolicy.js";
+import { releaseGateFor } from "./outputReleasePolicy.js";
 import BlueprintTracePanel from "../blueprint/BlueprintTracePanel.jsx";
 import { createBlueprintTrace } from "../blueprint/blueprintTraceData.js";
 
@@ -9,7 +9,11 @@ export default function ResumeClaimWorkbench({ ledger, bundle }) {
   const workbench = useMemo(() => buildResumeClaimWorkbench(ledger, bundle), [ledger, bundle]);
   const output = workbench.output;
   const refs = output?.sourceRefs || [];
-  const gate = outputReleaseGate(output, { currentSourceRefs: refs });
+  // The output the actions act on is HELD at the human's assembly; the gate judges it against the
+  // live rebuild, so evidence that moves after assembly blocks release (Supervisor finding on #508).
+  const [held, setHeld] = useState(null);
+  const assemble = () => setHeld({ output: workbench.output, trace: workbench.trace, assembledAt: new Date().toISOString() });
+  const gate = releaseGateFor(held, { output: workbench.output, items: workbench.proposed }, ledger);
   const trace = createBlueprintTrace({ id: "trace:resume-claim", requirement: "BLP-017", component: "Resume claim workbench", sourceIds: refs, status: workbench.proposed.length ? "AVAILABLE" : "WITHHELD", rule: workbench.proposed.length ? "Shown because accepted candidate proof, explicit resume approval and a live job-evidence link all pass." : "Withheld until accepted candidate proof, explicit resume approval and a live job-evidence link all pass.", knownGap: workbench.withheld.length ? `${workbench.withheld.length} candidate claim records do not pass every gate` : null });
   return (
     <section className="rcw-root" data-testid="resume-claim-workbench" aria-label="Resume claim workbench" data-proposed-count={workbench.proposed.length} data-withheld-count={workbench.withheld.length}>
@@ -31,7 +35,7 @@ export default function ResumeClaimWorkbench({ ledger, bundle }) {
         </li>)}
       </ul>
       {workbench.withheld.length > 0 && <details data-testid="resume-claim-withheld"><summary>Withheld claims · {workbench.withheld.length}</summary><ul>{workbench.withheld.map((claim) => <li key={claim.id} data-proof-id={claim.proofId}>{claim.proofId}: {claim.reasons.join("; ")}</li>)}</ul></details>}
-      <OutputActions label="resume-claim" output={output} trace={workbench.trace} gate={gate} />
+      <OutputActions label="resume-claim" held={held} gate={gate} onAssemble={assemble} canAssemble={workbench.proposed.length > 0} nothingToAssemble={workbench.proposed.length === 0} />
     </section>
   );
 }
