@@ -1,6 +1,7 @@
 {
   "name": "ai-job-analyser",
   "version": "5.0.0",
+  "license": "UNLICENSED",
   "private": true,
   "scripts": {
     "dev": "vite",
