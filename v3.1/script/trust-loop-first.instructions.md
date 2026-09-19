@@ -86,7 +86,10 @@ Required changes:
 - Explain the product in plain English, not only technical terms.
 - Name the trust loop.
 - Fix the licence link from `LICENSE.md` to `LICENSE`.
-- Mention that the project is AGPL-3.0 licensed.
+- Mention that the project is proprietary, copyright (c) 2026 Adrian K. L. Ang, all rights
+  reserved. Do NOT describe it as AGPL-3.0: the relicence landed 2026-09-19 and this line
+  said AGPL until then. Releases published before that date remain under the AGPL and any
+  statement about them should say so.
 - Avoid overclaiming accuracy or legal/employment certainty.
 - Avoid presenting the tool as an ATS-gaming product.
 

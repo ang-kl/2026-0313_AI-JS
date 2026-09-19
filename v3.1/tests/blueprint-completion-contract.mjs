@@ -688,7 +688,17 @@ assert(guideHtml.includes('href="V3-Agent-Readable-Feature-Map-Index.html"'), "b
 const headerFields = [
   { name: "Version", md: /^\*\*Version:\*\* (.+)$/m, html: /<strong>Version:<\/strong> ([^<]+)</ },
   { name: "Register snapshot SHA-256", md: /\*\*Register snapshot SHA-256:\*\* `([a-f0-9]{64})`/, html: /<strong>Register snapshot SHA-256:<\/strong> <code>([a-f0-9]{64})<\/code>/ },
-  { name: "Current main observed", md: /\*\*Current main observed:\*\* `([a-f0-9]{7,40})`/, html: /<strong>Current main observed:<\/strong> <code>([a-f0-9]{7,40})<\/code>/ },
+  // RENAMED 2026-09-19 from "Current main observed", which promised a currency the field cannot
+  // have: the guide is inside the commit that would make it current, so that claim was false by
+  // construction the instant it was committed. "Base commit this revision was written against" is
+  // a fact about authorship instead - either right or wrong. The rename is the whole of this
+  // edit; the assertion that the value equals the pull request's base sha is ruled but NOT here,
+  // because it also needs .github/workflows/v31-browser-gate.yml to pass a base sha this contract
+  // is not given today, and the Human Lead held that as its own change.
+  // STILL NOT COVERED, and the reason this field went stale for a whole revision: the check below
+  // asserts only that the Markdown value EQUALS the HTML value. Both copies can be equally stale
+  // and it passes. See guide section 6.8.
+  { name: "Base commit this revision was written against", md: /\*\*Base commit this revision was written against:\*\* `([a-f0-9]{7,40})`/, html: /<strong>Base commit this revision was written against:<\/strong> <code>([a-f0-9]{7,40})<\/code>/ },
 ];
 for (const field of headerFields) {
   const inMd = guideMarkdown.match(field.md);
