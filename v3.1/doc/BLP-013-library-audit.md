@@ -1,9 +1,9 @@
 # BLP-013 - audit of the delivered-but-unconsumed review-state library
 
-**Status: RULED by the Blueprint Supervisor 2026-09-20 10:03 SGT (Part II). Adoption
-approved as shaped. No engine code has been written. The remaining block is not the
-Supervisor but the Human Lead: three questions in Part II sections 7 and 8 must be
-with them before the build reaches the parts they touch.**
+**Status: RULED by the Blueprint Supervisor 2026-09-20 10:03 SGT (Part II), and the
+three escalated questions ANSWERED by the Human Lead 2026-09-20 10:10 SGT (Part III).
+Adoption approved as shaped. The build is unblocked except for one version-bump
+authorisation named in Part III.**
 
 | | |
 |---|---|
@@ -425,3 +425,74 @@ the exact mutation that survived**, recorded with the failure it now produces.
 No engine code until escalations (i), (ii) and (iii) are with the Human Lead. Their
 answers are not needed to begin the parts those questions do not touch; the questions
 must be **asked before the build reaches them**, not after.
+
+
+---
+
+# Part III - Human Lead decisions on the three escalated questions
+
+Put to the Human Lead 2026-09-20 10:10 SGT with the Supervisor's defaults stated, and
+answered in the same turn. Each answer is recorded as given, with what it settles and
+what it deliberately leaves alone.
+
+## 12. The decisions
+
+**(i) `undone` - REMOVE IT.** The Human Lead took the Supervisor's default. `"undone"`
+comes out of `REVIEW_ITEM_STATUS`. An undo restores the item to the status it held
+before - escalated, accepted, open - and the vocabulary now describes the engine that
+exists rather than one that was declared and never built.
+
+*Settled:* the vocabulary, and with it the honesty of the status list.
+*Owed regardless:* the line-30 test is replaced by one that drives an undo and reads
+the projected status, per the Supervisor's ruling that the test was owed in either
+branch.
+*STILL OPEN AND BLOCKING THAT ONE CHANGE:* removing a member from a frozen exported
+vocabulary is a contract change. `REVIEW_STATE_VERSION` is `"1.0.0"` and under
+CLAUDE.md Rule V-1 the bump is the Human Lead's to authorise, on the
+LEDGER_VERSION / ADAPTER_VERSION precedent. Under `bump_decision` this reads as
+`breaking_API_change` - a consumer switching on `"undone"` would break - which points
+to `2.0.0` rather than `1.1.0`. **Surfaced per Rule V-2 and not chosen here.** Every
+other obligation proceeds; this single edit waits on the bump.
+
+**(ii) No-text merge - DETERMINISTIC.** The Human Lead took the Supervisor's ruling
+over this audit's original recommendation. A merge with no supplied text produces a
+`DETERMINISTIC` overlay; a merge with supplied text produces `USER_AUTHORED`. Both
+branches get an assertion that can fail.
+
+*Recorded as a change, not an adoption*, per the Supervisor's record conditions, with
+its reason: labelling the overlay of a `SYSTEM_ACTOR` / `DETERMINISTIC` change event
+`USER_AUTHORED` when no human supplied a character of the string was an internal
+inconsistency in the library, not a conservative choice.
+*Declared as a protected-scope touch* on *"deterministic and AI provenance
+separation"*, in the direction of sharpening it.
+*Deliberately NOT taken:* the third option, glossing the raw schema tokens wherever a
+person meets them. So the measured finding in section 7 stands unremedied and is
+recorded here as **known, owned and out of scope**: a person opening the "Inspect
+evidence and overclaim risk" disclosure in `ResumeClaimWorkbench.jsx:34` still reads
+the literal string `USER_AUTHORED`, a token written for a schema. That is a candidate
+for its own requirement and must not be quietly folded into BLP-013.
+
+**(iii) Split - BUILD AS-IS, LABEL IT HONESTLY.** BLP-013 builds the engine that
+exists: parts the person authors, citing the parent, never an offset-based division of
+the source text. The control must say so in the product's own words.
+
+*Settled:* the engine, and that the wording is mine to draft rather than to bring back.
+*Standing constraint from the Supervisor, unaffected by the answer:* a control
+labelled "Split" that a reader takes as dividing the source text would be the
+interface misleading them. The disclosure is a requirement of the build, not a
+courtesy, and the browser suite must assert the disclosure is present - otherwise the
+honesty obligation rests on a string nobody checks, which is the shape this audit
+exists to refuse.
+
+## 13. Build status after Part III
+
+| Obligation (section 9) | Blocked? |
+|---|---|
+| 1-6, kill M06, M08, M09, M20, M21, M24 | No - proceed |
+| 7, tighten the line-203 assertion | No - proceed |
+| 8, relabel across all five origins | No - proceed |
+| 9, multi-source merge fixture | No - proceed |
+| 10, the `undone` test | No - proceed; branch decided by (i) |
+| 11, both merge-origin branches | No - proceed; decided by (ii) |
+| **Removing `"undone"` from `REVIEW_ITEM_STATUS`** | **YES - waits on the `REVIEW_STATE_VERSION` bump authorisation** |
+| Studio controls for the eight verbs | No - proceed, with the (iii) disclosure |
