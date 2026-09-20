@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { ORIGIN, createReviewChange } from "../src/contracts/evidenceContracts.js";
+import { ORIGIN, createReviewChange, sha256Hex } from "../src/contracts/evidenceContracts.js";
 import { LOCAL_HUMAN_ACTOR } from "../src/review/reviewerContract.js";
 import {
   FIRST_CLASS_REVIEW_OPERATIONS,
@@ -27,7 +27,7 @@ const spans = [
 ];
 
 deq(FIRST_CLASS_REVIEW_OPERATIONS, ["split", "merge", "relabel", "escalate", "withhold", "resolve", "reopen", "undo"], "the eight BLP-013 operations are explicit and ordered");
-ok(REVIEW_ITEM_STATUS.includes("withheld") && REVIEW_ITEM_STATUS.includes("undone"), "projection states disclose withheld and undone rather than folding them into open");
+ok(REVIEW_ITEM_STATUS.includes("withheld"), "the projection discloses withholding as its own state rather than folding it into open");
 eq(REVIEW_STATE_VERSION, "1.0.0", "review state contract is versioned");
 
 let state = createReviewState({ sourceId, sourceText, spans });
@@ -199,8 +199,10 @@ eq(overlapMerge.state.spans[0], originalSpans[0], "the first overlapping source 
 eq(overlapMerge.state.spans[2], originalSpans[2], "the second overlapping source span remains immutable");
 state = overlapMerge.state;
 
-const replacedSource = { ...state, source: Object.freeze({ ...state.source, text: `${state.source.text} changed`, textHash: state.source.textHash }) };
-ok(!validateReviewTransition(state, replacedSource).ok && validateReviewTransition(state, replacedSource).errors.some((error) => /source/.test(error)), "a source-text mutation fails transition validation");
+const swappedText = `${state.source.text} changed`;
+const replacedSource = { ...state, source: Object.freeze({ ...state.source, text: swappedText, textHash: sha256Hex(swappedText) }) };
+ok(validateReviewState(replacedSource).errors.every((error) => !/source/.test(error)), "the swapped source is internally consistent, so state validation raises no source error and cannot satisfy the assertion below");
+deq(validateReviewTransition(state, replacedSource).errors.filter((error) => /source/.test(error)), ["review source is immutable across transitions"], "a self-consistent source swap is caught by the transition guard itself, named exactly");
 const rewrittenHistory = { ...state, history: state.history.map((event, index) => index === 0 ? { ...event, reason: "rewritten" } : event) };
 ok(!validateReviewTransition(state, rewrittenHistory).ok && validateReviewTransition(state, rewrittenHistory).errors.some((error) => /unchanged prefix/.test(error)), "rewriting an earlier event fails append-only validation");
 const shortenedHistory = { ...state, history: state.history.slice(1) };
@@ -227,5 +229,108 @@ const staleState = createReviewState({ sourceId, sourceText, spans: [{ ...spans[
 const staleSeed = seedReviewEvent(staleState, createReviewChange({ id: "stale-seed", kind: "comment", verb: "comment", targetSpanIds: [spans[0].id], reviewerId: "reviewer:ai-exposure", reason: "stale fixture", createdAt: t(1), evidenceSpanIds: [spans[0].id], origin: ORIGIN.DETERMINISTIC })).state;
 const staleResult = applyReviewOperation(staleSeed, { verb: "withhold", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "stale-seed", targetSpanIds: [spans[0].id], reason: "stale" }, t(2));
 ok(!staleResult.ok && /stale target/.test(staleResult.error), "a stale span cannot be acted on or upgraded");
+
+// ---------------------------------------------------------------------------
+// BLP-013 obligations. Each entry below closes a gap the audit measured: a
+// mutation of the library that the delivered suite did not notice. The comment
+// on each names the mutation it must kill, so a later reader can re-run the
+// harness and check the remedy against the survivor it claims to close.
+// ---------------------------------------------------------------------------
+
+// OBLIGATION 1 - kills M06 (relabel accepts an empty label).
+reject({ verb: "relabel", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-relabel", targetSpanIds: [spans[1].id], label: "   " }, t(34), /relabel requires a non-empty label/, "relabel with a whitespace-only label is refused");
+
+// OBLIGATION 2 - kills M08 (resolve permitted from any status). seed-reject is
+// rejected and its latest event is the reject decision, so every earlier guard
+// passes and only the resolve precondition can refuse this.
+reject({ verb: "resolve", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: rejected.eventIds[0], targetSpanIds: [spans[2].id], reason: "rejected items are not resolvable" }, t(35), /resolve requires an open, escalated or withheld item; .* is rejected/, "resolve is refused on a rejected item");
+
+// OBLIGATION 3 - kills M09 (reopen permitted from any status). A freshly seeded
+// item is open and its own seed is its latest event, so only the reopen
+// precondition can refuse this.
+const openSeed = seedReviewEvent(state, createReviewChange({ id: "seed-open", kind: "comment", verb: "comment", targetSpanIds: [spans[2].id], reviewerId: "reviewer:ai-exposure", reason: "an item left open", createdAt: t(36), evidenceSpanIds: [spans[2].id], origin: ORIGIN.DETERMINISTIC }));
+ok(openSeed.ok, "an open item is seeded for the reopen precondition");
+state = openSeed.state;
+reject({ verb: "reopen", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-open", targetSpanIds: [spans[2].id], reason: "already open" }, t(37), /reopen requires a closed, escalated or withheld item; .* is open/, "reopen is refused on an item that is already open");
+
+// OBLIGATION 6 - kills M24 (split accepts more than one target span).
+reject({ verb: "split", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-open", targetSpanIds: [spans[0].id, spans[1].id], parts: ["first", "second"], reason: "two targets" }, t(38), /split requires one target/, "split naming two target spans is refused");
+
+// OBLIGATION 4 - kills M20 (the relabel invariant in validateReviewState). That
+// invariant is defensive: no state the library builds can violate it, so it is
+// unreachable without hand-building the violation.
+const forgedRelabel = { ...state, overlays: state.overlays.map((overlay) => overlay.operation === "relabel" ? { ...overlay, origin: ORIGIN.USER_AUTHORED } : overlay) };
+ok(!validateReviewState(forgedRelabel).ok && validateReviewState(forgedRelabel).errors.some((error) => /relabel overlay .* changed provenance/.test(error)), "a relabel overlay whose origin differs from its parent is refused by state validation");
+
+// OBLIGATION 5 - kills M21 (the overlay half of append-only). The suite already
+// covers the history prefix; nothing covered overlays.
+const rewrittenOverlay = { ...state, overlays: state.overlays.map((overlay, index) => index === 0 ? { ...overlay, text: "rewritten overlay text" } : overlay) };
+ok(!validateReviewTransition(state, rewrittenOverlay).ok && validateReviewTransition(state, rewrittenOverlay).errors.some((error) => /overlays must preserve every earlier overlay as an unchanged prefix/.test(error)), "rewriting an earlier overlay fails append-only validation");
+
+// OBLIGATION 8 - relabel origin inheritance across ALL FIVE origins. The
+// delivered check hardcoded SOURCE_VERBATIM against fixtures that were all
+// SOURCE_VERBATIM, so it could not tell inheritance from a constant.
+for (const [name, origin] of Object.entries(ORIGIN)) {
+  const parentId = `span:origin:${name}`;
+  let originState = createReviewState({ sourceId, sourceText, spans: [{ id: parentId, sourceId, text: spans[0].text, evidenceSpanIds: [parentId], origin }] });
+  originState = seedReviewEvent(originState, createReviewChange({ id: `seed-origin-${name}`, kind: "proposal", verb: "relabel", targetSpanIds: [parentId], reviewerId: LOCAL_HUMAN_ACTOR.id, reason: `Relabel fixture for ${name}`, createdAt: t(1), evidenceSpanIds: [parentId], origin: ORIGIN.DETERMINISTIC, proposedText: "Proposed relabel" })).state;
+  const relabelled = applyReviewOperation(originState, { verb: "relabel", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: `seed-origin-${name}`, targetSpanIds: [parentId], label: "Reviewer label", reason: "Origin inheritance fixture" }, t(2));
+  ok(relabelled.ok, `relabel succeeds over a ${name} parent`);
+  eq(relabelled.state.overlays.find((overlay) => overlay.operation === "relabel").origin, origin, `relabel inherits the parent's ${name} provenance instead of asserting a constant`);
+}
+
+// OBLIGATION 9 - merge across two sources. Criterion (2) is "preserve all source
+// and parent identifiers"; every delivered merge fixture shared one source.
+const twoSourceSpans = [
+  { id: "span:multi:a", sourceId, text: spans[0].text, evidenceSpanIds: ["span:multi:a"], origin: ORIGIN.SOURCE_VERBATIM },
+  { id: "span:multi:b", sourceId: "src:posting:second-source", text: spans[1].text, evidenceSpanIds: ["span:multi:b"], origin: ORIGIN.SOURCE_VERBATIM },
+];
+let multiState = createReviewState({ sourceId, sourceText, spans: twoSourceSpans });
+multiState = seedReviewEvent(multiState, createReviewChange({ id: "seed-multi", kind: "proposal", verb: "merge", targetSpanIds: ["span:multi:a", "span:multi:b"], reviewerId: "reviewer:process-redesign", reason: "Two-source merge fixture", createdAt: t(1), evidenceSpanIds: ["span:multi:a", "span:multi:b"], origin: ORIGIN.DETERMINISTIC, proposedText: "Proposed merge" })).state;
+const multiMerge = applyReviewOperation(multiState, { verb: "merge", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-multi", targetSpanIds: ["span:multi:a", "span:multi:b"], text: "One duty drawn from two postings", reason: "The same duty appears in both" }, t(2));
+ok(multiMerge.ok, "a merge may cite spans from two different sources");
+const multiOverlay = multiMerge.state.overlays.find((overlay) => overlay.operation === "merge");
+deq(multiOverlay.sourceIds, [sourceId, "src:posting:second-source"], "a two-source merge preserves BOTH source identifiers");
+eq(multiOverlay.sourceId, null, "a two-source merge withholds the singular sourceId rather than silently picking one");
+deq(multiOverlay.parentSpanIds, ["span:multi:a", "span:multi:b"], "a two-source merge preserves both parent identifiers");
+ok(validateReviewState(multiMerge.state).ok, "the two-source merge state validates");
+
+// OBLIGATION 10 - the replacement for the check whose subject could not fail it.
+// Drives an undo and reads the PROJECTION, rather than asserting membership of a
+// frozen array. True both before and after "undone" leaves the vocabulary.
+const undoFixture = applyReviewOperation(state, { verb: "escalate", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-open", targetSpanIds: [spans[2].id], reason: "Escalated so the undo has a prior status to restore" }, t(39));
+ok(undoFixture.ok, "an item is escalated so that undo has a prior status to restore");
+eq(projectReviewItems(undoFixture.state).find((item) => item.id === "seed-open").status, "escalated", "the fixture item is escalated before the undo");
+const undoneItem = applyReviewOperation(undoFixture.state, { verb: "undo", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: undoFixture.eventIds[0], targetSpanIds: [spans[2].id], reason: "The escalation was accidental" }, t(40));
+ok(undoneItem.ok, "undo appends a reversal event");
+const afterUndo = projectReviewItems(undoneItem.state).find((item) => item.id === "seed-open").status;
+eq(afterUndo, "open", "undo restores the status the item held before the reversed event");
+ok(afterUndo !== "undone", "an undone item projects as its RESTORED status and never as \"undone\" - the status no operation can produce");
+ok(!projectReviewItems(undoneItem.state).some((item) => item.status === "undone"), "no projected item anywhere carries the unreachable \"undone\" status");
+
+// OBLIGATION 11 - the merge-origin branches. Supervisor ruling (ii), taken by the
+// Human Lead: ORIGIN says how a STRING came to exist, not who decided to make it.
+// A merge with no supplied text is a deterministic join of the parents' own text and
+// no human wrote a character of it, so it reads DETERMINISTIC. A merge whose text the
+// person typed reads USER_AUTHORED. Split parts are always typed, so they stay
+// USER_AUTHORED - that is correct rather than merely conservative.
+let originState2 = createReviewState({ sourceId, sourceText, spans });
+for (const [id, verb, targets] of [["seed-join", "merge", [spans[0].id, spans[1].id]], ["seed-typed", "merge", [spans[0].id, spans[1].id]], ["seed-parts", "split", [spans[2].id]]]) {
+  originState2 = seedReviewEvent(originState2, createReviewChange({ id, kind: "proposal", verb, targetSpanIds: targets, reviewerId: "reviewer:process-redesign", reason: `Origin-branch fixture ${id}`, createdAt: t(1), evidenceSpanIds: targets, origin: ORIGIN.DETERMINISTIC, proposedText: "Proposed" })).state;
+}
+const joined = applyReviewOperation(originState2, { verb: "merge", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-join", targetSpanIds: [spans[0].id, spans[1].id], reason: "No text supplied; the engine joins the parents" }, t(2));
+ok(joined.ok, "a merge with no supplied text succeeds");
+const joinedOverlay = joined.state.overlays.find((overlay) => overlay.operation === "merge");
+eq(joinedOverlay.text, `${spans[0].text}; ${spans[1].text}`, "a merge with no supplied text joins the parents' own text deterministically");
+eq(joinedOverlay.origin, ORIGIN.DETERMINISTIC, "a merge no human wrote reads DETERMINISTIC, not USER_AUTHORED");
+
+const typed = applyReviewOperation(joined.state, { verb: "merge", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-typed", targetSpanIds: [spans[0].id, spans[1].id], text: "One operating-control duty", reason: "The person wrote the merged text" }, t(3));
+ok(typed.ok, "a merge with supplied text succeeds");
+const typedOverlay = typed.state.overlays.find((overlay) => overlay.text === "One operating-control duty");
+eq(typedOverlay.origin, ORIGIN.USER_AUTHORED, "a merge whose text the person typed reads USER_AUTHORED");
+
+const partsSplit = applyReviewOperation(typed.state, { verb: "split", actorId: LOCAL_HUMAN_ACTOR.id, predecessorId: "seed-parts", targetSpanIds: [spans[2].id], parts: ["Own the exception queue", "Write the variance note"], reason: "The person authors both parts" }, t(4));
+ok(partsSplit.ok, "a split succeeds");
+ok(partsSplit.state.overlays.filter((overlay) => overlay.operation === "split" && overlay.createdByEventId === partsSplit.eventIds[1]).every((overlay) => overlay.origin === ORIGIN.USER_AUTHORED), "split parts read USER_AUTHORED because the person types them");
 
 console.log(`Review-state contract: PASS, ${checks} checks`);
