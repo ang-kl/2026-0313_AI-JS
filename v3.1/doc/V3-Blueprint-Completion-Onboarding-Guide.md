@@ -1,14 +1,14 @@
 # V3.1 Blueprint Completion: Onboarding and Delivery Guide
 
 **Document ID:** `GUIDE-V3-BLUEPRINT-COMPLETION-001`  
-**Version:** 1.0.36  
+**Version:** 1.0.37  
 **Prepared:** 2026-09-08 (SGT)  
 **Repository:** [`ang-kl/2026-0313_AI-JS`](https://github.com/ang-kl/2026-0313_AI-JS)  
 **Product surface:** [`https://v3.takearoundabout.com`](https://v3.takearoundabout.com)  
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
-**Current main observed:** `8642b22cdfb89f02e546ec63b143a698d98dbb67` (`fix(v3.1): an eighth focus control, a defect the fix introduced, and three record corrections (#513)`)  
+**Base commit this revision was written against:** `64eaed288b4bda7580f12827eeb80176ce9f3a37` (`record(v3.1): two post-merge findings by Codex, annotated not amended (#515)`)  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `fd9d1c69a92be1e1e933cc7538a8cfad4a6fc3677050fe59ff5115a716588478`  
+**Register snapshot SHA-256:** `866dcc825c4d5559fb30d7b3670a0bbc0c0d0a62c1640bb2f03508afa6385750`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
