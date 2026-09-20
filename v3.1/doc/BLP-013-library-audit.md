@@ -1,7 +1,9 @@
 # BLP-013 - audit of the delivered-but-unconsumed review-state library
 
-**Status: DRAFT, UNDER SUPERVISOR REVIEW. Not ruled. No engine code has been
-written and none will be until the Blueprint Supervisor rules on this document.**
+**Status: RULED by the Blueprint Supervisor 2026-09-20 10:03 SGT (Part II). Adoption
+approved as shaped. No engine code has been written. The remaining block is not the
+Supervisor but the Human Lead: three questions in Part II sections 7 and 8 must be
+with them before the build reaches the parts they touch.**
 
 | | |
 |---|---|
@@ -58,6 +60,20 @@ adversarial as the person who wrote it - the twenty-four defects below are the o
 I thought of, and their passing does not mean a twenty-fifth would be caught. Both
 limits are stated here rather than discovered later.
 
+**And the first limit has a measured instance inside this very audit, which the draft
+stated and did not apply to itself.** The Supervisor found it. **M05 was killed, and
+the test that killed it is still wrong.** Line 107 hardcodes `ORIGIN.SOURCE_VERBATIM`,
+so it would pass against an implementation that ignores the parent entirely; M05 died
+only because it substituted a *different* constant. Therefore:
+
+> **A killed mutant does not certify its test.** Seventeen kills tell us seventeen
+> specific defects would be caught. They do not tell us the seventeen assertions say
+> what their messages say. **The survivors tell you where there is no check; the kills
+> do not tell you the checks are right.**
+
+That governs how the table below must be read, and it is repeated in the register
+entry for the same reason.
+
 ---
 
 ## 2. Mutation results: 17 killed, 7 survived
@@ -93,6 +109,11 @@ limits are stated here rather than discovered later.
 deliberate defects were each caught. That is a real result and it counts in the
 library's favour. The seven survivors are gaps in the **suite**, and each one leaves
 a branch of the ruled criteria unverified.
+
+**Read the 17 with the limit from section 1 attached.** They are evidence about the
+library's *behaviour*, not a clean bill for the *assertions* that caught it - M05 is
+the proof, having been killed by a test that is itself wrong. Nothing in this document
+should be read as saying the delivered suite verifies the adopted elements.
 
 ### 2.1 What each survivor leaves unverified
 
@@ -247,10 +268,13 @@ Per Q1(b) each element is named with the observation that would have failed it.
 | `validateReviewState` - relabel invariant | removed | **not shown - M20 survived** | **Adopt pending** |
 | `refusal` | appends history | M23 | **Adopt** |
 
-**Summary.** Fourteen elements adopt on evidence shown. Four adopt **pending** a test
-that can fail, which this build must write before any of them may be counted. One
-element - the status vocabulary - cannot be adopted unchanged, because it declares a
-state no operation produces.
+**Summary.** Fourteen elements adopt **on behavioural evidence with the instrument's
+limit named**: the mutations show the behaviour survives those defects; they do not
+show the delivered assertions say what they claim. Six adopt **pending** a test that
+can fail - the four above, plus relabel-across-origins and multi-source merge, which
+the Supervisor promoted from probe findings to obligations. One element, the status
+vocabulary, cannot be adopted unchanged because it declares a state no operation
+produces.
 
 **No element was found that fails a criterion outright.** On the evidence of
 twenty-four adversarial probes and three direct ones, the library's *behaviour*
@@ -294,3 +318,110 @@ have told us so.
 `scratchpad/blp013/probe.mjs` (3 probes). Both are throwaway measurement tools, not
 deliverables; the tests this build owes the register are the ones named in section 4
 and they will live in `v3.1/tests/`.*
+
+
+---
+
+# Part II - Supervisor ruling on this audit, and what it obliges
+
+Ruled 2026-09-20 10:03 SGT. The Supervisor independently re-verified M22, probe 1,
+probe 2 and M21 against the artefacts before ruling. Adoption is **approved as
+shaped**. What follows is binding on the build.
+
+## 7. The measurement the ruling asked for: is `origin` surfaced to a person?
+
+The Supervisor attached a condition to ruling (ii) - *"if `origin` is surfaced to a
+person anywhere in the product, put it to the Human Lead before building it. I have
+not checked whether it is, and you should."*
+
+**Measured: yes, in one place today, and as a raw machine token.**
+
+| Site | How it appears | Visible to a person? |
+|---|---|---|
+| `review/ResumeClaimWorkbench.jsx:34` | `authorship: {claim.authorship.origin} · {claim.authorship.actorId}` inside the "Inspect evidence and overclaim risk" disclosure | **Yes** - renders the literal constant, e.g. `USER_AUTHORED`, fed from `resumeClaimData.js:76` |
+| `ReviewStudioLegacy.jsx:33` | `data-window-origin={r.origin || ""}` | No - DOM attribute only |
+| `PrintPackage.jsx:32` | `data-window-origin={r.origin || ""}` | No - DOM attribute, but it travels in the print package |
+
+Two consequences. First, the vocabulary is already reaching a reader unglossed: a
+person opening that disclosure sees `USER_AUTHORED`, a token written for a schema.
+Second - and this is what the condition turns on - **review-overlay origin is not
+surfaced today only because the studio has no verb controls at all.** BLP-013 adds
+them. Whether the eight-verb controls disclose an overlay's origin is therefore a
+decision this build makes, not one it inherits, and ruling (ii) is escalated to the
+Human Lead accordingly.
+
+## 8. The five questions, as ruled
+
+**(i) `undone` - two faults, separated.** The *test* must be replaced in either branch
+of the product question, by an assertion that drives an operation and reads the
+projected status; that is owed, not escalated. The *vocabulary* declares a state the
+engine cannot produce, and the default ruling is to **remove `"undone"` from
+`REVIEW_ITEM_STATUS`**, because folding an undone item back to its prior status is
+the behaviour that exists and is defensible. Escalated to the Human Lead as a narrow
+question with that default. Noted for them: `REVIEW_STATE_VERSION` is `"1.0.0"` and
+removing a member from a frozen exported vocabulary is a contract change, so the
+version bump is reserved to them on the LEDGER_VERSION / ADAPTER_VERSION precedent.
+
+**(ii) No-text merge - DETERMINISTIC, departing from this audit's recommendation.**
+The audit recommended leaving it `USER_AUTHORED` as conservative. The Supervisor
+ruled otherwise and the reasoning is better than mine: `ORIGIN` says how a *string*
+came to exist, not who decided to make it, and the library already separates those -
+the decision event carries `reviewerId: request.actorId` with `USER_AUTHORED`, the
+system change event carries `SYSTEM_ACTOR` with `DETERMINISTIC`. Labelling the
+overlay produced by that deterministic change `USER_AUTHORED` when no human supplied
+a character of it is an **internal inconsistency inside the library**, not a
+conservative choice. Ruled: no supplied text produces a `DETERMINISTIC` overlay;
+supplied text produces `USER_AUTHORED`; both branches asserted by a test that can
+fail. Declared as a **protected-scope touch** on *"deterministic and AI provenance
+separation"*, in the direction of sharpening it. Escalated per section 7.
+
+**(iii) Split - build what exists, disclose it regardless.** BLP-013 builds the engine
+that exists: parts the person authors, citing the parent. Changing what "split" means
+to a user is not this build's decision. The audit's reading that `USER_AUTHORED` is
+*correct* for those parts, not merely conservative, is adopted. **But the disclosure
+is not optional:** if the studio offers a control labelled "Split" and a person
+expects the source text to be divided, the interface is lying to them. The control
+must say, in the product's own words, that splitting replaces one span with parts you
+write which cite the original, and does not divide the source text. That stands
+whatever the Human Lead rules on the meaning.
+
+**(iv) A failing test suffices, and is not a licence.** The survivors are gaps in the
+instrument, not faults in the behaviour; replacing working code because its test was
+weak would discard proven behaviour under the felt authority of having found
+something. The condition is specific: **each new test must be demonstrated killing
+the exact mutation that survived**, recorded with the failure it now produces.
+
+**(v) Disposal untriggered.** `reviewState.js` is not to be deleted.
+
+## 9. The obligations, as a checklist with a falsification against each
+
+| # | Owed | Falsification required |
+|---|---|---|
+| 1 | empty-label guard for `relabel` | new test kills **M06** |
+| 2 | `resolve` status precondition | new test kills **M08** |
+| 3 | `reopen` status precondition | new test kills **M09** |
+| 4 | relabel invariant in `validateReviewState` | new test kills **M20** |
+| 5 | overlay half of append-only | new test kills **M21** |
+| 6 | `split` one-target rule | new test kills **M24** |
+| 7 | **tighten** the existing line-203 assertion | mutate text *and* hash consistently so `validateReviewState` passes and only `:257` can fire, or match the exact message - **a new test beside a loose one leaves the loose one for the next reader** |
+| 8 | relabel origin inheritance | parametrised over all five origins, with fixtures that are **not** all `SOURCE_VERBATIM` |
+| 9 | merge across two sources | fixtured; criterion (2) is *"preserve all source and parent identifiers"* |
+| 10 | `undone` test | drives an operation and reads the projected status, in either branch of the product question |
+| 11 | merge origin branches | both asserted, per ruling (ii) |
+
+## 10. Record conditions
+
+- Adopted elements are recorded as adopted **by this build**. `61531dc` is cited as
+  the **origin of the material and never as provenance**. BLP-013's
+  `implementationCommit` is the commit this build produces.
+- The 17 kills are recorded with the section 1 limit beside them, **M05 named** as the
+  instance that proves it.
+- Every element **changed** - the `undone` vocabulary, the merge origin, and whatever
+  the pending tests expose - is recorded as a change with its reason, never as an
+  adoption.
+
+## 11. Blocking
+
+No engine code until escalations (i), (ii) and (iii) are with the Human Lead. Their
+answers are not needed to begin the parts those questions do not touch; the questions
+must be **asked before the build reaches them**, not after.
