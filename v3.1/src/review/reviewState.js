@@ -167,7 +167,18 @@ function structuralOverlays(state, request, changeId) {
   const parents = targetRows(state, unique(request.targetSpanIds));
   const sourceIds = unique(parents.map((row) => row.sourceId));
   const evidenceSpanIds = unique(parents.flatMap((row) => row.evidenceSpanIds));
-  const origin = request.verb === "relabel" ? parents[0].origin : ORIGIN.USER_AUTHORED;
+  // BLP-013. ORIGIN records how the STRING came to exist, not who decided to make it -
+  // the decision event already carries the actor. A relabel inherits its parent's
+  // provenance and can never change it. A split's parts are typed by the person, so
+  // USER_AUTHORED is correct rather than merely conservative. A merge with no supplied
+  // text is a deterministic join of the parents' own text, which no human wrote a
+  // character of; labelling that USER_AUTHORED was an inconsistency inside this library,
+  // because the change event producing it carries SYSTEM_ACTOR and DETERMINISTIC.
+  // Supervisor ruling (ii), taken by the Human Lead 2026-09-20.
+  const humanAuthoredText = request.verb === "merge" ? Boolean(clean(request.text)) : true;
+  const origin = request.verb === "relabel"
+    ? parents[0].origin
+    : (humanAuthoredText ? ORIGIN.USER_AUTHORED : ORIGIN.DETERMINISTIC);
   const rows = request.verb === "split"
     ? request.parts.map((part, index) => ({ text: clean(part?.text || part), label: clean(part?.label) || null, index }))
     : [{ text: request.verb === "merge" ? clean(request.text) || parents.map((row) => row.text).join("; ") : parents[0].text, label: request.verb === "relabel" ? clean(request.label) : null, index: 0 }];
