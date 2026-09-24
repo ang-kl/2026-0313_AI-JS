@@ -20,10 +20,26 @@ and §4 (result-page gates) exist only here.
 
 ```yaml
 contract:
-  version: 1.5.0
+  version: 1.5.1
   supersedes: CLAUDE-FULL.md v0.0.3
-  last_updated: 22-08 '26   # see git log for this file's exact commit timestamp
+  last_updated: 24-09 '26   # see git log for this file's exact commit timestamp
   changelog:
+    - version: 1.5.1
+      date: 24-09 '26
+      covers: [CLAUDE.md section 2, CLAUDE-protocol.md section 3, script/claude-code-deploy-prompt.txt section 3]
+      change: >
+        Paragraph numbering rewritten to the scheme the Human Lead set on 24-09 '26:
+        every paragraph ends in a mark that carries the reply serial (¶N·n), the
+        letter appears only under points the reply itself letters (¶N·x·n), and
+        section headers (§N·A) no longer change the marks beneath them. The earlier
+        ¶A·1 form tied a paragraph to its section letter, so a bare reference like
+        "¶B·2" was ambiguous across replies; the new mark is self-locating. Changed
+        in all three files that state the rule, because a rule corrected in one copy
+        and left in the others is the defect this repo has met before. The
+        CLAUDE-protocol.md copy is meant to be identical across repos, so the other
+        repos' copies need the same section 3 text to stay in step.
+        Bump rationale: copy_change (patch). Reporting format only; no code, data or
+        gate changed. Rule V-1: confirmation is the draft PR review, as for 1.4.0.
     - version: 1.5.0
       date: 22-08 '26
       covers: [scripts/count-interactions.js, script/claude-code-deploy-prompt.txt, serial rebase records]
@@ -336,14 +352,23 @@ reached count here at the end, because the file is the ledger and a container is
 
 ## 2. Section and paragraph numbering
 
-Once a reply has two or more distinct points, letter its sections and number paragraphs within each:
+Tag every substantive paragraph, numbered point or bullet with a paragraph mark at its END, carrying the reply serial:
 
 ```
-§N·A    - section A of reply N (B, C, ... for further sections)
-¶A·1    - paragraph 1 within section A (restarts at 1 per section)
+¶N·n      - paragraph n of reply N (n restarts at 1 in each reply, runs on through the whole reply)
+¶N·x·n    - paragraph n under lettered point (x) of reply N; ONLY when the reply itself lays out points (a), (b), (c)
+§N·A      - section header A of reply N (B, C, ... for further sections); only in replies long enough to need sections
 ```
 
-`§N·A` (with the reply number) marks a section header; `¶A·1` (with the section letter) marks a paragraph inside it. A bare `§n` with no dot (e.g. `§7`) is a spec/document section reference, not a reply address - the presence of a reply number or section letter plus a dot disambiguates. Short one-point replies need no markers.
+Examples: `¶877·1`, `¶877·2`; `¶877·b·1` for the first paragraph under point (b); `§876·A`. N carries the thousands comma (`¶1,024·3`).
+
+- The mark is a suffix, not a prefix, and is never bracketed. The `¶A·1` section-letter form of 23-07 '26 and the bracketed `[§N·A·n]` form used briefly on 24-09 '26 are both retired.
+- The letter is not part of the default mark. A section header does not change the marks beneath it; paragraphs continue `¶N·1, ¶N·2, ...` across sections, so "expand ¶877·2" needs no section context.
+- The lettered form exists only for points the reply itself letters; n restarts at 1 under each letter.
+- A bare `§n` with no dot (e.g. `§7`) is a spec/document section reference, not a reply address.
+- One-line replies carry the serial only.
+
+Source: Human Lead, 24-09 '26 (replies № 876 and № 877). The same text is in `CLAUDE-protocol.md` §3 and `script/claude-code-deploy-prompt.txt` §3, so every session in this repo reads one rule.
 
 ---
 
