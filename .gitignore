@@ -8,3 +8,8 @@ dist/
 
 # Playwright evidence written by the v3.1 browser suites; CI uploads it as an artefact, git never carries it
 v3.1/test-results/
+
+# flow-kit runtime state
+.claude/flow/.cache.json
+.claude/flow/approvals/
+.claude/flow/backups/

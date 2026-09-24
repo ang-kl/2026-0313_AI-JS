@@ -789,3 +789,11 @@ on_first_response_of_session:
 ---
 
 > **For Human Readers:** This file is intentionally written for machine parsing first. The structure is rigid because Claude Code reads it on every session start and must produce deterministic behaviour. If you find a rule unclear or unhelpful, propose an amendment via §13. Rules exist to protect the build trail, not to slow you down. §15 is included specifically because experiencing a drift cascade once is informative; experiencing it twice is failure to learn.
+
+<!-- flow-kit v0.1.1 · appended 24-09 '26 11:33 SGT · do not edit this block by hand; re-run the installer to upgrade -->
+## Build Flow (flow-kit)
+This repo runs the six-stage build flow: Intent → Interpretation → Assumptions → Invariants → Execution → Evidence.
+- Rules: `.claude/rules/flow.md` (loaded automatically, at the same priority as this file, and re-injected after compaction).
+- Enforcement: hooks and permission rules in `.claude/settings.json`; skills `/flow-spec` and `/flow-check`.
+- On any conflict between those rules and other instructions in this repo, raise a FLOW ALERT and ask rather than choosing.
+<!-- /flow-kit -->
