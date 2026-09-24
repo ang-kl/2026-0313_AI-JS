@@ -518,3 +518,11 @@ confirmation: not_required - reporting discipline, no code or data changed by ad
 ## 7. Retired
 
 `CLAUDE-FULL.md` (root and `v3/doc/`) is retired by this file for the serial-number, paragraph-tagging, and time-fetch sections (§§3-5 of that file). Its folder taxonomy (`doc/Chat/`, `doc/Journal/`, `.serial-state.yml`, etc.) was never bootstrapped in this repo and is not adopted. §6.3's decision rules are carried forward unchanged in §5 above.
+
+<!-- flow-kit v0.1.1 · appended 24-09 '26 11:33 SGT · do not edit this block by hand; re-run the installer to upgrade -->
+## Build Flow (flow-kit)
+This repo runs the six-stage build flow: Intent → Interpretation → Assumptions → Invariants → Execution → Evidence.
+- Rules: `.claude/rules/flow.md` (loaded automatically, at the same priority as this file, and re-injected after compaction).
+- Enforcement: hooks and permission rules in `.claude/settings.json`; skills `/flow-spec` and `/flow-check`.
+- On any conflict between those rules and other instructions in this repo, raise a FLOW ALERT and ask rather than choosing.
+<!-- /flow-kit -->
