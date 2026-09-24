@@ -86,14 +86,23 @@ than invent.
 
 ## 3. Paragraph numbering
 
-Once a reply carries 2+ distinct points:
+Tag every substantive paragraph, numbered point or bullet with a mark at
+its END that carries the reply serial:
 
-- Letter sections `§N·A`, `§N·B`, ... where N is the reply serial.
-- Number paragraphs within each section `¶A·1`, `¶A·2`, ... restarting
-  at 1 per section.
-- Skip markers on short single-point replies.
+- `¶N·n` — paragraph n of reply N; n restarts at 1 in each reply and runs
+  on through the whole reply, sections included (`¶877·1`, `¶877·2`).
+- `¶N·x·n` — paragraph n under lettered point (x); used ONLY when the reply
+  itself lays out points (a), (b), (c); n restarts at 1 under each letter
+  (`¶877·b·1`).
+- `§N·A`, `§N·B`, ... — section headers, only in replies long enough to
+  need sections. A section header does not change the marks beneath it.
+- N carries the thousands comma (`¶1,024·3`). One-line replies carry the
+  serial only.
 
-This enables references like "expand §1,774·B ¶B·2".
+The mark is a suffix, never a prefix, and never bracketed. The earlier
+`¶A·1` (section-letter) form and the bracketed `[§N·A·n]` form are
+retired. This enables references like "expand ¶877·2" with no section
+context needed. Changed 24-09 '26 at the owner's request.
 
 ## 4. Agent count — measured from the same transcript
 
